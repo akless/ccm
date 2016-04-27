@@ -1,2 +1,2 @@
 # ccm-components
-Einstiegspunkt für angehende ccm-Komponentenentwickler.
+Einstiegspunkt für angehende _ccm_-Komponentenentwickler.
