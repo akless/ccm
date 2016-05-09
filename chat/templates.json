@@ -11,12 +11,12 @@
       {
         "tag": "div",
         "class": "name",
-        "inner": "%name"
+        "inner": "%name%"
       },
       {
         "tag": "div",
         "class": "text",
-        "inner": "%text"
+        "inner": "%text%"
       }
     ]
   },
@@ -38,7 +38,7 @@
             { "tag": "input", "class": "input", "placeholder": "Enter message here..." },
             { "tag": "input", "class": "button", "type": "submit", "value": "Send" }
           ],
-          "onsubmit": "%onsubmit"
+          "onsubmit": "%onsubmit%"
         }
       }
     ]
