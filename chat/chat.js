@@ -11,7 +11,7 @@ ccm.component( {
 
     html:  [ ccm.store, { local: 'templates.json' } ],
     key:   'test',
-    store: [ ccm.store, { url: 'ws://ccm.inf.h-brs.de:8080/sandbox.js', store: 'chat' } ],
+    store: [ ccm.store, { url: 'ws://ccm.inf.h-brs.de:808/sandbox.js', store: 'chat' } ],
     style: [ ccm.load, 'style.css' ],
     user:  [ ccm.instance, 'https://kaul.inf.h-brs.de/ccm/components/user.js' ]
 
