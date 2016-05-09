@@ -1,0 +1,30 @@
+/**
+ * @overview default style of ccm component for simple chats
+ * @author André Kless <andre.kless@web.de.de> 2016
+ */
+
+.ccm-chat > .messages {
+
+  display: table;
+  padding: 0.5em;
+
+}
+
+.ccm-chat > .messages > div {
+
+  display: table-row;
+
+}
+
+.ccm-chat > .messages > div > div {
+
+  display: table-cell;
+
+}
+
+.ccm-chat > .messages > .message > .name:after {
+
+  content: ':';
+  padding-right: 0.5em;
+
+}

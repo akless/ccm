@@ -1,0 +1,13 @@
+{
+  "key": "test",
+  "messages": [
+    {
+      "text": "Hello, World!",
+      "user": "akless"
+    },
+    {
+      "text": "My second message.",
+      "user": "akless"
+    }
+  ]
+}
