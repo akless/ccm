@@ -35,8 +35,17 @@
         "inner": {
           "tag": "form",
           "inner": [
-            { "tag": "input", "class": "input", "placeholder": "Enter message here..." },
-            { "tag": "input", "class": "button", "type": "submit", "value": "Send" }
+            {
+              "tag": "input",
+              "class": "input",
+              "placeholder": "Enter message here..."
+            },
+            {
+              "tag": "input",
+              "class": "button",
+              "type": "submit",
+              "value": "Send"
+            }
           ],
           "onsubmit": "%onsubmit%"
         }
