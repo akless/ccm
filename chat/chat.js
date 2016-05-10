@@ -2,7 +2,6 @@
  * @overview ccm component for simple chats
  * @author André Kless <andre.kless@web.de> 2016
  */
-
 ccm.component( {
 
   name: 'chat',
