@@ -1,7 +1,7 @@
 {
   "main": {
-      "tag": "div",
-      "class": "messages"
+    "tag": "div",
+    "class": "messages"
   },
 
   "message": {
