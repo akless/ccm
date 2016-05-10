@@ -3,11 +3,11 @@
   "messages": [
     {
       "text": "Hello, World!",
-      "user": "akless"
+      "name": "akless"
     },
     {
       "text": "My second message.",
-      "user": "akless"
+      "name": "akless"
     }
   ]
 }
