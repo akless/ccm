@@ -8,11 +8,11 @@ ccm.component( {
 
   config: {
 
-    html:  [ ccm.store, { local: './templates.json' } ],
+    html:  [ ccm.store, { local: 'templates.json' } ],
     key:   'test',
     store: [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
-    style: [ ccm.load, './style.css' ],
-    user:  [ ccm.instance, 'http://akless.github.io/ccm-developer/resources/ccm.user.min.js' ]
+    style: [ ccm.load, 'style.css' ],
+    user:  [ ccm.instance, 'https://kaul.inf.h-brs.de/ccm/components/user.js' ]
 
   },
 
@@ -20,7 +20,7 @@ ccm.component( {
 
     var self = this;
 
-    this.init = function ( callback ) {
+    self.init = function ( callback ) {
 
       self.store.onChange = function () { self.render(); };
 
@@ -82,7 +82,7 @@ ccm.component( {
 
       } );
 
-    }
+    };
 
   }
 
