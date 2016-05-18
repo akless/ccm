@@ -8,7 +8,7 @@ ccm.component( {
 
   config: {
 
-    html:  [ ccm.store, { local: 'http://akless.github.io/ccm-developer/chat/templates.json' } ],
+    html:  [ ccm.store, { local: 'http://akless.github.io/ccm-developer/chat/templates.js' } ],
     key:   'test',
     store: [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
     style: [ ccm.load, 'http://akless.github.io/ccm-developer/chat/style.css' ],
