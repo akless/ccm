@@ -8,10 +8,10 @@ ccm.component( {
 
   config: {
 
-    html:  [ ccm.store, { local: 'http://akless.github.io/ccm-developer/resources/ccm.chat.templates.json' } ],
+    html:  [ ccm.store, { local: 'templates.json' } ],
     key:   'test',
     store: [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
-    style: [ ccm.load, 'http://akless.github.io/ccm-developer/resources/ccm.chat.style.css' ],
+    style: [ ccm.load, 'style.css' ],
     user:  [ ccm.instance, 'https://kaul.inf.h-brs.de/ccm/components/user.js' ]
 
   },
