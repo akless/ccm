@@ -1,23 +1,55 @@
 /**
  * @overview blank template for ccm components
  * @author André Kless <andre.kless@web.de> 2016
+ * @license The MIT License (MIT)
  */
 ccm.component( {
 
+  /*-------------------------------------------- public component members --------------------------------------------*/
+
+  /**
+   * @summary unique component name
+   * @memberOf ccm.components.blank
+   * @type {ccm.type.name}
+   */
   name: 'blank',
 
+  /*-------------------------------------------- public component classes --------------------------------------------*/
+
+  /**
+   * @summary constructor for creating <i>ccm</i> instances out of this component
+   * @class
+   */
   Instance: function () {
 
+    /*------------------------------------------- public instance methods --------------------------------------------*/
+
+    /**
+     * @summary render content in own website area
+     * @param {function} [callback] - callback when content is rendered
+     */
     this.render = function ( callback ) {
 
+      /**
+       * website area for own content
+       * @type {ccm.type.element}
+       */
       var element = ccm.helper.element( this );
 
+      // set content of own website area
       element.html( 'Hello, World!' );
 
+      // perform callback
       if ( callback ) callback();
 
     }
 
   }
+
+  /*------------------------------------------------ type definitions ------------------------------------------------*/
+
+  /**
+   * @namespace ccm.components.blank
+   */
 
 } );
