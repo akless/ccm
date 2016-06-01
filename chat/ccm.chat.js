@@ -1,5 +1,5 @@
 /**
- * @overview ccm component for simple chats
+ * @overview <i>ccm</i> component for simple chats
  * @author André Kless <andre.kless@web.de> 2016
  * @license The MIT License (MIT)
  */

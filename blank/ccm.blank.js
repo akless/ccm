@@ -1,5 +1,5 @@
 /**
- * @overview blank template for ccm components
+ * @overview blank template for <i>ccm</i> components
  * @author André Kless <andre.kless@web.de> 2016
  * @license The MIT License (MIT)
  */
