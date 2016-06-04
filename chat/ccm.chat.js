@@ -21,10 +21,10 @@ ccm.component( {
    */
   config: {
 
-    html:  [ ccm.store, { local: 'templates.json' } ],
+    html:  [ ccm.store, { local: './templates.json' } ],
     key:   'test',
     store: [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
-    style: [ ccm.load, 'style.css' ],
+    style: [ ccm.load, './style.css' ],
     user:  [ ccm.instance, 'https://kaul.inf.h-brs.de/ccm/components/user2.js' ]
 
   },
