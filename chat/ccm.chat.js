@@ -3,21 +3,20 @@
  * @author André Kless <andre.kless@web.de> 2016
  * @license The MIT License (MIT)
  */
-ccm.component( {
+
+ccm.component( /** @lends ccm.components.chat */ {
 
   /*-------------------------------------------- public component members --------------------------------------------*/
 
   /**
    * @summary component name
-   * @memberOf ccm.components.chat
-   * @type {ccm.type.name}
+   * @type {ccm.types.name}
    */
   name: 'chat',
 
   /**
    * @summary default instance configuration
-   * @memberOf ccm.components.chat
-   * @type {ccm.components.chat.config}
+   * @type {ccm.components.chat.types.config}
    */
   config: {
 
@@ -54,7 +53,7 @@ ccm.component( {
      * This method will be removed by <i>ccm</i> after the one-time call.
      * @param {function} callback - callback when this instance is initialized
      */
-    self.init = function ( callback ) {
+    this.init = function ( callback ) {
 
       // listen to change event of ccm realtime datastore => update own content
       self.store.onChange = function () { self.render(); };
@@ -68,11 +67,11 @@ ccm.component( {
      * @summary render content in own website area
      * @param {function} [callback] - callback when content is rendered
      */
-    self.render = function ( callback ) {
+    this.render = function ( callback ) {
 
       /**
        * website area for own content
-       * @type {ccm.type.element}
+       * @type {ccm.types.element}
        */
       var element = ccm.helper.element( self );
 
@@ -92,7 +91,7 @@ ccm.component( {
 
           /**
            * website area for already existing messages
-           * @type {ccm.type.element}
+           * @type {ccm.types.element}
            */
           var messages_div = ccm.helper.find( self, '.messages' );
 
@@ -161,15 +160,28 @@ ccm.component( {
    */
 
   /**
+   * @namespace ccm.components.chat.types
+   */
+
+  /**
    * @summary <i>ccm</i> instance configuration
-   * @typedef {ccm.type.config} ccm.components.chat.config
-   * @property {ccm.type.element} element - <i>ccm</i> instance website area
-   * @property {ccm.type.dependency} html - <i>ccm</i> datastore for html templates
-   * @property {ccm.type.url} style - URL to a css file which contains the styles for own website area
+   * @typedef {ccm.types.config} ccm.components.chat.config
+   * @property {ccm.types.element} element - <i>ccm</i> instance website area
+   * @property {ccm.types.dependency} html - <i>ccm</i> datastore for html templates
+   * @property {ccm.types.url} style - URL to a css file which contains the styles for own website area
    * @property {string} classes - html classes for own website area
-   * @property {ccm.type.dependency} store - <i>ccm</i> datastore that contains the [dataset for rendering]{@link ccm.components.chat.dataset}
-   * @property {ccm.type.key} key - key of [dataset for rendering]{@link ccm.components.chat.dataset}
-   * @property {ccm.type.dependency} user - <i>ccm</i> instance for user authentification
+   * @property {ccm.types.dependency} store - <i>ccm</i> datastore that contains the [dataset for rendering]{@link ccm.components.chat.types.dataset}
+   * @property {ccm.types.key} key - key of [dataset for rendering]{@link ccm.components.chat.types.dataset}
+   * @property {ccm.types.dependency} user - <i>ccm</i> instance for user authentification
+   * @example {
+   *   element: jQuery( 'body' ),
+   *   html:    [ ccm.store, { local: './templates.json' } ],
+   *   style:   [ ccm.load, './style.css' ],
+   *   classes: 'ccm-chat',
+   *   store:   [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
+   *   key:     'test',
+   *   user:    [ ccm.instance, 'https://kaul.inf.h-brs.de/ccm/components/user2.js' ]
+   * }
    */
 
   /**
@@ -201,6 +213,11 @@ ccm.component( {
    *   text: 'Hello, World!',
    *   user: 'akless'
    * }
+   */
+
+  /**
+   * @external ccm.types
+   * @see {@link http://akless.github.io/ccm-developer/api/ccm/ccm.types.html}
    */
 
 } );

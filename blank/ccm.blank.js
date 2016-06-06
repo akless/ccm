@@ -3,13 +3,13 @@
  * @author André Kless <andre.kless@web.de> 2016
  * @license The MIT License (MIT)
  */
-ccm.component( {
+
+ccm.component( /** @lends ccm.components.blank */ {
 
   /*-------------------------------------------- public component members --------------------------------------------*/
 
   /**
    * @summary unique component name
-   * @memberOf ccm.components.blank
    * @type {ccm.type.name}
    */
   name: 'blank',
@@ -50,6 +50,11 @@ ccm.component( {
 
   /**
    * @namespace ccm.components.blank
+   */
+
+  /**
+   * @external ccm.types
+   * @see {@link http://akless.github.io/ccm-developer/api/ccm/ccm.types.html}
    */
 
 } );
