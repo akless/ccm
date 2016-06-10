@@ -100,7 +100,7 @@ ccm.component( /** @lends ccm.components.chat */ {
 
             /**
              * message dataset
-             * @type {ccm.components.chat.type.message}
+             * @type {ccm.components.chat.types.message}
              */
             var message = dataset.messages[ i ];
 
@@ -165,7 +165,7 @@ ccm.component( /** @lends ccm.components.chat */ {
 
   /**
    * @summary <i>ccm</i> instance configuration
-   * @typedef {ccm.types.config} ccm.components.chat.type.config
+   * @typedef {ccm.types.config} ccm.components.chat.types.config
    * @property {ccm.types.element} element - <i>ccm</i> instance website area
    * @property {ccm.types.dependency} html - <i>ccm</i> datastore for html templates
    * @property {ccm.types.url} style - URL to a css file which contains the styles for own website area
@@ -186,8 +186,8 @@ ccm.component( /** @lends ccm.components.chat */ {
 
   /**
    * @summary dataset for rendering
-   * @typedef {ccm.type.dataset} ccm.components.chat.types.dataset
-   * @property {ccm.type.key} key - dataset key
+   * @typedef {ccm.types.dataset} ccm.components.chat.types.dataset
+   * @property {ccm.types.key} key - dataset key
    * @property {ccm.components.chat.types.message[]} messages - already existing [message dataset]{@link ccm.components.chat.types.message}s
    * @example {
    *   key: 'test',
@@ -206,7 +206,7 @@ ccm.component( /** @lends ccm.components.chat */ {
 
   /**
    * @summary message dataset
-   * @typedef {ccm.type.dataset} ccm.components.chat.types.message
+   * @typedef {ccm.types.dataset} ccm.components.chat.types.message
    * @property {string} text - message text
    * @property {string} user - username of creator
    * @example {
