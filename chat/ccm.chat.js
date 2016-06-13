@@ -20,10 +20,10 @@ ccm.component( /** @lends ccm.components.chat */ {
    */
   config: {
 
-    html:  [ ccm.store, { local: './templates.json' } ],
+    html:  [ ccm.store, { local: '../chat/templates.json' } ],
     key:   'test',
     store: [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
-    style: [ ccm.load, './style.css' ],
+    style: [ ccm.load, '../chat/style.css' ],
     user:  [ ccm.instance, 'https://kaul.inf.h-brs.de/ccm/components/user2.js' ]
 
   },
