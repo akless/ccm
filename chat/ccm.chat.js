@@ -168,7 +168,7 @@ ccm.component( /** @lends ccm.components.chat */ {
    * @typedef {ccm.types.config} ccm.components.chat.types.config
    * @property {ccm.types.element} element - <i>ccm</i> instance website area
    * @property {ccm.types.dependency} html - <i>ccm</i> datastore for html templates
-   * @property {ccm.types.url} style - URL to a css file which contains the styles for own website area
+   * @property {ccm.types.dependency} style - css for own website area
    * @property {string} classes - html classes for own website area
    * @property {ccm.types.dependency} store - <i>ccm</i> datastore that contains the [dataset for rendering]{@link ccm.components.chat.types.dataset}
    * @property {ccm.types.key} key - key of [dataset for rendering]{@link ccm.components.chat.types.dataset}
