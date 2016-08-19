@@ -20,11 +20,13 @@ ccm.component( /** @lends ccm.components.chat */ {
    */
   config: {
 
-    html:  [ ccm.store, { local: '../chat/templates.json' } ],
-    key:   'test',
-    store: [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
-    style: [ ccm.load, '../chat/style.css' ],
-    user:  [ ccm.instance, 'https://kaul.inf.h-brs.de/ccm/components/user2.js' ]
+    html:    [ ccm.store, { local: '../chat/templates.json' } ],
+    data: {
+      store: [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
+      key:   'test'
+    },
+    style:   [ ccm.load, '../chat/style.css' ],
+    user:    [ ccm.instance, 'https://kaul.inf.h-brs.de/ccm/components/user2.js' ]
 
   },
 
@@ -56,7 +58,7 @@ ccm.component( /** @lends ccm.components.chat */ {
     this.init = function ( callback ) {
 
       // listen to change event of ccm realtime datastore => update own content
-      self.store.onChange = function () { self.render(); };
+      self.data.store.onChange = function () { self.render(); };
 
       // perform callback
       callback();
@@ -76,11 +78,11 @@ ccm.component( /** @lends ccm.components.chat */ {
       var element = ccm.helper.element( self );
 
       // get dataset for rendering
-      self.store.get( self.key, function ( dataset ) {
+      self.data.store.get( self.data.key, function ( dataset ) {
 
         // dataset not exists? => create new dataset with given key
         if ( dataset === null )
-          self.store.set( { key: self.key, messages: [] }, proceed );
+          self.data.store.set( { key: self.data.key, messages: [] }, proceed );
         else
           proceed( dataset );
 
@@ -133,7 +135,7 @@ ccm.component( /** @lends ccm.components.chat */ {
               dataset.messages.push( { user: self.user.data().key, text: value } );
 
               // update dataset for rendering in datastore
-              self.store.set( dataset, function () { self.render(); } );
+              self.data.store.set( dataset, function () { self.render(); } );
 
             } );
 
@@ -170,16 +172,18 @@ ccm.component( /** @lends ccm.components.chat */ {
    * @property {ccm.types.dependency} html - <i>ccm</i> datastore for html templates
    * @property {ccm.types.dependency} style - css for own website area
    * @property {string} classes - html classes for own website area
-   * @property {ccm.types.dependency} store - <i>ccm</i> datastore that contains the [dataset for rendering]{@link ccm.components.chat.types.dataset}
-   * @property {ccm.types.key} key - key of [dataset for rendering]{@link ccm.components.chat.types.dataset}
+   * @property {ccm.types.dependency} data.store - <i>ccm</i> datastore that contains the [dataset for rendering]{@link ccm.components.chat.types.dataset}
+   * @property {ccm.types.key} data.key - key of [dataset for rendering]{@link ccm.components.chat.types.dataset}
    * @property {ccm.types.dependency} user - <i>ccm</i> instance for user authentification
    * @example {
    *   element: jQuery( 'body' ),
    *   html:    [ ccm.store, { local: './templates.json' } ],
    *   style:   [ ccm.load, './style.css' ],
    *   classes: 'ccm-chat',
-   *   store:   [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
-   *   key:     'test',
+   *   data: {
+   *     store: [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
+   *     key:   'test'
+   *   },
    *   user:    [ ccm.instance, 'https://kaul.inf.h-brs.de/ccm/components/user2.js' ]
    * }
    */
