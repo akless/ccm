@@ -25,7 +25,7 @@ ccm.component( /** @lends ccm.components.chat */ {
       store: [ ccm.store, { url: 'ws://ccm2.inf.h-brs.de/index.js', store: 'chat' } ],
       key:   'test'
     },
-    style:   [ ccm.load, '../chat/style.css' ],
+    style:   [ ccm.load, '../chat/default.css' ],
     user:    [ ccm.instance, 'https://kaul.inf.h-brs.de/ccm/components/user2.js', { sign_on: 'demo' } ]
 
   },
