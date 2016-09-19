@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.8.0)
+ * @version latest (6.8.1)
  * @changes
+ * version 6.8.1 (19.09.2016):
+ * - bugfix for ccm custom elements with array or object values in attributes
  * version 6.8.0 (19.09.2016):
  * - ccm datastores knows her source
  * - add getter method for source to ccm datastores
@@ -981,7 +983,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 8, 0 ],
+    version: [ 6, 8, 1 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -1566,7 +1568,7 @@ ccm = function () {
           var config = {};
           for ( var i = 0; i < this.attributes.length; i++ ) {
             var value = this.attributes[ i ].value;
-            try { config[ this.attributes[ i ].name ] = typeof value === 'string' ? value : JSON.parse( value ); } catch ( err ) {}
+            try { config[ this.attributes[ i ].name ] = value.charAt( 0 ) === '{' || value.charAt( 0 ) === '[' ? JSON.parse( value ) : value; } catch ( err ) {}
           }
           config.element = jQuery( this );
           component.render( config );
