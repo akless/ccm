@@ -1561,7 +1561,7 @@ ccm = function () {
             try { config[ this.attributes[ i ].name ] = typeof value === 'string' ? value : JSON.parse( value ); } catch ( err ) {}
           }
           config.element = jQuery( this );
-          component.render( config, console.log );
+          component.render( config );
         };
         document.registerElement( 'ccm-' + component.index, { prototype: tag } );
 
@@ -1648,7 +1648,7 @@ ccm = function () {
             if ( prev_cfg ) prev_cfg[ prev_key ] = instance;    // set instance in instance configuration (previous recursive level)
             if ( parent ) instance.parent = parent;             // set parent instance
             if ( !result ) result = instance;                   // set result instance
-            console.log( 'ccm.instance->recursive->result', ccm.helper.clone( result ) );
+            //console.log( 'ccm.instance->recursive->result', ccm.helper.clone( result ) );
 
             // config created instance
             instance.id = components[ index ].instances;                  // set ccm instance id
@@ -1656,7 +1656,7 @@ ccm = function () {
             instance.component = components[ index ];                     // set ccm component reference
             ccm.helper.integrate( components[ index ].config, instance ); // set default ccm instance configuration
             if ( cfg ) ccm.helper.integrate( cfg, instance );             // integrate ccm instance configuration
-            console.log( 'ccm.instance->recursive->integrate', ccm.helper.clone( result ) );
+            //console.log( 'ccm.instance->recursive->integrate', ccm.helper.clone( result ) );
 
             switch ( instance.element ) {
               case 'name': instance.element = ccm.helper.find( parent, '.' + instance.component.name ); break;
@@ -1844,7 +1844,7 @@ ccm = function () {
              * @param {function} callback
              */
             function initialize( instance, callback ) {
-              console.log( ccm.helper.clone( instance ) );
+              //console.log( ccm.helper.clone( instance ) );
 
               /**
                * founded ccm instances
