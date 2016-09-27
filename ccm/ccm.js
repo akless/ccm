@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.9.0)
+ * @version latest (6.9.1)
  * @changes
+ * version 6.9.1 (27.09.2016):
+ * - allow attribute "src" in ccm custom elements in more cases
  * version 6.9.0 (27.09.2016):
  * - add interpreter algorithm for inner HTML structure of an ccm custom element
  * - ccm load dependencies accept more than one resource and serial/parallel loading
@@ -987,7 +989,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 9, 0 ],
+    version: [ 6, 9, 1 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -1593,7 +1595,10 @@ ccm = function () {
               function catchAttributes( node, obj ) {
 
                 Array.prototype.slice.call( node.attributes ).map( function ( attr ) {
-                  if ( attr.name !== 'src' )
+                  if ( attr.name !== 'src' ||
+                     ( node.tagName.indexOf( 'CCM-COMPONENT' ) !== 0
+                    && node.tagName.indexOf( 'CCM-INSTANCE'  ) !== 0
+                    && node.tagName.indexOf( 'CCM-PROXY'     ) !== 0 ) )
                     try { obj[ attr.name ] = attr.value.charAt( 0 ) === '{' || attr.value.charAt( 0 ) === '[' ? JSON.parse( attr.value ) : attr.value; } catch ( err ) {}
                 } );
 
