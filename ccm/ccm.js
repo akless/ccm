@@ -17,8 +17,11 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.10.0)
+ * @version latest (6.10.1)
  * @changes
+ * version 6.10.1 (27.09.2016):
+ * - bugfix in interpreter algorith for inner HTML structure of an ccm custom element
+ * - very hard to find internal bugfix
  * version 6.10.0 (27.09.2016):
  * - improve interpreter algorithm for inner HTML structure of an ccm custom element
  * - add helper method "ccm.helper.makeIterable"
@@ -1583,6 +1586,7 @@ ccm = function () {
           tag.createdCallback = function () {
 
             var node = this.parentElement;
+            if ( !node ) return;
             do {
               if ( node.tagName && node.tagName.indexOf( 'CCM-' ) === 0 )
                 return;
@@ -2053,7 +2057,7 @@ ccm = function () {
                 var obj = results[ i ]; i++;
 
                 // result is not initialized? => perform init function and check next result afterwards (recursive call)
-                if ( obj.init ) obj.init( init ); else init();
+                if ( obj.init ) obj.init( function () { delete obj.init; init(); } ); else init();
 
               }
 
