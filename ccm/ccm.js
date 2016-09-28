@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.10.2)
+ * @version latest (6.10.3)
  * @changes
+ * version 6.10.3 (28.09.2016):
+ * - very very hard to find internal bugfix
  * version 6.10.2 (28.09.2016):
  * - recursive search for 'ccm-' tags in inner normal tags of an ccm custom element
  * version 6.10.1 (27.09.2016):
@@ -997,7 +999,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 10, 2 ],
+    version: [ 6, 10, 3 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -1723,7 +1725,6 @@ ccm = function () {
      * @example ccm.instance( 'ccm.chat.js', { key: 'demo' }, function ( instance ) {...} );
      */
     instance: function ( component, config, callback ) {
-      //console.log( 'ccm.instance', arguments );
 
       // ccm instance configuration is a function? => configuration is callback
       if ( typeof config === 'function' ) { callback = config; config = undefined; }
@@ -1756,7 +1757,6 @@ ccm = function () {
        * @returns {ccm.types.instance} created instance (only if synchron)
        */
       function recursive( comp, cfg, prev_cfg, prev_key, parent ) {
-        //console.log( 'ccm.instance->recursive', arguments );
 
         /**
          * component index
@@ -1792,15 +1792,13 @@ ccm = function () {
             if ( prev_cfg ) prev_cfg[ prev_key ] = instance;    // set instance in instance configuration (previous recursive level)
             if ( parent ) instance.parent = parent;             // set parent instance
             if ( !result ) result = instance;                   // set result instance
-            //console.log( 'ccm.instance->recursive->result', ccm.helper.clone( result ) );
 
             // configure created instance
-            ccm.helper.integrate( components[ index ].config, instance ); // set default ccm instance configuration
-            if ( cfg ) ccm.helper.integrate( cfg, instance );             // integrate ccm instance configuration
-            instance.id = components[ index ].instances;                  // set ccm instance id
-            instance.index = index + '-' + instance.id;                   // set ccm instance index
-            instance.component = components[ index ];                     // set ccm component reference
-            //console.log( 'ccm.instance->recursive->integrate', ccm.helper.clone( result ) );
+            ccm.helper.integrate( ccm.helper.clone( components[ index ].config ), instance );  // set default ccm instance configuration
+            if ( cfg ) ccm.helper.integrate( cfg, instance );   // integrate ccm instance configuration
+            instance.id = components[ index ].instances;        // set ccm instance id
+            instance.index = index + '-' + instance.id;         // set ccm instance index
+            instance.component = components[ index ];           // set ccm component reference
 
             switch ( instance.element ) {
               case 'name': instance.element = ccm.helper.find( parent, '.' + instance.component.name ); break;
@@ -1993,7 +1991,6 @@ ccm = function () {
              * @param {function} callback
              */
             function initialize( instance, callback ) {
-              //console.log( ccm.helper.clone( instance ) );
 
               /**
                * founded ccm instances
