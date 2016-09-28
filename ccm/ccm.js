@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.10.1)
+ * @version latest (6.10.2)
  * @changes
+ * version 6.10.2 (28.09.2016):
+ * - recursive search for 'ccm-' tags in inner normal tags of an ccm custom element
  * version 6.10.1 (27.09.2016):
  * - bugfix in interpreter algorith for inner HTML structure of an ccm custom element
  * - very hard to find internal bugfix
@@ -995,7 +997,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 10, 1 ],
+    version: [ 6, 10, 2 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -1600,7 +1602,7 @@ ccm = function () {
 
               var config = {};
               catchAttributes( node, config );
-              catchInnerTags();
+              catchInnerTags( node );
               return config;
 
               function catchAttributes( node, obj ) {
@@ -1615,7 +1617,7 @@ ccm = function () {
 
               }
 
-              function catchInnerTags() {
+              function catchInnerTags( node ) {
 
                 ccm.helper.makeIterable( node.children ).map( function ( child ) {
                   if ( child.tagName && child.tagName.indexOf( 'CCM-' ) === 0 ) {
@@ -1660,6 +1662,8 @@ ccm = function () {
                         break;
                     }
                   }
+                  else
+                    catchInnerTags( child );
                 } );
 
                 function interpretLoadTag( node ) {
