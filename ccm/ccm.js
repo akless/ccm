@@ -17,8 +17,11 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.10.3)
+ * @version latest (6.11.0)
  * @changes
+ * version 6.11.0 (30.09.2016):
+ * - automatically loading of a polyfill if custom elements not supported
+ * - update ccm.helper.dataset (accepts now dataset directly)
  * version 6.10.3 (28.09.2016):
  * - very very hard to find internal bugfix
  * version 6.10.2 (28.09.2016):
@@ -104,6 +107,12 @@ if ( !window.jQuery ) {
   // load synchron
   else document.write( '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>' );
 
+}
+
+// no custom elements support? => load polyfill
+if ( !( 'registerElement' in document ) ) {
+  document.write('<script src="//cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js"><\/script>');
+  document.write('<script src="//cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"><\/script>');
 }
 
 // set keyframe for ccm loading icon animation
@@ -999,7 +1008,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 10, 3 ],
+    version: [ 6, 11, 0 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -2474,32 +2483,36 @@ ccm = function () {
       },
 
       /**
-       * @summary get dataset for rendering (not generalized yet)
-       * @description get dataset using self.store and self.key and return it or returns new dataset if not exists
-       * @param {ccm.types.instance} self - <i>ccm</i> instance that need the dataset for rendering
-       * @param {function} callback - callback (first parameter is result dataset)
-       * @ignore
+       * @summary get dataset via object informations
+       * @description
+       * If the object informations includes a <i>ccm</i> datastore and key and
+       * if dataset not exists, a new dataset with given key will be created.
+       * @param {object} obj - object with informations how to get the dataset
+       * @param {function} [callback] - callback (first parameter is result dataset)
+       * @returns {ccm.types.dataset} resulting dataset (only if synchron and dataset exists)
        */
-      dataset: function ( self, callback ) {
+      dataset: function ( obj, callback ) {
 
-        // get dataset
-        if ( self && self.store && self.key ) self.store.get( self.key || null, function ( dataset ) {
+        // no object => abort
+        if ( !ccm.helper.isObject( obj ) ) { if ( callback ) callback(); return undefined; }
 
-          // dataset not exists? => create new dataset (could be asynchron)
-          if ( dataset === null ) self.store.set( { key: self.key }, proceed ); else proceed( dataset );
+        // object is dataset directly? => return dataset
+        if ( !ccm.helper.isDatastore( obj.store ) ) { if ( callback ) callback( obj ); return obj; }
+
+        // get dataset from ccm datastore
+        return obj.store.get( obj.key || null, function ( dataset ) {
+
+          // dataset not exists? => create new dataset
+          if ( dataset === null ) obj.store.set( { key: obj.key }, proceed ); else proceed( dataset );
 
           function proceed( dataset ) {
 
-            // store dataset key in ccm instance
-            self.key = dataset.key;
-
-            // perform callback
+            // perform callback with resulting dataset
             if ( callback ) callback( dataset );
 
           }
 
         } );
-        else if ( callback ) callback();
 
       },
 
