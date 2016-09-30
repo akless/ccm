@@ -17,18 +17,16 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.11.0)
+ * @version latest (6.11.1)
  * @changes
+ * version 6.11.1 (30.09.2016):
+ * - another very hard to find bugfix
  * version 6.11.0 (30.09.2016):
  * - automatically loading of a polyfill if custom elements not supported
  * - update ccm.helper.dataset (accepts now dataset directly)
- * version 6.10.3 (28.09.2016):
- * - very very hard to find internal bugfix
- * version 6.10.2 (28.09.2016):
  * - recursive search for 'ccm-' tags in inner normal tags of an ccm custom element
- * version 6.10.1 (27.09.2016):
  * - bugfix in interpreter algorith for inner HTML structure of an ccm custom element
- * - very hard to find internal bugfix
+ * - two very hard to find internal bugfixes
  * version 6.10.0 (27.09.2016):
  * - improve interpreter algorithm for inner HTML structure of an ccm custom element
  * - add helper method "ccm.helper.makeIterable"
@@ -671,10 +669,7 @@ ccm = function () {
        * result dataset
        * @type {ccm.types.dataset}
        */
-      var dataset = my.local[ key ] || null;
-
-      // clone result dataset
-      if ( dataset ) dataset = Array.isArray( dataset ) ? dataset.slice( 0 ) : ccm.helper.clone( my.local[ key ] );
+      var dataset = ccm.helper.clone( my.local[ key ] ) || null;
 
       // solve data dependencies
       solveDependencies( dataset, callback );
@@ -772,7 +767,7 @@ ccm = function () {
         check();
 
         /**
-         * searchs array or object for dependencies (recursive)
+         * search array or object for dependencies (recursive)
          * @param {Array|Object} array_or_object
          */
         function search( array_or_object ) {
@@ -790,7 +785,7 @@ ccm = function () {
             if ( ccm.helper.isDependency( value ) ) solveDependency( array_or_object, key ) ;
 
             // value is an array? => search array elements for data dependencies
-            else if ( typeof value === 'object' && value !== null ) search( value );  // recursive call
+            else if ( Array.isArray( value ) || ccm.helper.isObject( value ) ) search( value );  // recursive call
 
           }
 
@@ -1008,7 +1003,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 11, 0 ],
+    version: [ 6, 11, 1 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
