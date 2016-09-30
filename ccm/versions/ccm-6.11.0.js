@@ -3,28 +3,84 @@
  * @author André Kless <andre.kless@web.de> 2014-2016
  * @copyright Copyright (c) 2014-2016 André Kless
  * @license
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
- * and associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, publish, distribute, sublicense, and/or sell
- * (<b>NOT MODIFY OR MERGE</b>) copies of the Software, and to permit persons to whom the Software is furnished
- * to do so, subject to the following conditions:
+ * The MIT License (MIT)
+ * Copyright (c) 2014-2016 André Kless
  *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
- * All rights that the author André Kless do not expressly grant in these Terms are reserved by the author André Kless.
- * @version 6.2.0
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @version 6.11.0
  * @changes
+ * version 6.11.0 (30.09.2016):
+ * - automatically loading of a polyfill if custom elements not supported
+ * - update ccm.helper.dataset (accepts now dataset directly)
+ * version 6.10.3 (28.09.2016):
+ * - very very hard to find internal bugfix
+ * version 6.10.2 (28.09.2016):
+ * - recursive search for 'ccm-' tags in inner normal tags of an ccm custom element
+ * version 6.10.1 (27.09.2016):
+ * - bugfix in interpreter algorith for inner HTML structure of an ccm custom element
+ * - very hard to find internal bugfix
+ * version 6.10.0 (27.09.2016):
+ * - improve interpreter algorithm for inner HTML structure of an ccm custom element
+ * - add helper method "ccm.helper.makeIterable"
+ * version 6.9.1 (27.09.2016):
+ * - allow attribute "src" in ccm custom elements in more cases
+ * version 6.9.0 (27.09.2016):
+ * - add interpreter algorithm for inner HTML structure of an ccm custom element
+ * - ccm load dependencies accept more than one resource and serial/parallel loading
+ * - properties component, index and id of an ccm instance could not be overridden via instance configuration
+ * version 6.8.1 (19.09.2016):
+ * - bugfix for ccm custom elements with array or object values in attributes
+ * version 6.8.0 (19.09.2016):
+ * - ccm datastores knows her source
+ * - add getter method for source to ccm datastores
+ * - source could be also set via ccm datstore settings
+ * - add helper function 'ccm.helper.dataSource'
+ * version 6.7.0 (07.09.2016):
+ * - add regular expression for a ccm component filename to ccm.helper.regex
+ * - custom element for each registered ccm component
+ * version 6.6.0 (19.08.2016):
+ * - skip first ccm html data element if it has only key and inner as properties
+ * - changes for solving ccm data dependencies
+ * - improve regex parts for version numbers
+ * - escape only dots of version numbers in a ccm instance element selector
+ * - ccm.helper.dataset performs callback without parameter if needed parameter is missing
+ * - switch to original MIT Licence
+ * version 6.5.0 (13.08.2016):
+ * - ccm helper function for get or set value of a deeper object property with given key in dot notation
+ * - earlier deletion of init and ready functions
+ * - caching bugfix
+ * - bugfix for skipping instance configuration at ccm.render calls
+ * - clone given priority data in the method 'set' of a ccm datastore to not set generated key in given reference
+ * - ccm.helper.dataset uses an generated ID if no key property is given
+ * - escaping of dots in jQuery ID selectors of ccm instance elements for support of version numbers in selectors
+ * - update to jQuery v2.2.4 as default
+ * - regular expression for checking correctness of a ccm component filename
+ * - bugfix for auto detection of ccm component version number
+ * version 6.4.0 (11.07.2016):
+ * - listen to specific datasets with ccm realtime datastores
+ * - bugfix for ccm datastores with user instance
+ * - automatic deletion of key property in ccm html data
+ * version 6.3.0 (29.06.2016):
+ * - privatization of datastore members
+ * - delayed datastore initialization in case of usage via ccm dependency
+ * - deletion of datastore init method after one-time call
+ * - refactoring of some helper function
+ * - improve doc comments for ccm datastore setting
+ * - support of ccm instance for user authentication in ccm datastores
  * version 6.2.0 (23.06.2016):
  * - add helper function for privatization
  * - add support of attribute "async" in ccm html data
- * - <i>ccm</i> framework instead of <i>ccm</i> runtime environment
+ * - ccm framework instead of ccm runtime environment
  * - rename ccm.type to ccm.types
  * - bugfix in ccm.helper.html
  * - updated doc comments for api
@@ -44,13 +100,19 @@ if ( !window.jQuery ) {
   if ( document.body ) {
 
     window.jQuery = document.createElement( 'script' );
-    window.jQuery.setAttribute( 'src', 'https://code.jquery.com/jquery-2.2.3.min.js' );
+    window.jQuery.setAttribute( 'src', 'https://code.jquery.com/jquery-2.2.4.min.js' );
     document.head.appendChild( window.jQuery );
 
   }
   // load synchron
-  else document.write( '<script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>' );
+  else document.write( '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>' );
 
+}
+
+// no custom elements support? => load polyfill
+if ( !( 'registerElement' in document ) ) {
+  document.write('<script src="//cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js"><\/script>');
+  document.write('<script src="//cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"><\/script>');
 }
 
 // set keyframe for ccm loading icon animation
@@ -122,73 +184,14 @@ ccm = function () {
    * @example
    * // Example for a <i>ccm</i> datastore instance:
    * {
-   *   local:    {...},
-   *   store:    'chat',
-   *   url:      'http://path/to/server/interface.php',
-   *   onChange: function () { console.log( arguments ); },
-   *   get:      function ( key_or_query, callback ) {...},
-   *   set:      function ( priodata, callback ) {...},
-   *   del:      function ( key, callback ) {...}
+   *   get: function ( key_or_query, callback ) {...},
+   *   set: function ( priodata, callback ) {...},
+   *   del: function ( key, callback ) {...}
    * }
    */
   var Datastore = function () {
 
     /*-------------------------------------------- ccm datastore members ---------------------------------------------*/
-
-    /**
-     * @summary local cache
-     * @description
-     * On the first data level of a <i>ccm</i> datastore the data will be managed in an local JavaScript object.
-     * This property contains this local JavaScript object.
-     * On higher data levels this object acts as a local cache.
-     * See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#data-caching} for more informations about this kind of data caching.
-     * @type {ccm.types.datasets}
-     */
-    this.local = {};
-
-    /**
-     * @summary datastore name in database
-     * @description
-     * Dependent on the specific database the datastore has different designations.
-     * For example in IndexedDB this is the name of the Object Store, in MongoDB the name of the Document Store and in MySQL the name of the Table.
-     * This property is not relevant for the first data level. It is only relevant for higher data levels.
-     * @type {string}
-     * @example 'users'
-     * @example 'questions'
-     * @example 'answers'
-     * @example 'comments'
-     */
-    this.store = null;
-
-    /**
-     * @summary URL of the server interface to serverside database
-     * @description
-     * This property is only relevant for the third data level.
-     * See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#server-interface} for more informations about an <i>ccm</i> compatible server interface.
-     * @type {ccm.types.url}
-     */
-    this.url = null;
-
-    /*
-     * @property {string} db - database (in case of a server that offers more than one database)
-     */
-
-    /**
-     * @summary callback when server informs about changed stored datasets
-     * @description
-     * This property is only relevant for the third data level with real-time communication.
-     * See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#real-time-communication} for more informations.
-     * @type {function}
-     * @example
-     * ccm.store( {
-     *   store: 'my_store',
-     *   url: 'http://path/to/server/interface.php',
-     *   onChange: function () {
-     *     console.log( arguments );  // Shows the server informations about the changed
-     *   }                            // stored dataset in the developer console.
-     * } );
-     */
-    this.onChange = null;
 
     /**
      * @summary websocket communication callbacks
@@ -198,24 +201,32 @@ ccm = function () {
     var callbacks = [];
 
     /**
-     * @summary own context
+     * @summary contains privatized members
      * @private
+     * @type {object}
      */
-    var self = this;
+    var my;
 
     /*----------------------------------------- public ccm datastore methods -----------------------------------------*/
 
     /**
      * @summary initialize datastore
-     * @description when datastore is created
+     * @description When datastore is created and after the initialization of a <i>ccm</i> instance in case of
+     * this datastore is provided via a <i>ccm</i> dependency of this <i>ccm</i> instance.
+     * This method will be removed by <i>ccm</i> after the one-time call.
+     * @param {function} callback - callback when this datastore is initialized
      * @ignore
      */
-    this.init = function () {
+    this.init = function ( callback ) {
 
-      // TODO: make self.socket private
+      // privatize security relevant members
+      my = ccm.helper.privatize( this, 'source', 'local', 'store', 'url', 'db', 'socket', 'onChange', 'user' );
+
+      // set getter method for ccm datastore source
+      this.source = function () { return my.source; };
 
       // is realtime datastore? => set server notification callback
-      if ( self.socket ) self.socket.onmessage = function ( message ) {
+      if ( my.socket ) my.socket.onmessage = function ( message ) {
 
         // parse server message to JSON
         message = JSON.parse( message.data );
@@ -230,11 +241,14 @@ ccm = function () {
           var dataset = jQuery.isPlainObject( message ) ? setLocal( message ) : delLocal( message );
 
           // perform change callback
-          if ( self.onChange ) self.onChange( dataset, message );
+          if ( my.onChange ) my.onChange( dataset );
 
         }
 
       };
+
+      // perform callback
+      if ( callback ) callback();
 
     };
 
@@ -279,18 +293,18 @@ ccm = function () {
      * var result = store.get();
      * console.log( result );
      */
-    this.get = function ( key_or_query, callback, user, password ) {
+    this.get = function ( key_or_query, callback ) {
 
       // allow to skip key parameter
-      if ( typeof key_or_query === 'function' ) { password = user; user = callback; callback = key_or_query; key_or_query = {}; }
+      if ( typeof key_or_query === 'function' ) { callback = key_or_query; key_or_query = {}; }
 
       // dataset key is undefined? => use empty object (to select all datasets)
       if ( key_or_query === undefined ) key_or_query = {};
 
       // check data source
-      if ( self.url   ) return serverDB();    // serverside database
-      if ( self.store ) return clientDB();    // clientside database
-      if ( self.local ) return localCache();  // local cache
+      if ( my.url   ) return serverDB();    // server-side database
+      if ( my.store ) return clientDB();    // client-side database
+      if ( my.local ) return localCache();  // local cache
 
       /**
        * get dataset from local cache
@@ -303,7 +317,7 @@ ccm = function () {
       }
 
       /**
-       * get dataset from clientside database
+       * get dataset from client-side database
        */
       function clientDB() {
 
@@ -341,7 +355,7 @@ ccm = function () {
           if ( !dataset ) return callback( null );
 
           // save result dataset in local cache
-          if ( dataset.key !== undefined ) self.local[ key_or_query ] = dataset;
+          if ( dataset.key !== undefined ) my.local[ key_or_query ] = dataset;
 
           // perform callback with result dataset
           if ( callback ) callback( dataset );
@@ -351,7 +365,7 @@ ccm = function () {
       }
 
       /**
-       * get dataset from serverside database
+       * get dataset from server-side database
        */
       function serverDB() {
 
@@ -373,10 +387,10 @@ ccm = function () {
          * GET parameter
          * @type {object}
          */
-        var data = prepareData( { key: key_or_query }, user, password );
+        var data = prepareData( { key: key_or_query } );
 
         // load dataset from server interface
-        if ( self.socket ) useWebsocket( data, onResponse ); else useHttp( data, onResponse );
+        if ( my.socket ) useWebsocket( data, onResponse ); else useHttp( data, onResponse );
 
         /**
          * callback for server response
@@ -385,21 +399,21 @@ ccm = function () {
         function onResponse( results ) {
 
           // check server response
-          if ( !checkResponse( results, user ) ) return;
+          if ( !checkResponse( results ) ) return;
 
           // no results? => abort
           if ( !results ) return callback( null );
 
           // save result dataset(s) in local cache
           if ( ccm.helper.isDataset( results ) )
-            self.local[ results.key ] = results;
+            my.local[ results.key ] = results;
           else
             for ( var i = 0; i < results.length; i++ )
               if ( results[ i ].key !== undefined )
-                self.local[ results[ i ].key ] = results[ i ];
+                my.local[ results[ i ].key ] = results[ i ];
 
           // perform callback with result dataset(s)
-          callback( results );
+          if ( callback ) callback( results );
 
         }
 
@@ -468,15 +482,18 @@ ccm = function () {
      * var result = store.set( { key: 'test', value: 'foo' } );
      * console.log( result );
      */
-    this.set = function ( priodata, callback, user, password ) {
+    this.set = function ( priodata, callback ) {
+
+      // clone priority data
+      priodata = ccm.helper.clone( priodata );
 
       // priority data has no key? => generate key
       if ( !priodata.key ) priodata.key = ccm.helper.generateKey();
 
       // check data source
-      if ( self.url   ) return serverDB();    // serverside database
-      if ( self.store ) return clientDB();    // clientside database
-      if ( self.local ) return localCache();  // local cache
+      if ( my.url   ) return serverDB();    // server-side database
+      if ( my.store ) return clientDB();    // client-side database
+      if ( my.local ) return localCache();  // local cache
 
       /**
        * set dataset in local cache
@@ -489,7 +506,7 @@ ccm = function () {
       }
 
       /**
-       * set dataset in clientside database
+       * set dataset in client-side database
        * @returns {ccm.types.dataset} created or updated dataset
        */
       function clientDB() {
@@ -512,7 +529,7 @@ ccm = function () {
       }
 
       /**
-       * set dataset in serverside database
+       * set dataset in server-side database
        * @returns {ccm.types.dataset} created or updated dataset
        */
       function serverDB() {
@@ -521,10 +538,10 @@ ccm = function () {
          * GET parameter
          * @type {object}
          */
-        var data = prepareData( { dataset: priodata }, user, password );
+        var data = prepareData( { dataset: priodata } );
 
         // send priority data to server interface
-        if ( self.socket ) useWebsocket( data, onResponse ); else useHttp( data, onResponse );
+        if ( my.socket ) useWebsocket( data, onResponse ); else useHttp( data, onResponse );
 
         /**
          * callback for server response
@@ -533,7 +550,7 @@ ccm = function () {
         function onResponse( dataset ) {
 
           // check server response
-          if ( !checkResponse( dataset, user ) ) return;
+          if ( !checkResponse( dataset ) ) return;
 
           // set dataset in local cache
           priodata = dataset; localCache();
@@ -543,12 +560,6 @@ ccm = function () {
       }
 
     };
-
-    /*
-    TODO: del() --> delete datastore
-    TODO: param {string} [user] - username for user authentication
-    TODO: param {string} [password] - password for user authentication
-    */
 
     /**
      * @summary delete a stored dataset
@@ -570,12 +581,12 @@ ccm = function () {
      * var result = store.del( 'test' );
      * console.log( result );
      */
-    this.del = function ( key, callback, user, password ) {
+    this.del = function ( key, callback ) {
 
       // check data source
-      if ( self.url   ) return serverDB();    // serverside database
-      if ( self.store ) return clientDB();    // clientside database
-      if ( self.local ) return localCache();  // local cache
+      if ( my.url   ) return serverDB();    // server-side database
+      if ( my.store ) return clientDB();    // client-side database
+      if ( my.local ) return localCache();  // local cache
 
       /**
        * delete dataset in local cache
@@ -588,7 +599,7 @@ ccm = function () {
       }
 
       /**
-       * delete dataset in clientside database
+       * delete dataset in client-side database
        */
       function clientDB() {
 
@@ -610,7 +621,7 @@ ccm = function () {
       }
 
       /**
-       * delete dataset in serverside database
+       * delete dataset in server-side database
        */
       function serverDB() {
 
@@ -618,10 +629,10 @@ ccm = function () {
          * GET parameter
          * @type {object}
          */
-        var data = prepareData( { del: key }, user, password );
+        var data = prepareData( { del: key } );
 
         // send dataset key to server interface
-        if ( self.socket ) useWebsocket( data, onResponse ); else useHttp( data, onResponse );
+        if ( my.socket ) useWebsocket( data, onResponse ); else useHttp( data, onResponse );
 
         /**
          * callback for server response
@@ -630,7 +641,7 @@ ccm = function () {
         function onResponse( dataset ) {
 
           // check server response
-          if ( !checkResponse( dataset, user ) ) return;
+          if ( !checkResponse( dataset ) ) return;
 
           // perform callback with deleted dataset
           if ( callback ) callback( dataset );
@@ -643,126 +654,6 @@ ccm = function () {
       }
 
     };
-
-    /**
-     * @summary get number of stored datasets
-     * @param {function} [callback] - callback (first parameter is number of stored datasets)
-     * @param {string|ccm.types.user} [user] - username or user instance for user authentication
-     * @param {string} [password] - password for user authentication
-     * @returns {number} number of stored datasets (only if synchron)
-     * @ignore
-     */
-    this.count = function ( callback, user, password ) {
-
-      // check data source
-      if ( self.url   ) return serverDB();    // serverside database
-      if ( self.store ) return clientDB();    // clientside database
-      if ( self.local ) return localCache();  // local cache
-
-      /**
-       * count number of stored datasets in local cache
-       * @returns {number} number of stored datasets
-       */
-      function localCache() {
-
-        /**
-         * number of stored datasets
-         * @type {number}
-         */
-        var count = Object.keys( self.local ).length;
-
-        // perform callback with number of stored datasets
-        if ( callback ) callback( count );
-
-        // return number of stored datasets
-        return count;
-
-      }
-
-      /**
-       * count number of stored datasets in clientside database
-       * @returns {number} number of stored datasets
-       */
-      function clientDB() {
-
-        // no callback? => abort
-        if ( !callback ) return -1;
-
-        /**
-         * object store from IndexedDB
-         * @type {object}
-         */
-        var store = getStore();
-
-        /**
-         * request for counting datasets
-         * @type {object}
-         */
-        var request = store.count();
-
-        // set success callback
-        request.onsuccess = function () {
-
-          // perform callback with number of stored datasets
-          callback( request.result );
-
-        };
-
-        // return dummy value
-        return -1;
-
-      }
-
-      /**
-       * count number of stored datasets in serverside database
-       * @returns {number} number of stored datasets
-       */
-      function serverDB() {
-
-        // no callback? => abort
-        if ( !callback ) return -1;
-
-        /**
-         * GET parameter
-         * @type {object}
-         */
-        var data = prepareData( { count: true }, user, password );
-
-        // send count request to server interface
-        if ( self.socket ) useWebsocket( data, onResponse ); else useHttp( data, onResponse );
-
-        // return dummy value
-        return -1;
-
-        /**
-         * callback for server response
-         * @param {number} count - number of stored datasets
-         */
-        function onResponse( count ) {
-
-          // check server response
-          if ( !checkResponse( count, user ) ) return;
-
-          // perform callback with number of stored datasets
-          if ( callback ) callback( count );
-
-        }
-
-      }
-
-    };
-
-    /**
-     * @summary clear local cache
-     * @ignore
-     */
-    this.clear = function () {
-
-      self.local = {};
-
-    };
-
-    /*---------------------------------------- private ccm datastore methods -----------------------------------------*/
 
     /**
      * @summary get dataset(s) from local cache
@@ -780,7 +671,10 @@ ccm = function () {
        * result dataset
        * @type {ccm.types.dataset}
        */
-      var dataset = self.local[ key ] ? ccm.helper.clone( self.local[ key ] ) : null;
+      var dataset = my.local[ key ] || null;
+
+      // clone result dataset
+      if ( dataset ) dataset = Array.isArray( dataset ) ? dataset.slice( 0 ) : ccm.helper.clone( my.local[ key ] );
 
       // solve data dependencies
       solveDependencies( dataset, callback );
@@ -807,16 +701,16 @@ ccm = function () {
         var counter = 1;
 
         // iterate over all stored datasets
-        for ( var i in self.local ) {
+        for ( var i in my.local ) {
 
           // query is subset of dataset?
-          if ( ccm.helper.isSubset( key, self.local[ i ] ) ) {
+          if ( ccm.helper.isSubset( key, my.local[ i ] ) ) {
 
             /**
              * founded dataset
              * @type {ccm.types.dataset}
              */
-            var dataset = ccm.helper.clone( self.local[ i ] );
+            var dataset = ccm.helper.clone( my.local[ i ] );
 
             // add founded dataset to result datasets
             results.push( dataset );
@@ -871,28 +765,36 @@ ccm = function () {
          */
         var waiter = [];
 
-        // iterate over dataset properties
-        for ( var key in dataset ) {
-
-          /**
-           * property value
-           * @type {*}
-           */
-          var value = dataset[ key ];
-
-          // value is a data dependency? => solve data dependency
-          if ( ccm.helper.isDependency( value ) ) solveDependency( dataset, key ) ;
-
-          // value is an array? => search array elements for data dependencies
-          else if ( jQuery.isArray( value ) )
-            for ( var i = 0; i < value.length; i++ )
-              if ( ccm.helper.isDependency( value[ i ] ) )
-                solveDependency( value, i );
-
-        }
+        // search dataset for dependencies
+        search( dataset );
 
         // check if all data dependencies are solved (happens when no data dependencies exists)
         check();
+
+        /**
+         * searchs array or object for dependencies (recursive)
+         * @param {Array|Object} array_or_object
+         */
+        function search( array_or_object ) {
+
+          // iterate over dataset properties
+          for ( var key in array_or_object ) {
+
+            /**
+             * property value
+             * @type {*}
+             */
+            var value = array_or_object[ key ];
+
+            // value is a ccm dependency? => solve dependency
+            if ( ccm.helper.isDependency( value ) ) solveDependency( array_or_object, key ) ;
+
+            // value is an array? => search array elements for data dependencies
+            else if ( typeof value === 'object' && value !== null ) search( value );  // recursive call
+
+          }
+
+        }
 
         /**
          * solve data dependency
@@ -946,11 +848,11 @@ ccm = function () {
     function setLocal( priodata, callback ) {
 
       // is dataset local cached? => update local dataset
-      if ( self.local[ priodata.key ] )
-        ccm.helper.integrate( priodata, self.local[ priodata.key ] );
+      if ( my.local[ priodata.key ] )
+        ccm.helper.integrate( priodata, my.local[ priodata.key ] );
 
       // dataset not local cached => cache dataset locally
-      else self.local[ priodata.key ] = priodata;
+      else my.local[ priodata.key ] = priodata;
 
       // return local cached dataset
       return getLocal( priodata.key, callback );
@@ -976,8 +878,8 @@ ccm = function () {
       if ( key === undefined ) {
 
         // get and clear local cache
-        dataset = self.local;
-        self.local = {};
+        dataset = my.local;
+        my.local = {};
 
       }
 
@@ -985,8 +887,8 @@ ccm = function () {
       else {
 
         // get and delete dataset
-        dataset = self.local[ key ];
-        delete self.local[ key ];
+        dataset = my.local[ key ];
+        delete my.local[ key ];
 
       }
 
@@ -1009,10 +911,10 @@ ccm = function () {
        * IndexedDB transaction
        * @type {object}
        */
-      var trans = db.transaction( [ self.store ], 'readwrite' );
+      var trans = db.transaction( [ my.store ], 'readwrite' );
 
       // return object store from IndexedDB
-      return trans.objectStore( self.store );
+      return trans.objectStore( my.store );
 
     }
 
@@ -1020,24 +922,14 @@ ccm = function () {
      * @summary prepare GET parameter data
      * @private
      * @param data - individual GET parameters
-     * @param {string|ccm.types.user} [user] - username or user instance for user authentication
-     * @param {string} [password] - password for user authentication
-     * @returns {object} GET parameter data
+     * @returns {object} complete GET parameter data
      */
-    function prepareData( data, user, password ) {
+    function prepareData( data ) {
 
-      // get username
-      user = user || self.user;
-
-      // return GET parameter data
-      return ccm.helper.integrate( data, {
-
-        db:       self.db,
-        store:    self.store,
-        username: typeof user === 'object' ? user.key : user,
-        password: password || self.password
-
-      } );
+      data = ccm.helper.integrate( data, { db: my.db, store: my.store } );
+      if ( my.user && my.user.isLoggedIn() )
+        data = ccm.helper.integrate( data, { user: my.user.data().key, token: my.user.data().token } );
+      return data;
 
     }
 
@@ -1051,7 +943,7 @@ ccm = function () {
 
       callbacks.push( callback );
       data.callback = callbacks.length;
-      self.socket.send( JSON.stringify( data ) );
+      my.socket.send( JSON.stringify( data ) );
 
     }
 
@@ -1063,7 +955,7 @@ ccm = function () {
      */
     function useHttp( data, callback ) {
 
-      ccm.load( [ self.url, data ], callback );
+      ccm.load( [ my.url, data ], callback );
 
     }
 
@@ -1071,16 +963,12 @@ ccm = function () {
      * @summary checks server response
      * @private
      * @param {*} [response] - server response
-     * @param {string|ccm.types.user} [user] - username or user instance for user authentication
      * @returns {boolean}
      */
-    function checkResponse( response, user ) {
+    function checkResponse( response ) {
 
       // server response is error message?
       if ( typeof response === 'string' && response.indexOf( '[ccm]' ) === 0 ) {
-
-        // has user instance? => logout
-        if ( ccm.helper.isInstance( user ) ) user.logout();
 
         // abort processing
         return false;
@@ -1120,7 +1008,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 2, 0 ],
+    version: [ 6, 11, 0 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -1176,7 +1064,7 @@ ccm = function () {
        * convert arguments to real array
        * @type {Array}
        */
-      var args = Array.prototype.slice.call( arguments );
+      var args = ccm.helper.makeIterable( arguments );
 
       /**
        * current ccm.load call
@@ -1665,11 +1553,11 @@ ccm = function () {
           component.name = array[ 0 ];
 
           // add version number of ccm component
-          if ( array.length > 1 ) component.version = array[ 1 ].split( '.' );
-
-          // parse version number to integer
-          for ( var i = 0; i < 3; i++ )
-            component.version[ i ] = parseInt( component.version[ i ] );
+          if ( array.length > 1 ) {
+            component.version = array[ 1 ].split( '.' );
+            for ( var i = 0; i < 3; i++ )
+              component.version[ i ] = parseInt( component.version[ i ] );
+          }
 
         }
 
@@ -1697,7 +1585,140 @@ ccm = function () {
         // set default of default ccm instance configuration
         ccm.helper.integrate( config, component.config );
         if ( !component.config )         component.config         = {};
-        if ( !component.config.element ) component.config.element = jQuery( 'body' ); // TODO: only if html body is empty (else drag'n'drop box)
+        if ( !component.config.element ) component.config.element = jQuery( 'body' );
+
+        // create custom HTML tag for ccm component
+        createCustomElement();
+
+        /**
+         * create custom HTML tag for ccm component
+         */
+        function createCustomElement() {
+
+          var tag = Object.create( HTMLElement.prototype );
+          tag.createdCallback = function () {
+
+            var node = this.parentElement;
+            if ( !node ) return;
+            do {
+              if ( node.tagName && node.tagName.indexOf( 'CCM-' ) === 0 )
+                return;
+            } while ( node = node.parentElement );
+
+            var config = generateConfig( this );
+            config.element = jQuery( this );
+            component.render( config );
+
+            function generateConfig( node ) {
+
+              var config = {};
+              catchAttributes( node, config );
+              catchInnerTags( node );
+              return config;
+
+              function catchAttributes( node, obj ) {
+
+                ccm.helper.makeIterable( node.attributes ).map( function ( attr ) {
+                  if ( attr.name !== 'src' ||
+                     ( node.tagName.indexOf( 'CCM-COMPONENT' ) !== 0
+                    && node.tagName.indexOf( 'CCM-INSTANCE'  ) !== 0
+                    && node.tagName.indexOf( 'CCM-PROXY'     ) !== 0 ) )
+                    try { obj[ attr.name ] = attr.value.charAt( 0 ) === '{' || attr.value.charAt( 0 ) === '[' ? JSON.parse( attr.value ) : attr.value; } catch ( err ) {}
+                } );
+
+              }
+
+              function catchInnerTags( node ) {
+
+                ccm.helper.makeIterable( node.children ).map( function ( child ) {
+                  if ( child.tagName && child.tagName.indexOf( 'CCM-' ) === 0 ) {
+                    var split = child.tagName.toLowerCase().split( '-' );
+                    if ( split.length < 3 ) split[ 2 ] = split[ 1 ];
+                    switch ( split[ 1 ] ) {
+                      case 'load':
+                        config[ split[ 2 ] ] = interpretLoadTag( child, split[ 2 ] );
+                        break;
+                      case 'component':
+                      case 'instance':
+                      case 'proxy':
+                        config[ split[ 2 ] ] = [ 'ccm.' + split[ 1 ], child.getAttribute( 'src' ), generateConfig( child ) ];
+                        break;
+                      case 'store':
+                      case 'dataset':
+                        var settings = {};
+                        catchAttributes( child, settings );
+                        var key = settings.key;
+                        delete settings.key;
+                        config[ split[ 2 ] ] = [ 'ccm.' + split[ 1 ], settings, key ];
+                        break;
+                      case 'list':
+                        var list = null;
+                        ccm.helper.makeIterable( child.children ).map( function ( entry ) {
+                          if ( entry.tagName && entry.tagName.indexOf( 'CCM-' ) === 0 ) {
+                            var split = entry.tagName.toLowerCase().split( '-' );
+                            if ( !list )
+                              list = split.length < 3 ? [] : {};
+                            if ( split.length < 3 )
+                              list.push( entry.textContent );
+                            else
+                              list[ split[ 2 ] ] = entry.textContent;
+                          }
+                        } );
+                        if ( list ) config[ split[ 2 ] ] = list;
+                        break;
+                      default:
+                        var cfg = generateConfig( child );
+                        cfg.element = jQuery( child );
+                        config[ split[ 2 ] ] = [ 'ccm.instance', split[ 1 ], cfg ];
+                        break;
+                    }
+                  }
+                  else
+                    catchInnerTags( child );
+                } );
+
+                function interpretLoadTag( node ) {
+
+                  var params = generateParameters( node );
+                  if ( !Array.isArray( params ) ) params = [ params ];
+                  params.unshift( 'ccm.load' );
+                  return params;
+
+                  function generateParameters( node ) {
+
+                    if ( node.hasAttribute( 'src' ) ) {
+                      if ( node.children.length === 0 )
+                        return node.getAttribute( 'src' );
+                      var data = {};
+                      ccm.helper.makeIterable( node.children ).map( function ( node ) {
+                        if ( node.tagName && node.tagName.indexOf( 'CCM-DATA-' ) === 0 )
+                          data[ node.tagName.toLowerCase().split( '-' )[ 2 ] ] = node.textContent;
+                      } );
+                      return [ node.getAttribute( 'src' ), data ];
+                    }
+
+                    var params = [];
+
+                    ccm.helper.makeIterable( node.children ).map( function ( child ) {
+                      if ( child.tagName === 'CCM-LOAD'
+                          || child.tagName === 'CCM-SERIAL' && ( node.tagName === 'CCM-PARALLEL' || node.tagName.indexOf( 'CCM-LOAD' ) === 0 )
+                          || child.tagName === 'CCM-PARALLEL' && node.tagName === 'CCM-SERIAL' )
+                        params.push( generateParameters( child ) );
+                    } );
+                    return params;
+
+                  }
+
+                }
+
+              }
+
+            }
+
+          };
+          document.registerElement( 'ccm-' + component.index, { prototype: tag } );
+
+        }
 
       }
 
@@ -1781,16 +1802,21 @@ ccm = function () {
             if ( parent ) instance.parent = parent;             // set parent instance
             if ( !result ) result = instance;                   // set result instance
 
-            // config created instance
-            instance.id = components[ index ].instances;                  // set ccm instance id
-            instance.index = index + '-' + instance.id;                   // set ccm instance index
-            instance.component = components[ index ];                     // set ccm component reference
-            ccm.helper.integrate( components[ index ].config, instance ); // set default ccm instance configuration
-            if ( cfg ) ccm.helper.integrate( cfg, instance );             // integrate ccm instance configuration
+            // configure created instance
+            ccm.helper.integrate( ccm.helper.clone( components[ index ].config ), instance );  // set default ccm instance configuration
+            if ( cfg ) ccm.helper.integrate( cfg, instance );   // integrate ccm instance configuration
+            instance.id = components[ index ].instances;        // set ccm instance id
+            instance.index = index + '-' + instance.id;         // set ccm instance index
+            instance.component = components[ index ];           // set ccm component reference
 
             switch ( instance.element ) {
               case 'name': instance.element = ccm.helper.find( parent, '.' + instance.component.name ); break;
-              case 'parent': instance.element = parent.element;
+              case 'parent': instance.element = parent.element; break;
+              default:
+                if ( instance.element.selector )
+                  instance.element.selector = instance.element.selector.replace( /-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)/g, function ( match ) {
+                    return match.replace( /\./g, '\\.' );
+                  } )
             }
 
             // solve dependencies of created ccm instance
@@ -1849,7 +1875,12 @@ ccm = function () {
                   case ccm.load:
                   case "ccm.load":
                     counter++;
-                    ccm.load( action[ 1 ], setResult );
+                    if ( action.length === 2 )
+                      ccm.load( action[ 1 ], setResult );
+                    else {
+                      action.shift();
+                      ccm.load( action, setResult );
+                    }
                     break;
 
                   case ccm.component:
@@ -1871,6 +1902,8 @@ ccm = function () {
                   case ccm.store:
                   case "ccm.store":
                     counter++;
+                    if ( !action[ 1 ] ) action[ 1 ] = {};
+                    action[ 1 ].delayed = true;
                     ccm.store( action[ 1 ], setResult );
                     break;
 
@@ -1990,7 +2023,7 @@ ccm = function () {
               function find( obj ) {
 
                 // object is an ccm instance? => add it to results
-                if ( ccm.helper.isInstance( obj ) ) results.push( obj );
+                if ( ccm.helper.isInstance( obj ) || ccm.helper.isDatastore( obj ) ) results.push( obj );
 
                 // find all dependent ccm instances
                 for ( var key in obj ) {
@@ -2033,8 +2066,8 @@ ccm = function () {
                  */
                 var obj = results[ i ]; i++;
 
-                // result is not initialized? => perform and delete init function and check next result afterwards (recursive call)
-                if ( obj.init ) { obj.init( init ); delete obj.init; } else init();
+                // result is not initialized? => perform init function and check next result afterwards (recursive call)
+                if ( obj.init ) obj.init( function () { delete obj.init; init(); } ); else init();
 
               }
 
@@ -2052,8 +2085,11 @@ ccm = function () {
                  */
                 var obj = results.pop();
 
+                // delete init function
+                delete obj.init;
+
                 // result has a ready function? => perform and delete ready function and check next result afterwards (recursive call)
-                if ( obj.ready ) { obj.ready( ready ); delete obj.ready; } else ready();
+                if ( obj.ready ) { var tmp = obj.ready; delete obj.ready; tmp( ready ); } else ready();
 
               }
 
@@ -2078,6 +2114,9 @@ ccm = function () {
      */
     render: function ( component, config, callback ) {
 
+      // ccm instance configuration is a function? => configuration is callback
+      if ( typeof config === 'function' ) { callback = config; config = undefined; }
+
       // create ccm instance out of ccm component
       ccm.instance( component, config, function ( instance ) {
 
@@ -2101,7 +2140,7 @@ ccm = function () {
      * In this case the callback could be the first parameter directly.
      * See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management} for general informations about <i>ccm</i> data management.
      * @memberOf ccm
-     * @param {ccm.types.settings} [settings] - <i>ccm</i> datastore settings (see [here]{@link ccm.types.settings} for more details)
+     * @param {ccm.types.settings} [settings={}] - <i>ccm</i> datastore settings (see [here]{@link ccm.types.settings} for more details)
      * @param {ccm.types.storeResult} [callback] - when datastore is ready for use
      * @returns {ccm.Datastore} <i>ccm</i> datastore (only if no inner operation is asynchron)
      * @example
@@ -2117,19 +2156,23 @@ ccm = function () {
      * // provides a empty <i>ccm</i> datastore of data level 1
      * ccm.store( function ( result ) { console.log( result ); } );
      * // without given settings the callback could be the first parameter directly
+     * @example
+     * // provides a empty <i>ccm</i> datastore of data level 1
+     * ccm.store( function ( result ) { console.log( result ); } );
+     * // without given settings the callback could be the first parameter directly
      */
     store: function ( settings, callback ) {
 
-      // settings are a function? => settings are callback
+      // given settings are a function? => settings are callback
       if ( typeof settings === 'function' ) { callback = settings; settings = undefined; }
 
-      // no ccm datastore settings? => use empty object
+      // no given settings? => use empty object
       if ( !settings ) settings = {};
 
-      // ccm datastore settings are an URL or ccm datasets? => use object with local cache entry that contains the URL
-      if ( typeof settings === 'string' || ( ccm.helper.isObject( settings ) && !settings.local && !settings.store ) ) settings = { local: settings };
+      // given settings are an URL or a collection of ccm datasets? => wrap object
+      if ( typeof settings === 'string' || ( ccm.helper.isObject( settings ) && !settings.local && !settings.store && !settings.url && !settings.delayed && !settings.user ) ) settings = { local: settings };
 
-      // make deep copy of settings
+      // make deep copy of given settings
       settings = ccm.helper.clone( settings );
 
       /**
@@ -2148,6 +2191,9 @@ ccm = function () {
         return stores[ source ];
 
       }
+
+      // add ccm datastore source to ccm datastore settings
+      if ( !settings.source ) settings.source = source;
 
       // no local cache? => use empty object
       if ( !settings.local ) settings.local = {};
@@ -2272,19 +2318,44 @@ ccm = function () {
           // integrate settings in ccm datastore
           ccm.helper.integrate( settings, store );
 
-          // is ccm realtime datastore? => connect to server
+          // is ccm realtime datastore?
           if ( store.url && store.url.indexOf( 'ws' ) === 0 ) {
 
+            // prepare initial message
+            var message = [ store.db, store.store ];
+            if ( store.datasets )
+              message = message.concat( store.datasets );
+
+            // connect to server
             store.socket = new WebSocket( store.url, 'ccm' );
-            store.socket.onopen = function () { this.send( [ store.db, store.store ] ); proceed(); };
+
+            // send initial message
+            store.socket.onopen = function () { this.send( message ); proceed(); };
 
           }
           else return proceed();
 
+          /**
+           * proceed with creating ccm datastore
+           * @returns {ccm.Datastore} created ccm datastore
+           */
           function proceed() {
 
-            // initialize ccm datastore
-            store.init();
+            // delete no more needed property
+            delete store.datasets;
+
+            // no delayed initialization?
+            if ( !store.delayed ) {
+
+              // initialize ccm datastore
+              store.init();
+
+              // delete init function after one-time call
+              delete store.init;
+
+            }
+            // skipped initialization => delete delayed flag
+            else delete store.delayed;
 
             // add ccm datastore to created ccm datastores
             stores[ source ] = store;
@@ -2307,18 +2378,19 @@ ccm = function () {
      * @summary get directly a <i>ccm</i> dataset out of a <i>ccm</i> datastore
      * @memberOf ccm
      * @param {ccm.types.settings} [settings] - <i>ccm</i> datastore settings
-     * @param {ccm.types.key} [key] - <i>ccm</i> dataset key (default: get complete local cache)
+     * @param {ccm.types.key|object} [key_or_query] - unique key of the dataset or alternative a query
      * @param {function} [callback] - callback (first parameter is the requested <i>ccm</i> datastore)
      * @returns {ccm.types.dataset} requested <i>ccm</i> dataset (only if synchron)
-     * @ignore
      */
-    dataset: function ( settings, key, callback, user, password ) {
+    dataset: function ( settings, key_or_query, callback ) {
 
-      ccm.store( settings, function ( store ) {
+      var store = ccm.store( settings, function ( store ) {
 
-        store.get( key, callback, user, password );
+        store.get( key_or_query, callback );
 
       } );
+
+      if ( store ) return store.get( key_or_query );
 
     },
 
@@ -2392,10 +2464,10 @@ ccm = function () {
         if ( typeof action[ 0 ] === 'function' )
           return action[ 0 ].apply( window, action.slice( 1 ) );
         else
-        if ( action[ 0 ].indexOf( 'this.' ) === 0 )
-          return this.executeByName( action[ 0 ].substr( 5 ), action.slice( 1 ), context );
-        else
-          return this.executeByName( action[ 0 ], action.slice( 1 ) );
+          if ( action[ 0 ].indexOf( 'this.' ) === 0 )
+            return this.executeByName( action[ 0 ].substr( 5 ), action.slice( 1 ), context );
+          else
+            return this.executeByName( action[ 0 ], action.slice( 1 ) );
       },
 
       /**
@@ -2411,31 +2483,42 @@ ccm = function () {
       },
 
       /**
-       * @summary get dataset for rendering (not generalized yet)
-       * @description get dataset using self.store and self.key and return it or returns new dataset if not exists
-       * @param {ccm.types.instance} self - <i>ccm</i> instance that need the dataset for rendering
-       * @param {function} callback - callback (first parameter is result dataset)
-       * @ignore
+       * @summary get dataset via object informations
+       * @description
+       * If the object informations includes a <i>ccm</i> datastore and key and
+       * if dataset not exists, a new dataset with given key will be created.
+       * @param {object} obj - object with informations how to get the dataset
+       * @param {function} [callback] - callback (first parameter is result dataset)
+       * @returns {ccm.types.dataset} resulting dataset (only if synchron and dataset exists)
        */
-      dataset: function ( self, callback ) {
+      dataset: function ( obj, callback ) {
 
-        // get dataset
-        self.store.get( self.key, function ( dataset ) {
+        // no object => abort
+        if ( !ccm.helper.isObject( obj ) ) { if ( callback ) callback(); return undefined; }
 
-          // dataset not exists? => create new dataset (could be asynchron)
-          if ( dataset === null ) self.store.set( { key: self.key }, proceed ); else proceed( dataset );
+        // object is dataset directly? => return dataset
+        if ( !ccm.helper.isDatastore( obj.store ) ) { if ( callback ) callback( obj ); return obj; }
+
+        // get dataset from ccm datastore
+        return obj.store.get( obj.key || null, function ( dataset ) {
+
+          // dataset not exists? => create new dataset
+          if ( dataset === null ) obj.store.set( { key: obj.key }, proceed ); else proceed( dataset );
 
           function proceed( dataset ) {
 
-            // store dataset key in ccm instance
-            self.key = dataset.key;
-
-            // perform callback
+            // perform callback with resulting dataset
             if ( callback ) callback( dataset );
 
           }
 
         } );
+
+      },
+
+      dataSource: function ( data ) {
+
+        return ccm.helper.isDatastore( data.store ) ? { key: data.key, store: data.store.source(), dataset: data.store.get( data.key ) } : data;
 
       },
 
@@ -2745,7 +2828,7 @@ ccm = function () {
           // generate each HTML tag
           var result = [];
           for ( var i = 0; i < html.length; i++ )
-            result.push( ccm.helper.html( html[ i ] ) );  // recursive call
+            result.push( ccm.helper.html( html[ i ] ) );       // recursive call
           return result;
 
         }
@@ -2756,14 +2839,18 @@ ccm = function () {
         // get no ccm html data? => return parameter value
         if ( typeof html !== 'object' ) return html;
 
+        // has only key and inner property? => skip and continue with inner
+        if ( Object.keys( html ).toString() === 'key,inner' )
+          return ccm.helper.html( html.inner );                // recursive call
+
         /**
          * HTML tag
          * @type {ccm.types.element}
          */
         var element = jQuery( '<' + ccm.helper.val( html.tag || 'div', true ) + '>' );
 
-        // remove 'tag' property
-        delete html.tag;
+        // remove 'tag' and 'key' property
+        delete html.tag; delete html.key;
 
         // iterate over ccm html data properties
         for ( var key in html ) {
@@ -2804,6 +2891,7 @@ ccm = function () {
             // HTML value attributes
             default:
               element.attr( key, ccm.helper.val( value ) );
+
           }
 
         }
@@ -2844,10 +2932,10 @@ ccm = function () {
       },
 
       /**
-       * @summary integrate priority data into a dataset
+       * @summary integrate priority data into a given dataset
        * @description
        * Each value of each property in the given priority data will be set in the given dataset for the property of the same name.
-       * A priority data property with the explicit value <i>undefined</i> provokes to delete the same property in the given dataset.
+       * This method also supports dot notation in given priority data to set a single deeper property in the given dataset.
        * With no given priority data, the result is the given dataset.
        * With no given dataset, the result is the given priority data.
        * @param {object} [priodata] - priority data
@@ -2857,7 +2945,10 @@ ccm = function () {
        * var dataset  = { firstname: 'John', lastname: 'Doe', fullname: 'John Doe' };
        * var priodata = { lastname: 'Done', fullname: undefined };
        * var result = ccm.helper.integrate( priodata, dataset );
-       * console.log( result );  // { firstname: 'John', lastname: 'Done' };
+       * console.log( result );  // { firstname: 'John', lastname: 'Done', fullname: undefined };
+       * @example
+       * var result = ccm.helper.integrate( { foo: { a: 'x': b: 'y' } }, { 'foo.c': 'z' } );
+       * console.log( result );  // { foo: { a: 'x', b: 'y', c: 'z' } }
        * @example
        * var result = ccm.helper.integrate( { value: 'foo' } );
        * console.log( result );  // { value: 'foo' }
@@ -2874,13 +2965,10 @@ ccm = function () {
         if ( !dataset ) return priodata;
 
         // iterate over priority data properties
-        for ( var i in priodata ) {
+        for ( var key in priodata ) {
 
-          // property value is not undefined? => set value for the same property in the given dataset
-          if ( priodata[ i ] !== undefined ) dataset[ i ] = priodata[ i ];
-
-          // otherwise => delete same property in the given dataset
-          else delete dataset[ i ];
+          // set value for the same property in the given dataset
+          ccm.helper.value( dataset, key, priodata[ key ] );
 
         }
 
@@ -2896,7 +2984,7 @@ ccm = function () {
        */
       isComponent: function ( value ) {
 
-        return typeof value === 'object' && value !== null && value.Instance && true;
+        return ccm.helper.isObject( value ) && value.Instance && true;
 
       },
 
@@ -2907,7 +2995,18 @@ ccm = function () {
        */
       isDataset: function ( value ) {
 
-        return typeof value === 'object' && !jQuery.isArray( value ) && value !== null;
+        return ccm.helper.isObject( value );
+
+      },
+
+      /**
+       * check value for <i>ccm</i> datastore
+       * @param {*} value - value to check
+       * @returns {boolean}
+       */
+      isDatastore: function ( value ) {
+
+        return ccm.helper.isObject( value ) && value.get && value.set && value.del && true;
 
       },
 
@@ -2978,21 +3077,9 @@ ccm = function () {
        */
       isInstance: function ( value ) {
 
-        return typeof value === 'object' && value !== null && value.component && true;
+        return ccm.helper.isObject( value ) && value.component && true;
 
       },
-
-      /*
-       * @summary check value for <i>ccm</i> datastore
-       * @param {*} value - value to check
-       * @returns {boolean}
-       *
-       isStore: function ( value ) {
-
-       return typeof value === 'object' && value !== null && value.local;
-
-       },
-       */
 
       /**
        * check value if it is an object (including not null and not array)
@@ -3057,6 +3144,18 @@ ccm = function () {
       },
 
       /**
+       * @summary make something thats nearly array-like iterable (see examples)
+       * @param array
+       * @returns {Array}
+       * @example ccm.helper.makeIterable( arguments ).map( function ( arg ) { ... } );
+       * @example ccm.helper.makeIterable( document.getElementById( "demo" ).children ).map( function ( child ) { ... } );
+       * @example ccm.helper.makeIterable( document.getElementById( "demo" ).attributes ).map( function ( attr ) { ... } );
+       */
+      makeIterable: function ( array ) {
+        return Array.prototype.slice.call( array );
+      },
+
+      /**
        * @summary remove script tags in a string
        * @param {string} value - string
        * @returns {string} string without script tags
@@ -3081,7 +3180,7 @@ ccm = function () {
         var obj = {};
         for ( var i = 1; i < arguments.length; i++ ) {
           var key = arguments[ i ];
-          obj[ key ] = instance[ key ];
+          if ( instance[ key ] !== undefined ) obj[ key ] = instance[ key ];
           delete instance[ key ];
         }
         return obj;
@@ -3096,22 +3195,26 @@ ccm = function () {
       regex: function ( index ) {
 
         switch ( index ) {
-          case 'key':  return /^[a-z_0-9][a-zA-Z_0-9]*$/;
-          case 'name': return /^[a-z][a-z_0-9]*$/;
-          case 'tag':  return /^[a-z][a-zA-Z]*$/;
-          case 'url':  return /^(((http|ftp|https):\/\/)?[\w-]+(\.[\w-]*)+)?([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?$/;
+          case 'filename': return /^(ccm.)?([^.-]+)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/;
+          case 'key':      return /^[a-z_0-9][a-zA-Z_0-9]*$/;
+          case 'name':     return /^[a-z][a-z_0-9]*$/;
+          case 'tag':      return /^[a-z][a-zA-Z]*$/;
+          case 'url':      return /^(((http|ftp|https):\/\/)?[\w-]+(\.[\w-]*)+)?([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?$/;
         }
 
       },
 
       /**
-       * reselect <i>ccm</i> instance website area
-       * @param {ccm.types.element} instance - <i>ccm</i> instance
+       * @summary reselect an website area of an <i>ccm</i> instance
+       * @param {ccm.types.instance} instance - <i>ccm</i> instance
        */
       reselect: function ( instance ) {
 
-        // Webseitenelement gesetzt? => Reselektieren
-        if ( instance.element ) instance.element = jQuery( instance.element.selector );
+        if ( ccm.helper.isInstance( instance ) )
+          if ( ccm.helper.isElement( instance.element ) )
+            if ( instance.element.selector )
+              instance.element = jQuery( instance.element.selector );
+
       },
 
       /**
@@ -3170,6 +3273,45 @@ ccm = function () {
       },
 
       /**
+       * @summary get or set the value of a deeper object property
+       * @param {object} obj - object that contains the deeper property
+       * @param {string} key - key in dot notation
+       * @param {*} value - value that should be set for deeper property
+       * @returns {string} deeper property value
+       * @example
+       * var obj = {
+       *   test: 123,
+       *   foo.bar: 'abc',
+       *   foo.baz: 'xyz'
+       * };
+       * var result = ccm.helper.getDeeperValue( obj, 'foo.bar' );
+       * console.log( result ); // => 'abc'
+       */
+      value: function ( obj, key, value ) {
+
+        return recursive( obj, key.split( '.' ), value );
+
+        /**
+         * recursive helper function
+         * @param {object} obj - object that contains the deeper property
+         * @param {string[]} key - path to deeper property (dot splitted key)
+         * @param {*} value - value that should be set for deeper property
+         * @returns {string} value of deeper property
+         */
+        function recursive( obj, key, value ) {
+
+          if ( !obj ) return;
+          var next = key.shift();
+          if ( key.length === 0 )
+            return value !== undefined ? obj[ next ] = value : obj[ next ];
+          if ( !obj[ next ] && value !== undefined ) obj[ next ] = {};
+          return recursive( obj[ next ], key, value );                      // recursive call
+
+        }
+
+      },
+
+      /**
        * @summary perform a function after a waiting time
        * @param {number} time - waiting time in milliseconds
        * @param {function} callback - performed function after waiting time
@@ -3204,14 +3346,23 @@ ccm = function () {
      */
     var filename = url.split( '/' ).pop();
 
-    // filter component name from filename
+    /**
+     * regular expression for filename of a ccm component
+     * @type {RegExp}
+     */
+    var regex = ccm.helper.regex( 'filename' );
+
+    // correct filename of a ccm component? => abort
+    if ( !regex.test( filename ) ) return '';
+
+    // filter and return component index
     var split = filename.split( '.' );
-    if ( split[ 0 ] === 'ccm' && split[ split.length - 1 ] === 'js' && ( split.length === 3 || split[ 2 ] === 'min' ) )
-      return split[ 1 ];
-    else {
-      // remove file extension and return resulting ccm component index # DEPRECATED
-      return filename.substr( 0, filename.lastIndexOf( '.' ) );
-    }
+    if ( split[ 0 ] === 'ccm' )
+      split.shift();
+    split.pop();
+    if ( split[ split.length - 1 ] === 'min' )
+      split.pop();
+    return split.join( '.' );
 
   }
 
@@ -3230,7 +3381,7 @@ ccm = function () {
     var source = JSON.stringify( settings );
 
     // source is empty object? => use number as source
-    if ( source === '{}' ) source = Object.keys( stores ).length;
+    if ( source === '{}' || source === '{"delayed":true}' ) source = Object.keys( stores ).length;
 
     // return ccm datastore source
     return source;
@@ -3240,13 +3391,13 @@ ccm = function () {
   /*---------------------------------------------- ccm type definitions ----------------------------------------------*/
 
   /**
-   * @summary <i>ccm</i> type definitions
    * @namespace ccm.types
+   * @summary <i>ccm</i> type definitions
    */
 
   /**
-   * @summary <i>ccm</i> action data
    * @typedef {function|string|Array} ccm.types.action
+   * @summary <i>ccm</i> action data
    * @example function() { ... }
    * @example functionName
    * @example 'functionName'
@@ -3255,8 +3406,8 @@ ccm = function () {
    */
 
   /**
-   * @summary <i>ccm</i> component object
    * @typedef {namespace} ccm.types.component
+   * @summary <i>ccm</i> component object
    * @description Below you see typically (but not all mandatory) properties. Most of these properties are set by the <i>ccm</i> framework.
    * @property {ccm.types.index} index - <i>ccm</i> component index
    * @property {ccm.types.name} name - <i>ccm</i> component name
@@ -3281,9 +3432,9 @@ ccm = function () {
    */
 
   /**
+   * @typedef {object} ccm.types.config
    * @summary <i>ccm</i> instance configuration
    * @description Below you see typically (but not mandatory) properties.
-   * @typedef {object} ccm.types.config
    * @property {ccm.types.element} element - <i>ccm</i> instance website area
    * @property {ccm.types.dependency} html - <i>ccm</i> datastore for html templates
    * @property {ccm.types.dependency} style - CSS styles for own website area
@@ -3307,11 +3458,11 @@ ccm = function () {
    */
 
   /**
+   * @typedef {object} ccm.types.dataset
    * @summary <i>ccm</i> dataset
    * @description
    * Every <i>ccm</i> dataset has a property 'key' which contains the unique key of the dataset.
    * There are no conventions for other properties. They can be as they want.
-   * @typedef {object} ccm.types.dataset
    * @example {
    *   "key": "demo",
    *   "text": "Hello, World!",
@@ -3344,8 +3495,8 @@ ccm = function () {
    */
 
   /**
-   * @summary collection of <i>ccm</i> datasets
    * @typedef {Object.<ccm.types.key, ccm.types.dataset>} ccm.types.datasets
+   * @summary collection of <i>ccm</i> datasets
    * @example {
    *   "demo": {
    *     "key": "demo",
@@ -3368,8 +3519,8 @@ ccm = function () {
    */
 
   /**
-   * @summary <i>ccm</i> dependency
    * @typedef {ccm.types.action} ccm.types.dependency
+   * @summary <i>ccm</i> dependency
    * @example [ ccm.component, 'ccm.chat.js' ]
    * @example [ ccm.instance, 'ccm.chat.js' ]
    * @example [ ccm.render, 'ccm.chat.js' ]
@@ -3379,31 +3530,31 @@ ccm = function () {
    */
 
   /**
+   * @typedef {object} ccm.types.element
    * @summary "jQuery Element" object
    * @description For more informations about jQuery see ({@link https://jquery.com}).
-   * @typedef {object} ccm.types.element
    * @example var element = jQuery( 'body' );
    * @example var element = jQuery( '#menu' );
    * @example var element = jQuery( '.entry' );
    */
 
   /**
-   * @summary callback when a read operation is finished
    * @callback ccm.types.getResult
+   * @summary callback when a read operation is finished
    * @param {ccm.types.dataset|ccm.types.dataset[]} result - requested dataset(s)
    * @example function ( result ) { console.log( result ) }
    */
 
   /**
-   * @summary <i>ccm</i> html data - TODO: explain properties of <i>ccm</i> html data
    * @typedef {object} ccm.types.html
+   * @summary <i>ccm</i> html data - TODO: explain properties of <i>ccm</i> html data
    * @ignore
    */
 
   /**
+   * @typedef {string} ccm.types.index
    * @summary <i>ccm</i> component index (unique in <i>ccm</i> framework)
    * @description An <i>ccm</i> component index is made up of a [component name]{@link ccm.types.name} and its [version number]{@link ccm.types.version}.
-   * @typedef {string} ccm.types.index
    * @example "blank-1.0.0"
    * @example "chat-2.1.3"
    * @example "blank" // no version number means latest version
@@ -3411,8 +3562,8 @@ ccm = function () {
    */
 
   /**
-   * @summary <i>ccm</i> instance
    * @typedef {object} ccm.types.instance
+   * @summary <i>ccm</i> instance
    * @property {number} id - <i>ccm</i> instance id (unique in own component)
    * @property {string} index - <i>ccm</i> instance index (unique in <i>ccm</i> framework)<br>A <i>ccm</i> instance index is made up of own [component name]{@link ccm.types.name} and own [id]{@link ccm.types.instance} (example: <code>"chat-1"</code>).
    * @property {ccm.types.component} component - reference to associated <i>ccm</i> component
@@ -3422,14 +3573,14 @@ ccm = function () {
    */
 
   /**
-   * @summary "jQuery XMLHttpRequest" object
    * @typedef {object} ccm.types.JqXHR
+   * @summary "jQuery XMLHttpRequest" object
    */
 
   /**
+   * @typedef {string|number} ccm.types.key
    * @summary key of a <i>ccm</i> dataset (unique in the <i>ccm</i> datastore which contains the dataset)
    * @description Must be conform with the regular expression /^[a-z_0-9][a-zA-Z_0-9]*$/.
-   * @typedef {string|number} ccm.types.key
    * @example "test"
    * @example "_foo"
    * @example 4711
@@ -3439,9 +3590,9 @@ ccm = function () {
    */
 
   /**
+   * @typedef {string} ccm.types.name
    * @summary name of a <i>ccm</i> component (unique in a <i>ccm</i> component market place)
    * @description Must be conform with the regular expression /^[a-z][a-z_0-9]*$/.
-   * @typedef {string} ccm.types.name
    * @example "blank"
    * @example "chat"
    * @example "my_blank"
@@ -3450,20 +3601,21 @@ ccm = function () {
    */
 
   /**
-   * @summary regular expression
    * @typedef {object} ccm.types.regex
+   * @summary regular expression
    * @example var regex = /^[A-Z][a-z]*$/g;
    * @example var regex = new RegExp( '^[A-Z][a-z]*$', 'g' );
    */
 
   /**
-   * @summary callback when an create or update operation is finished
    * @callback ccm.types.setResult
+   * @summary callback when an create or update operation is finished
    * @param {ccm.types.dataset} result - created or updated dataset
    * @example function ( result ) { console.log( result ) }
    */
 
   /**
+   * @typedef {object} ccm.types.settings
    * @summary <i>ccm</i> datastore settings
    * @description
    * Settings for a <i>ccm</i> datastore.
@@ -3472,11 +3624,23 @@ ccm = function () {
    * No property 'store' results in a <i>ccm</i> datastore of data level 1.
    * An existing property 'store' results in a <i>ccm</i> datastore of data level 2.
    * An existing property 'store' and 'url' results in a <i>ccm</i> datastore of data level 3.
-   * @typedef {object} ccm.types.settings
-   * @property {ccm.types.datasets|ccm.types.url} local - collection of initial <i>ccm</i> datasets or URL to a json file that deliver initial datasets for local cache (see [here]{@link ccm.Datastore#local} for more details)
-   * @property {string} store - datastore name in database (see [here]{@link ccm.Datastore#store} for more details)
-   * @property {string} url - URL to an <i>ccm</i> compatible server interface (see [here]{@link ccm.Datastore#url} for more details)
-   * @property {function} onChange - callback when server informs about changed stored datasets (see [here]{@link ccm.Datastore#onChange} for more details)
+   * @property {ccm.types.datasets|ccm.types.url} local - Collection of initial <i>ccm</i> datasets or URL to a json file that deliver initial datasets for local cache.
+   * See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#data-caching} for more informations about this kind of data caching.
+   * @property {string} store - Name of the datastore in the database.
+   * Dependent on the specific database the datastore has different designations.
+   * For example in IndexedDB this is the name of the Object Store, in MongoDB the name of the Document Store and in MySQL the name of the Table.
+   * This property is not relevant for the first data level. It is only relevant for higher data levels.
+   * @property {string} url - URL to an <i>ccm</i> compatible server interface.
+   * This property is only relevant for the third data level.
+   * See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#server-interface} for more informations about an <i>ccm</i> compatible server interface.
+   * @property {string} db - database (in case of a server that offers more than one database)
+   * @property {function} onChange - Callback when server informs about changed stored datasets.
+   * This property is only relevant for the third data level with real-time communication.
+   * See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#real-time-communication} for more informations.
+   * @property {ccm.types.instance} user - <i>ccm</i> instance for user authentication (not documented yet) | TODO: Wiki page for datastore security
+   * @example
+   * // provides a empty ccm datastore of data level 1
+   * {}
    * @example
    * // provides a ccm datastore of data level 1 with initial datasets from a JSON file
    * {
@@ -3527,28 +3691,29 @@ ccm = function () {
    */
 
   /**
-   * @summary <i>ccm</i> datastore source - TODO: explain forms of <i>ccm</i> datasstore sources
    * @typedef {string|object} ccm.types.source
+   * @summary <i>ccm</i> datastore source - TODO: explain forms of <i>ccm</i> datasstore sources
+   * @ignore
    */
 
   /**
-   * @summary callback when a provided datastore is ready for use
    * @callback ccm.types.storeResult
+   * @summary callback when a provided datastore is ready for use
    * @param {ccm.Datastore} store - <i>ccm<i/> datastore
    * @example function ( store ) { console.log( store ) }
    */
 
   /**
-   * @summary Uniform Resource Locator (URL)
    * @typedef {string} ccm.types.url
+   * @summary Uniform Resource Locator (URL)
    * @example https://github.com/akless/ccm-developer
    * @example ws://ccm2.inf.h-brs.de/index.js:80
    * @example http://akless.github.io/ccm-developer/resources/ccm.chat.min.js
    */
 
   /**
-   * @summary version number conform with Semantic Versioning 2.0.0 ({@link http://semver.org})
    * @typedef {number[]} ccm.types.version
+   * @summary version number conform with Semantic Versioning 2.0.0 ({@link http://semver.org})
    * @example [1,0,0]
    * @example [2,1,3]
    */
