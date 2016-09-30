@@ -174,7 +174,7 @@ ccm.component( /** @lends ccm.components.chat */ {
    * @property {string} classes - html classes for own website area
    * @property {ccm.types.dependency} data.store - <i>ccm</i> datastore that contains the [dataset for rendering]{@link ccm.components.chat.types.dataset}
    * @property {ccm.types.key} data.key - key of [dataset for rendering]{@link ccm.components.chat.types.dataset}
-   * @property {ccm.types.dependency} user - <i>ccm</i> instance for user authentification
+   * @property {ccm.types.dependency} user - <i>ccm</i> instance for user authentication
    * @example {
    *   element: jQuery( 'body' ),
    *   html:    [ ccm.store, { local: './templates.json' } ],

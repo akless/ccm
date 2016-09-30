@@ -22,13 +22,9 @@
  * version 6.11.0 (30.09.2016):
  * - automatically loading of a polyfill if custom elements not supported
  * - update ccm.helper.dataset (accepts now dataset directly)
- * version 6.10.3 (28.09.2016):
- * - very very hard to find internal bugfix
- * version 6.10.2 (28.09.2016):
  * - recursive search for 'ccm-' tags in inner normal tags of an ccm custom element
- * version 6.10.1 (27.09.2016):
  * - bugfix in interpreter algorith for inner HTML structure of an ccm custom element
- * - very hard to find internal bugfix
+ * - two very hard to find internal bugfixes
  * version 6.10.0 (27.09.2016):
  * - improve interpreter algorithm for inner HTML structure of an ccm custom element
  * - add helper method "ccm.helper.makeIterable"
