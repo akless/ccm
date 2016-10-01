@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.11.1)
+ * @version latest (6.11.2)
  * @changes
+ * version 6.11.2 (01.10.2016):
+ * - update algorithm for initialisation order (breadth-first-order instead of deep-first-order)
  * version 6.11.1 (30.09.2016):
  * - another very hard to find bugfix
  * version 6.11.0 (30.09.2016):
@@ -1003,7 +1005,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 11, 1 ],
+    version: [ 6, 11, 2 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -1990,17 +1992,17 @@ ccm = function () {
             }
 
             /**
-             * initialize ccm instance and all its dependent ccm instances and ccm components (recursive)
-             * @param {ccm.types.instance|Array} instance - ccm instance
+             * initialize ccm instance and all its dependent ccm instances and datastores (recursive)
+             * @param {ccm.types.instance|object|Array} instance - ccm instance or inner object or array
              * @param {function} callback
              */
             function initialize( instance, callback ) {
 
               /**
-               * founded ccm instances
-               * @type {Array<ccm.types.instance>}
+               * founded ccm instances and datastores
+               * @type {Array.<ccm.types.instance|ccm.Datastore>}
                */
-              var results = [];
+              var results = [ instance ];
 
               // find all ccm instances
               find( instance );
@@ -2012,43 +2014,47 @@ ccm = function () {
               var i = 0; init();
 
               /**
-               * find all ccm instances (deep-first-order, pre-order, recursive)
+               * find all ccm instances and datastores (breadth-first-order, recursive)
                * @param {object} obj - object
                */
               function find( obj ) {
 
-                // object is an ccm instance? => add it to results
-                if ( ccm.helper.isInstance( obj ) || ccm.helper.isDatastore( obj ) ) results.push( obj );
+                /**
+                 * founded relevant inner objects and arrays
+                 * @type {Array.<object|Array>}
+                 */
+                var inner = [];
 
                 // find all dependent ccm instances
                 for ( var key in obj ) {
-
-                  /**
-                   * object property value
-                   * @type {*}
-                   */
                   var value = obj[ key ];
 
-                  // value is a ccm instance (but not parent)? => go deeper (recursive call)
-                  if ( ccm.helper.isInstance( value ) && key !== 'parent' && !ccm.helper.isProxy( value) ) find( value );
+                  // value is a ccm instance? (but not parent and not a ccm proxy instance) => add to founded relevant inner object and arrays
+                  if ( ccm.helper.isInstance( value ) && key !== 'parent' && !ccm.helper.isProxy( value) ) inner.push( value );
 
                   // value is an array or object?
-                  else if ( typeof value === 'object' && value !== null ) {
+                  else if ( Array.isArray( value ) || ccm.helper.isObject( value ) ) {
 
                     // value is an jQuery element or ccm instance or ccm component? => skip
-                    if ( ccm.helper.isElement( value ) || ccm.helper.isInstance( value ) || ccm.helper.isComponent( value ) ) continue;
+                    if ( ccm.helper.isElement( value ) || ccm.helper.isComponent( value ) || ccm.helper.isInstance( value ) ) continue;
 
-                    // go deeper (recursive call)
-                    find( value );
+                    // add to founded relevant inner object and arrays
+                    inner.push( value );
 
                   }
 
                 }
 
+                // add founded inner ccm instances and datastores to results
+                inner.map( function ( obj ) { if ( ccm.helper.isInstance( obj ) || ccm.helper.isDatastore( obj ) ) results.push( obj ); } );
+
+                // go deeper (recursive calls)
+                inner.map( function ( obj ) { find( obj ); } );
+
               }
 
               /**
-               * initialize all founded ccm instances (recursive, asynchron)
+               * initialize all founded ccm instances and datastores (recursive, asynchron)
                */
               function init() {
 
@@ -2057,7 +2063,7 @@ ccm = function () {
 
                 /**
                  * first founded and not init-checked result
-                 * @type {ccm.types.instance}
+                 * @type {ccm.types.instance|ccm.Datastore}
                  */
                 var obj = results[ i ]; i++;
 
