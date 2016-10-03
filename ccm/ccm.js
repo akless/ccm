@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.11.2)
+ * @version latest (6.11.3)
  * @changes
+ * version 6.11.3 (03.10.2016):
+ * - bugfix for call of get method of a ccm datastore with no result and no callback
  * version 6.11.2 (01.10.2016):
  * - update algorithm for initialisation order (breadth-first-order instead of deep-first-order)
  * version 6.11.1 (30.09.2016):
@@ -402,7 +404,7 @@ ccm = function () {
           if ( !checkResponse( results ) ) return;
 
           // no results? => abort
-          if ( !results ) return callback( null );
+          if ( !results ) { if ( callback ) callback( null ); return; }
 
           // save result dataset(s) in local cache
           if ( ccm.helper.isDataset( results ) )
@@ -1005,7 +1007,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 11, 2 ],
+    version: [ 6, 11, 3 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
