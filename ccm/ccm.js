@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.11.3)
+ * @version latest (6.11.4)
  * @changes
+ * version 6.11.4 (05.10.2016):
+ * - ccm.helper.clone returns given parameter if it is not an object or array
  * version 6.11.3 (03.10.2016):
  * - bugfix for call of get method of a ccm datastore with no result and no callback
  * version 6.11.2 (01.10.2016):
@@ -667,7 +669,7 @@ ccm = function () {
     function getLocal( key, callback ) {
 
       // dataset key is a query? => find dataset(s) by query
-      if ( key === undefined || jQuery.isPlainObject( key ) ) return find();
+      if ( key === undefined || ccm.helper.isObject( key ) ) return find();
 
       /**
        * result dataset
@@ -2481,7 +2483,7 @@ ccm = function () {
        */
       clone: function ( obj, flat ) {
 
-        return typeof obj === 'object' ? jQuery.extend( !flat, {}, obj ) : undefined;
+        return ccm.helper.isObject( obj ) || Array.isArray( obj ) ? jQuery.extend( !flat, {}, obj ) : obj;
 
       },
 
