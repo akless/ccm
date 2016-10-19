@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.11.4)
+ * @version latest (6.11.5)
  * @changes
+ * version 6.11.5 (19.10.2016):
+ * - HTML encode bugfix
  * version 6.11.4 (05.10.2016):
  * - ccm.helper.clone returns given parameter if it is not an object or array
  * version 6.11.3 (03.10.2016):
@@ -1009,7 +1011,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 11, 4 ],
+    version: [ 6, 11, 5 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -2895,7 +2897,7 @@ ccm = function () {
 
             // HTML value attributes
             default:
-              element.attr( key, ccm.helper.val( value ) );
+              element.attr( key, ccm.helper.val( value, true ) );
 
           }
 
@@ -2918,7 +2920,7 @@ ccm = function () {
 
         if ( typeof value !== 'string' ) value = value.toString();
         value = trim || trim === undefined ? value.trim() : value;
-        value = jQuery( '<div>' ).text( value ).html();
+        value = jQuery( '<div>' ).text( value ).text();
         value = quot || quot === undefined ? value.replace( /"/g, '&quot;' ) : value;
         return value;
 
