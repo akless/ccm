@@ -19,7 +19,7 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @version latest (6.11.5)
  * @changes
- * version 6.11.5 (19.10.2016):
+ * version 6.11.5 (21.10.2016):
  * - HTML encode bugfix
  * version 6.11.4 (05.10.2016):
  * - ccm.helper.clone returns given parameter if it is not an object or array
@@ -2841,7 +2841,7 @@ ccm = function () {
         }
 
         // get string instead of ccm html data? => remove script tags
-        if ( typeof html === 'string' ) html = ccm.helper.val( html );
+        if ( typeof html === 'string' ) html = ccm.helper.val( html, true );
 
         // get no ccm html data? => return parameter value
         if ( typeof html !== 'object' ) return html;
