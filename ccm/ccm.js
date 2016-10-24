@@ -1618,24 +1618,19 @@ ccm = function () {
          */
         function createCustomElement() {
 
-          console.log( 'create', component.index );
           var tag = Object.create( HTMLElement.prototype );
           tag.createdCallback = function () {
-            console.log( this );
 
             var node = this.parentElement;
             if ( !node ) return;
             do {
-              console.log( node.tagName );
               if ( node.tagName && node.tagName.indexOf( 'CCM-' ) === 0 )
-                { console.log( 'aborted' ); return; }
+                return;
             } while ( node = node.parentElement );
-            console.log( 'accepted' );
 
             var config = ccm.helper.generateConfig( this );
             config.element = jQuery( this );
-            console.log( 'render', this, config );
-            component.render( config, console.log );
+            component.render( config );
 
           };
           document.registerElement( 'ccm-' + component.index, { prototype: tag } );
