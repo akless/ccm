@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.13.0)
+ * @version latest (6.13.1)
  * @changes
+ * version 6.13.1 (26.10.2016):
+ * - remove content of inner ccm custom elements for instance configuration
  * version 6.13.0 (24.10.2016):
  * - solve dependencies in breath-first-order instead of deep-first-order
  * version 6.12.0 (23.10.2016):
@@ -1012,7 +1014,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 13, 0 ],
+    version: [ 6, 13, 1 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -2731,6 +2733,7 @@ ccm = function () {
                         list.push( entry.textContent );
                       else
                         list[ split[ 2 ] ] = entry.textContent;
+                      entry.textContent = '';
                     }
                   } );
                   if ( list ) config[ split[ 2 ] ] = list;
@@ -2760,8 +2763,10 @@ ccm = function () {
                   return node.getAttribute( 'src' );
                 var data = {};
                 ccm.helper.makeIterable( node.children ).map( function ( node ) {
-                  if ( node.tagName && node.tagName.indexOf( 'CCM-DATA-' ) === 0 )
+                  if ( node.tagName && node.tagName.indexOf( 'CCM-DATA-' ) === 0 ) {
                     data[ node.tagName.toLowerCase().split( '-' )[ 2 ] ] = node.textContent;
+                    node.textContent = '';
+                  }
                 } );
                 return [ node.getAttribute( 'src' ), data ];
               }
