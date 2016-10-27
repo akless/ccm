@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (6.13.1)
+ * @version latest (6.13.2)
  * @changes
+ * version 6.13.2 (27.10.2016):
+ * - ccm.helper.dataset returns cloned obj, if dataset is given directly
  * version 6.13.1 (26.10.2016):
  * - remove content of inner ccm custom elements for instance configuration
  * version 6.13.0 (24.10.2016):
@@ -1014,7 +1016,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 13, 1 ],
+    version: [ 6, 13, 2 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -2429,7 +2431,7 @@ ccm = function () {
         if ( !ccm.helper.isObject( obj ) ) { if ( callback ) callback(); return undefined; }
 
         // object is dataset directly? => return dataset
-        if ( !ccm.helper.isDatastore( obj.store ) ) { if ( callback ) callback( obj ); return obj; }
+        if ( !ccm.helper.isDatastore( obj.store ) ) { obj = ccm.helper.clone( obj ); if ( callback ) callback( obj ); return obj; }
 
         // get dataset from ccm datastore
         return obj.store.get( obj.key || null, function ( dataset ) {
