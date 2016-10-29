@@ -20,26 +20,19 @@
  * @version 6.14.0
  * @changes
  * version 6.14.0 (28.10.2016):
- * - refactoring of ccm.load
+ * - update of ccm.load
  * - skip inner tags of an ccm custom elements with '-' as last character
- * version 6.13.2 (27.10.2016):
  * - ccm.helper.dataset returns cloned obj, if dataset is given directly
- * version 6.13.1 (26.10.2016):
  * - remove content of inner ccm custom elements for instance configuration
  * version 6.13.0 (24.10.2016):
  * - solve dependencies in breath-first-order instead of deep-first-order
  * version 6.12.0 (23.10.2016):
  * - add helper method "ccm.helper.generateConfig"
  * - security update for registration of a ccm component
- * version 6.11.5 (21.10.2016):
  * - HTML encode bugfix
- * version 6.11.4 (05.10.2016):
  * - ccm.helper.clone returns given parameter if it is not an object or array
- * version 6.11.3 (03.10.2016):
  * - bugfix for call of get method of a ccm datastore with no result and no callback
- * version 6.11.2 (01.10.2016):
  * - update algorithm for initialisation order (breadth-first-order instead of deep-first-order)
- * version 6.11.1 (30.09.2016):
  * - another very hard to find bugfix
  * version 6.11.0 (30.09.2016):
  * - automatically loading of a polyfill if custom elements not supported
@@ -50,13 +43,11 @@
  * version 6.10.0 (27.09.2016):
  * - improve interpreter algorithm for inner HTML structure of an ccm custom element
  * - add helper method "ccm.helper.makeIterable"
- * version 6.9.1 (27.09.2016):
  * - allow attribute "src" in ccm custom elements in more cases
  * version 6.9.0 (27.09.2016):
  * - add interpreter algorithm for inner HTML structure of an ccm custom element
  * - ccm load dependencies accept more than one resource and serial/parallel loading
  * - properties component, index and id of an ccm instance could not be overridden via instance configuration
- * version 6.8.1 (19.09.2016):
  * - bugfix for ccm custom elements with array or object values in attributes
  * version 6.8.0 (19.09.2016):
  * - ccm datastores knows her source
@@ -1488,6 +1479,8 @@ ccm = function () {
         }
         // load component
         else return ccm.load( component, function ( component ) {
+
+          component = components[ index ];
 
           // integrate default ccm instance configuration
           ccm.helper.integrate( config, component.config );

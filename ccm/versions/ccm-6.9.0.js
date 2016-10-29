@@ -23,7 +23,6 @@
  * - add interpreter algorithm for inner HTML structure of an ccm custom element
  * - ccm load dependencies accept more than one resource and serial/parallel loading
  * - properties component, index and id of an ccm instance could not be overridden via instance configuration
- * version 6.8.1 (19.09.2016):
  * - bugfix for ccm custom elements with array or object values in attributes
  * version 6.8.0 (19.09.2016):
  * - ccm datastores knows her source
