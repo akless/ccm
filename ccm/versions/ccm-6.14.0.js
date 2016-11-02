@@ -1389,7 +1389,7 @@ ccm = function () {
         function success() {
 
           // add url to results and already loaded resources
-          if ( !results[ i ] ) results[ i ] = resources[ url ] = url;
+          if ( results[ i ] === undefined ) results[ i ] = resources[ url ] = url;
 
           // is resource on waitlist? => perform waiting actions
           while ( waiter[ url ] && waiter[ url ].length > 0 )
