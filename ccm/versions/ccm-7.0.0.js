@@ -21,7 +21,9 @@
  * @changes
  * version 7.0.0 (02.11.2016):
  * - update of ccm.component
- * - new implementation of ccm custom elements
+ * - new implementation of ccm custom elements (incompatible change)
+ * - add helper method 'ccm.helper.isNode'
+ * - prevent deeper recursion for HTML DOM nodes
  * version 6.14.2 (02.11.2016):
  * - bugfix in ccm.load
  * version 6.14.1 (29.10.2016):
@@ -1712,8 +1714,8 @@ ccm = function () {
                 // value is an array or object?
                 else if ( typeof value === 'object' && value !== null ) {
 
-                  // jQuery element or ccm instance? => skip
-                  if ( ccm.helper.isElement( value ) || ccm.helper.isInstance( value ) || ccm.helper.isComponent( value ) ) continue;
+                  // not relevant object type? => skip
+                  if ( ccm.helper.isNode( value ) || ccm.helper.isElement( value ) || ccm.helper.isInstance( value ) || ccm.helper.isComponent( value ) ) continue;
 
                   // search it for dependencies (recursive call)
                   solveDependencies( value );
@@ -1907,8 +1909,8 @@ ccm = function () {
                   // value is an array or object?
                   else if ( Array.isArray( value ) || ccm.helper.isObject( value ) ) {
 
-                    // value is an jQuery element or ccm instance or ccm component? => skip
-                    if ( ccm.helper.isElement( value ) || ccm.helper.isComponent( value ) || ccm.helper.isInstance( value ) ) continue;
+                    // not relevant object type? => skip
+                    if ( ccm.helper.isNode( value ) || ccm.helper.isElement( value ) || ccm.helper.isComponent( value ) || ccm.helper.isInstance( value ) ) continue;
 
                     // add to founded relevant inner object and arrays
                     inner.push( value );
@@ -3060,6 +3062,17 @@ ccm = function () {
       isInstance: function ( value ) {
 
         return ccm.helper.isObject( value ) && value.component && true;
+
+      },
+
+      /**
+       * @summary check value for HTML DOM Node
+       * @param {*} value - value to check
+       * @returns {boolean}
+       */
+      isNode: function ( value ) {
+
+        return value instanceof Node;
 
       },
 
