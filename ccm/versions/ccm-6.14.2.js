@@ -17,8 +17,12 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version 6.14.0
+ * @version 6.14.2
  * @changes
+ * version 6.14.2 (02.11.2016):
+ * - bugfix in ccm.load
+ * version 6.14.1 (29.10.2016):
+ * - bugfix in ccm.component
  * version 6.14.0 (28.10.2016):
  * - update of ccm.load
  * - skip inner tags of an ccm custom elements with '-' as last character
@@ -1002,7 +1006,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 6, 14, 0 ],
+    version: [ 6, 14, 2 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
