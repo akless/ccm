@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (7.1.1)
+ * @version latest (7.1.2)
  * @changes
+ * version 7.1.2 (03.11.2016):
+ * - use of attachedCallback instead of createdCallback for ccm custom elements
  * version 7.1.1 (03.11.2016):
  * - bugfix for ccm.helper.catchComponentTags
  * version 7.1.0 (03.11.2016):
@@ -932,7 +934,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 7, 1, 1 ],
+    version: [ 7, 1, 2 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -1472,8 +1474,7 @@ ccm = function () {
         function createCustomElement() {
 
           var tag = Object.create( HTMLElement.prototype );
-          tag.createdCallback = function () {
-            if ( !this.parentNode ) return;
+          tag.attachedCallback = function () {
             var config = ccm.helper.generateConfig( this );
             config.element = jQuery( this );
             component.render( config );
