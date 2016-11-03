@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (7.1.0)
+ * @version latest (7.1.1)
  * @changes
+ * version 7.1.1 (03.11.2016):
+ * - bugfix for ccm.helper.catchComponentTags
  * version 7.1.0 (03.11.2016):
  * - no interpretation of a ccm custom element if its outside the DOM
  * - add helper method 'ccm.helper.catchComponentTags'
@@ -930,7 +932,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 7, 1, 0 ],
+    version: [ 7, 1, 1 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -2270,6 +2272,7 @@ ccm = function () {
        */
       catchComponentTags: function ( instance, callback ) {
 
+        if ( !Array.isArray( instance.childNodes ) ) return callback();
         instance.childInstances = {};
         instance.childNodes.map( function ( child, i ) {
 
