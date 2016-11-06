@@ -941,7 +941,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 7, 1, 2 ],
+    version: [ 7, 2, 0 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
