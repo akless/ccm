@@ -17,8 +17,10 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (7.2.0)
+ * @version latest (7.2.1)
  * @changes
+ * version 7.2.1 (07.11.2016):
+ * - instances keeps reference to their individual original component object
  * version 7.2.0 (06.11.2016):
  * - bugfix in polyfill url
  * - change way to detect if ccm custom element is in the DOM
@@ -941,7 +943,7 @@ ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 7, 2, 0 ],
+    version: [ 7, 2, 1 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -1506,7 +1508,7 @@ ccm = function () {
         component.config = ccm.helper.integrate( ccm.helper.clone( config ), component.config );
 
         // open closure for correct later variable visibility
-        closure( component.config );
+        closure( component );
 
         // perform callback with component
         if ( callback ) callback( component );
@@ -1514,12 +1516,12 @@ ccm = function () {
         // return component
         return component;
 
-        function closure( cfg ) {
+        function closure( component ) {
 
           // has given default for default instance configuration? => consider this in later instance() and render() calls
-          if ( cfg ) {
-            component.instance = function ( config, callback ) { config = ccm.helper.integrate( config, ccm.helper.clone( cfg ) ); return ccm.instance( component.index, config, callback ); };
-            component.render   = function ( config, callback ) { config = ccm.helper.integrate( config, ccm.helper.clone( cfg ) ); return ccm.render  ( component.index, config, callback ); };
+          if ( component.config ) {
+            component.instance = function ( config, callback ) { config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.instance( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
+            component.render   = function ( config, callback ) { config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.render  ( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
           }
 
         }
