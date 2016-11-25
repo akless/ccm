@@ -49,20 +49,6 @@
  * (for older version changes see ccm-6.14.2.js)
  */
 
-// jQuery not exists? => load jQuery
-if ( !window.jQuery ) {
-
-  // body exists? => load asynchron
-  if ( document.body ) {
-    window.jQuery = document.createElement( 'script' );
-    window.jQuery.setAttribute( 'src', 'https://code.jquery.com/jquery-2.2.4.min.js' );
-    document.head.appendChild( window.jQuery );
-  }
-  // load synchron
-  else document.write( '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>' );
-
-}
-
 // no custom elements support? => load polyfill
 if ( !( 'registerElement' in document ) ) {
   document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js"><\/script>' );
