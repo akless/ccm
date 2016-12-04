@@ -49,7 +49,7 @@
  * (for older version changes see ccm-6.14.2.js)
  */
 
-// no custom elements support? => load polyfill
+// no custom elements support? => load polyfill  // TODO: update polyfill
 if ( !( 'registerElement' in document ) ) {
   document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js"><\/script>' );
   document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"><\/script>' );
@@ -64,11 +64,11 @@ if ( document.body ) {
 else document.write( '<style>@keyframes ccm_loading { to { transform: rotate(360deg); } }</style>' );
 
 /**
- * global <i>ccm</i> namespace
+ * <i>ccm</i> namespace
  * @global
  * @namespace
  */
-ccm = function () {
+var ccm = function () {
 
   /*---------------------------------------------- private ccm members -----------------------------------------------*/
 
@@ -115,16 +115,18 @@ ccm = function () {
   /*---------------------------------------------- private ccm classes -----------------------------------------------*/
 
   /**
-   * @summary constructor for creating <i>ccm</i> datastores (private class)
+   * @summary constructor for creating <i>ccm</i> datastores
    * @description See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management} for general informations about <i>ccm</i> data management.
    * @memberOf ccm
+   * @private
    * @class
    * @example
    * // Example for a <i>ccm</i> datastore instance:
    * {
    *   get: function ( key_or_query, callback ) {...},
    *   set: function ( priodata, callback ) {...},
-   *   del: function ( key, callback ) {...}
+   *   del: function ( key, callback ) {...},
+   *   source: function () {...}
    * }
    */
   var Datastore = function () {
@@ -149,11 +151,11 @@ ccm = function () {
 
     /**
      * @summary initialize datastore
-     * @description When datastore is created and after the initialization of a <i>ccm</i> instance in case of
-     * this datastore is provided via a <i>ccm</i> dependency of this <i>ccm</i> instance.
+     * @description
+     * When datastore is created and after the initialization of an <i>ccm</i> instance in case of
+     * this datastore is provided via a <i>ccm</i> dependency of that <i>ccm</i> instance.
      * This method will be removed by <i>ccm</i> after the one-time call.
-     * @param {function} callback - callback when this datastore is initialized
-     * @ignore
+     * @param {function} callback - when this datastore is initialized
      */
     this.init = function ( callback ) {
 
@@ -176,7 +178,7 @@ ccm = function () {
         else {
 
           // change data locally
-          var dataset = jQuery.isPlainObject( message ) ? setLocal( message ) : delLocal( message );
+          var dataset = ccm.helper.isObject( message ) ? updateLocal( message ) : delLocal( message );
 
           // perform change callback
           if ( my.onChange ) my.onChange( dataset );
@@ -199,7 +201,11 @@ ccm = function () {
      * With no first parameter the method provides an array with all stored datasets.
      * In this case the callback could be the first parameter directly.
      * Getting all stored datasets counts as a query and don't work if the chosen data level not supports queries.
+     * If a query is used and data is managed via server-side database (data level 3), than the resulting datasets never come from local cache..
      * See [table of supported operations]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#supported-operations} to check this.
+     * If the wanted data is completely local cached via <i>ccm</i> and is not containing data dependencies to external sources, than the data could be received as return value.
+     * Data dependencies inside the requested data will be automatically resolved via <i>ccm</i> (see last example).
+     * For more informations about [data dependencies]{@link ccm.dataset} see the given link.
      * @param {ccm.types.key|object} [key_or_query] - unique key of the dataset or alternative a query
      * @param {ccm.types.getResult} [callback] - when data operation is finished
      * @returns {ccm.types.dataset|ccm.types.dataset[]} requested dataset(s) (only if no inner operation is asynchron)
@@ -227,16 +233,24 @@ ccm = function () {
      *   console.log( result );   // [ { key: ..., author: 'akless', year: 2015, ... }, ... ]
      * } );
      * @example
-     * // get result as return value (only if no inner operation is asynchron)
+     * // get array of all stored datasets as return value (only if no inner operation is asynchron)
      * var result = store.get();
      * console.log( result );
+     * @example
+     * // get single dataset that contains a data dependency
+     * store.set( {                                                   // Store a dataset
+     *   key:   'test',                                               // that contains a
+     *   other: [ 'ccm.dataset', { url: ..., store: ... }, 'test2' ]  // data dependency
+     * } );                                                           // and than request it.
+     * var result = store.get( 'test' );
+     * console.log( result );             // { key: 'test', other: { key: 'test2', ... } }
      */
     this.get = function ( key_or_query, callback ) {
 
-      // allow to skip key parameter
-      if ( typeof key_or_query === 'function' ) { callback = key_or_query; key_or_query = {}; }
+      // allow skipping of first parameter
+      if ( typeof key_or_query === 'function' ) { callback = key_or_query; key_or_query = undefined; }
 
-      // dataset key is undefined? => use empty object (to select all datasets)
+      // dataset key is undefined? => use empty object (to select all datasets as default)
       if ( key_or_query === undefined ) key_or_query = {};
 
       // check data source
@@ -245,7 +259,7 @@ ccm = function () {
       if ( my.local ) return localCache();  // local cache
 
       /**
-       * get dataset from local cache
+       * get dataset(s) from local cache
        * @returns {ccm.types.dataset}
        */
       function localCache() {
@@ -255,7 +269,7 @@ ccm = function () {
       }
 
       /**
-       * get dataset from client-side database
+       * get dataset(s) from client-side database
        */
       function clientDB() {
 
@@ -283,32 +297,35 @@ ccm = function () {
         // set success callback
         request.onsuccess = function ( evt ) {
 
+          // no callback? => abort
+          if ( !callback ) return;
+
           /**
            * result dataset
            * @type {ccm.types.dataset}
            */
           var dataset = evt.target.result;
 
-          // dataset not exist? => abort
-          if ( !dataset ) return callback( null );
+          // result is not a ccm dataset? => perform callback with null
+          if ( !ccm.helper.isDataset( dataset ) ) callback( null );
 
-          // save result dataset in local cache
-          if ( dataset.key !== undefined ) my.local[ key_or_query ] = dataset;
+          // set result dataset in local cache
+          setLocal( dataset );
 
           // perform callback with result dataset
-          if ( callback ) callback( dataset );
+          if ( callback ) callback( dataset || null );
 
         };
 
       }
 
       /**
-       * get dataset from server-side database
+       * get dataset(s) from server-side database
        */
       function serverDB() {
 
         // get dataset by key?
-        if ( !jQuery.isPlainObject( key_or_query ) ) {
+        if ( !ccm.helper.isObject( key_or_query ) ) {
 
           /**
            * local cached dataset
@@ -332,26 +349,18 @@ ccm = function () {
 
         /**
          * callback for server response
-         * @param {ccm.types.dataset} results - result dataset(s)
+         * @param {*} response
          */
-        function onResponse( results ) {
+        function onResponse( response ) {
 
-          // check server response
-          if ( !checkResponse( results ) ) return;
+          // set result dataset(s) in local cache
+          if ( ccm.helper.isDataset( response ) )
+            setLocal( response );
+          else if ( Array.isArray( response ) )
+            response.map( setLocal );
 
-          // no results? => abort
-          if ( !results ) { if ( callback ) callback( null ); return; }
-
-          // save result dataset(s) in local cache
-          if ( ccm.helper.isDataset( results ) )
-            my.local[ results.key ] = results;
-          else
-            for ( var i = 0; i < results.length; i++ )
-              if ( results[ i ].key !== undefined )
-                my.local[ results[ i ].key ] = results[ i ];
-
-          // perform callback with result dataset(s)
-          if ( callback ) callback( results );
+          // perform callback with server response
+          if ( callback ) callback( response || null );
 
         }
 
@@ -386,8 +395,10 @@ ccm = function () {
      * If the given priority data contains a value for the key property and a dataset with that given key already exists in the datastore, than that dataset will be updated with the given priority data.
      * If no dataset with that given key exists, than the priority data will be set as a new dataset with the given key.
      * For more informations about [priority data]{@link ccm.helper.integrate} or [automatic generation of unique keys]{@link ccm.helper.generateKey} see the given links.
-     * The example for a deeper property update don't work if the chosen data level not supports deep partial updates.
+     * Partial updates of deeper properties with dot notation (see last example) don't works if the chosen data level not supports deep partial updates.
      * See [table of supported operations]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#supported-operations} to check this.
+     * The resulting created or updated dataset will be provided via callback.
+     * If the dataset is only managed via local cache, than the results could be received via return value.
      * @param {ccm.types.dataset} priodata - priority data
      * @param {ccm.types.setResult} [callback] - when data operation is finished
      * @returns {ccm.types.dataset} created or updated dataset (only if no inner operation is asynchron)
@@ -405,8 +416,12 @@ ccm = function () {
      *   key: 'test',             // Creates a new dataset if a dataset with unique key 'test' already exists
      *   value: 'foo'             // in the datastore. Otherwise the existing dataset will be updated.
      * }, function ( result ) {
-     *   console.log( result );   // { key: 'test', value: 'foo' }
+     *   console.log( result );   // { key: 'test', value: 'foo' } or { key: 'test', value: 'foo', ... }
      * } );
+     * @example
+     * // get result as return value (only if no inner operation is asynchron)
+     * var result = store.set( { key: 'test', value: 'foo' } );
+     * console.log( result );
      * @example
      * // updates a deeper property of a stored dataset
      * store.set( {
@@ -415,20 +430,16 @@ ccm = function () {
      * }, function ( result ) {
      *   console.log( result );   // { key: 'test', feedback: { user: { comment: 'My comment', ... }, ... }, ... }
      * } );
-     * @example
-     * // get result as return value (only if no inner operation is asynchron)
-     * var result = store.set( { key: 'test', value: 'foo' } );
-     * console.log( result );
      */
     this.set = function ( priodata, callback ) {
 
       // clone priority data
       priodata = ccm.helper.clone( priodata );
 
-      // priority data has no key? => generate key
+      // priority data has no key? => generate unique key
       if ( !priodata.key ) priodata.key = ccm.helper.generateKey();
 
-      // check data source
+      // choose data level
       if ( my.url   ) return serverDB();    // server-side database
       if ( my.store ) return clientDB();    // client-side database
       if ( my.local ) return localCache();  // local cache
@@ -439,7 +450,7 @@ ccm = function () {
        */
       function localCache() {
 
-        return setLocal( priodata, callback );
+        return updateLocal( priodata, callback );
 
       }
 
@@ -592,6 +603,8 @@ ccm = function () {
       }
 
     };
+
+    /*---------------------------------------- private ccm datastore methods -----------------------------------------*/
 
     /**
      * @summary get dataset(s) from local cache
@@ -776,11 +789,22 @@ ccm = function () {
     /**
      * @summary set dataset in local cache
      * @private
+     * @param {ccm.types.dataset} dataset
+     */
+    function setLocal( dataset ) {
+
+      if ( dataset.key ) my.local[ dataset.key ] = dataset;
+
+    }
+
+    /**
+     * @summary update dataset in local cache
+     * @private
      * @param {ccm.types.dataset} priodata - priority data
      * @param {function} [callback] - callback (first parameter is created or updated dataset)
      * @returns {ccm.types.dataset} created or updated dataset
      */
-    function setLocal( priodata, callback ) {
+    function updateLocal( priodata, callback ) {
 
       // is dataset local cached? => update local dataset
       if ( my.local[ priodata.key ] )
@@ -903,7 +927,7 @@ ccm = function () {
     function checkResponse( response ) {
 
       // server response is error message?
-      if ( typeof response === 'string' && response.indexOf( '[ccm]' ) === 0 ) {
+      if ( typeof response === 'string' ) {
 
         // abort processing
         return false;
@@ -930,6 +954,13 @@ ccm = function () {
     callback: {},
 
     /**
+     * @summary contains global namespaces for <i>ccm</i> components
+     * @memberOf ccm
+     * @type {Object.<ccm.types.index, objects>}
+     */
+    components: {},
+
+    /**
      * @summary <i>ccm</i> version number
      * @memberOf ccm
      * @type {ccm.types.version}
@@ -938,6 +969,11 @@ ccm = function () {
     version: [ 7, 4, 0 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
+
+    clear: function () {
+      resources = {};
+      stores = {};
+    },
 
     /**
      * @summary load resource(s) (js, css, json and/or data from server interface)
@@ -1085,6 +1121,169 @@ ccm = function () {
             exchangeData();
         }
 
+        function ajax( url, type, async, user, password, callback ) {
+
+          //var parameters = "first=barack&last=obama";
+
+          switch ( type ) {
+            case 'html':
+              type = 'text/html';
+              break;
+            case 'js':
+              type = 'application/javascript';
+              break;
+          }
+
+          var request = new XMLHttpRequest();
+          request.open( 'GET', url, async, user, password );
+          request.setRequestHeader( 'Content-type', type );
+
+          //xmlHttp.setRequestHeader("Content-length", parameters.length);
+          //xmlHttp.setRequestHeader("Connection", "close");
+
+          request.onreadystatechange = function () {
+            if( request.readyState == 4 && request.status == 200 )
+              callback( request.responseText );
+          };
+          request.send();
+
+        }
+
+        /**
+         * loads the content of a HTML file
+         */
+        function loadHTML() {
+
+          // prevent loading resource twice
+          if ( caching() ) return;
+
+          // not cross domain request? => load HTML file without JSONP
+          if ( url.indexOf( 'http' ) !== 0 )
+            return ajax( url, 'html', true, undefined, undefined, successData );
+
+          /**
+           * name of html file
+           * @type {string}
+           */
+          var filename = url.split( '/' ).pop();
+
+          // deposit success callback
+          ccm.callback[ filename ] = successData;
+
+          // load (and execute) content of html file
+          document.head.appendChild( ccm.helper.html( { tag: 'script', src: url } ) );
+
+        }
+
+        /**
+         * load css file
+         */
+        function loadCSS() {
+
+          // prevent loading resource twice
+          if ( caching() ) return;
+
+          var tag = ccm.helper.html( { tag: 'link', rel: 'stylesheet', type: 'text/css', href: url } );
+          document.head.appendChild( tag );
+          tag.onload = success;
+
+        }
+
+        /**
+         * (pre)load image file
+         */
+        function loadImage() {
+
+          // prevent loading resource twice
+          if ( caching() ) return;
+
+          var image = new Image();
+          image.src = url;
+          image.onload = success;
+
+        }
+
+        /**
+         * load (and execute) javascript file
+         */
+        function loadJS() {
+
+          // prevent loading resource twice
+          if ( caching() ) return;
+
+          var tag = ccm.helper.html( { tag: 'script', src: url } );
+          document.head.appendChild( tag );
+          tag.onload = success;
+
+        }
+
+        /**
+         * load json file
+         */
+        function loadJSON() {
+
+          // prevent loading resource twice
+          if ( caching() ) return;
+
+          // not cross domain request? => load without jsonp
+          if ( url.indexOf( 'http' ) !== 0 )
+            return jQuery.getJSON( url, successData ).fail( onFail ); // TODO: jQuery.getJSON
+
+          /**
+           * name of json file
+           * @type {string}
+           */
+          var filename = url.split( '/' ).pop();
+
+          // deposit success callback
+          ccm.callback[ filename ] = successData;
+
+          // load (and execute) content of json file
+          document.head.appendChild( ccm.helper.html( { tag: 'script', src: url } ) );
+
+        }
+
+        /**
+         * exchange data with server
+         */
+        function exchangeData() {
+
+          // is this ccm.load call already waiting for currently loading resource(s)? => skip data exchange
+          if ( waiting ) return;
+
+          // is cross domain request? => use JSONP
+          if ( url.indexOf( 'http' ) === 0 ) {
+
+            jQuery.ajax( {  // TODO: jQuery.ajax
+
+              url: url,
+              data: data,
+              dataType: 'jsonp',
+              username: data && data.username ? data.username : undefined,
+              password: data && data.password ? data.password : undefined,
+              success: successData
+
+            } );
+
+          }
+
+          // inner domain request => normal HTTP GET request
+          else {
+
+            jQuery.ajax( {  // TODO: jQuery.ajax
+
+              url: url,
+              data: data,
+              username: data && data.username ? data.username : undefined,
+              password: data && data.password ? data.password : undefined,
+              success: successData
+
+            } ).fail( onFail );
+
+          }
+
+        }
+
         /**
          * load resources serial (recursive)
          */
@@ -1124,147 +1323,7 @@ ccm = function () {
         }
 
         /**
-         * (pre)load html file
-         */
-        function loadHTML() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
-
-          // not cross domain request? => load html file without jsonp
-          if ( url.indexOf( 'http' ) !== 0 )
-            return jQuery.ajax( {
-
-              url: url,
-              cache: false,
-              dataType: 'html',
-              crossDomain: true,
-              success: successData
-
-            } );
-
-          /**
-           * name of html file
-           * @type {string}
-           */
-          var filename = url.split( '/' ).pop();
-
-          // deposit success callback
-          ccm.callback[ filename ] = successData;
-
-          // load (and execute) content of html file
-          jQuery( 'head' ).append( '<script src="' + url + '"></script>' );
-
-        }
-
-        /**
-         * load css file (immediate callback)
-         */
-        function loadCSS() {
-
-          // CSS file not loaded yet? => load CSS file
-          if ( !resource ) jQuery( 'head' ).append( '<link rel="stylesheet" type="text/css" href="' + url + '">' );
-
-          // immediate perform success callback
-          success();
-
-        }
-
-        /**
-         * (pre)load image file (immediate callback)
-         */
-        function loadImage() {
-
-          // image file not loaded yet? => load image file
-          if ( !resource ) jQuery( '<img src="' + url + '">' );
-
-          // immediate perform success callback
-          success();
-
-        }
-
-        /**
-         * load (and execute) javascript file
-         */
-        function loadJS() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
-
-          // load javascript file
-          jQuery.getScript( url, success ).fail( onFail );
-
-        }
-
-        /**
-         * load json file
-         */
-        function loadJSON() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
-
-          // not cross domain request? => load without jsonp
-          if ( url.indexOf( 'http' ) !== 0 )
-            return jQuery.getJSON( url, successData ).fail( onFail );
-
-          /**
-           * name of json file
-           * @type {string}
-           */
-          var filename = url.split( '/' ).pop();
-
-          // deposit success callback
-          ccm.callback[ filename ] = successData;
-
-          // load (and execute) content of json file
-          jQuery( 'head' ).append( '<script src="' + url + '"></script>' );
-
-        }
-
-        /**
-         * exchange data with server
-         */
-        function exchangeData() {
-
-          // is this ccm.load call already waiting for currently loading resource(s)? => skip data exchange
-          if ( waiting ) return;
-
-          // is cross domain request? => use JSONP
-          if ( url.indexOf( 'http' ) === 0 ) {
-
-            jQuery.ajax( {
-
-              url: url,
-              data: data,
-              dataType: 'jsonp',
-              username: data && data.username ? data.username : undefined,
-              password: data && data.password ? data.password : undefined,
-              success: successData
-
-            } );
-
-          }
-
-          // inner domain request => normal HTTP GET request
-          else {
-
-            jQuery.ajax( {
-
-              url: url,
-              data: data,
-              username: data && data.username ? data.username : undefined,
-              password: data && data.password ? data.password : undefined,
-              success: successData
-
-            } ).fail( onFail );
-
-          }
-
-        }
-
-        /**
-         * prevent loading resource twice
+         * prevents loading a resource twice
          * @returns {boolean} abort current ccm.load call
          */
         function caching() {
@@ -1272,7 +1331,7 @@ ccm = function () {
           // is resource currently loading?
           if ( resource === null ) {
 
-            // is this ccm.load call already waiting? => abort
+            // is this ccm.load call already waiting? => abort current ccm.load call (counter will not decrement)
             if ( waiting ) return true; else waiting = true;
 
             // no waitlist for currently loading resource exists? => create waitlist
@@ -1344,8 +1403,8 @@ ccm = function () {
           // print error object in console
           console.log( jqxhr, this.url );
 
-          // render error report in website
-          jQuery( 'body' ).html( jqxhr.responseText + '<p>Request Failed: ' + textStatus + ', ' + error + '</p>' );
+          // show error report in website
+          alert( jqxhr.responseText + '\n\nRequest Failed: ' + textStatus + ', ' + error );
 
         }
 
@@ -1464,7 +1523,7 @@ ccm = function () {
 
         // set default of default ccm instance configuration
         if ( !component.config )         component.config         = {};
-        if ( !component.config.element ) component.config.element = jQuery( 'body' );
+        //if ( !component.config.element ) component.config.element = document.body;
 
         // create HTML tag for ccm component
         createCustomElement();
@@ -1478,7 +1537,7 @@ ccm = function () {
           tag.attachedCallback = function () {
             if ( !document.body.contains( this ) ) return;
             var config = ccm.helper.generateConfig( this );
-            config.element = jQuery( this );
+            config.element = this;
             component.render( config );
           };
           document.registerElement( 'ccm-' + component.index, { prototype: tag } );
@@ -1536,8 +1595,8 @@ ccm = function () {
       // ccm instance configuration is a function? => configuration is callback
       if ( typeof config === 'function' ) { callback = config; config = undefined; }
 
-      // ccm instance configuration is a jQuery element? => configuration has only element property
-      if ( ccm.helper.isElement( config ) ) config = { element: config };
+      // ccm instance configuration is a element node? => configuration has only element property
+      if ( ccm.helper.isElementNode( config ) ) config = { element: config };
 
       /**
        * @summary number of loading resources
@@ -1616,11 +1675,13 @@ ccm = function () {
             switch ( instance.element ) {
               case 'name': instance.element = ccm.helper.find( parent, '.' + instance.component.name ); break;
               case 'parent': instance.element = parent.element; break;
+              /*
               default:
-                if ( instance.element.selector )
+                if ( instance.element.selector ) // TODO: element.selector
                   instance.element.selector = instance.element.selector.replace( /-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)/g, function ( match ) {
                     return match.replace( /\./g, '\\.' );
                   } )
+              */
             }
 
             // solve dependencies of created ccm instance
@@ -1651,7 +1712,7 @@ ccm = function () {
                 else if ( typeof value === 'object' && value !== null ) {
 
                   // not relevant object type? => skip
-                  if ( ccm.helper.isNode( value ) || ccm.helper.isElement( value ) || ccm.helper.isInstance( value ) || ccm.helper.isComponent( value ) ) continue;
+                  if ( ccm.helper.isNode( value ) || ccm.helper.isInstance( value ) || ccm.helper.isComponent( value ) ) continue;
 
                   // search it for dependencies (recursive call)
                   solveDependencies( value );
@@ -1846,7 +1907,7 @@ ccm = function () {
                   else if ( Array.isArray( value ) || ccm.helper.isObject( value ) ) {
 
                     // not relevant object type? => skip
-                    if ( ccm.helper.isNode( value ) || ccm.helper.isElement( value ) || ccm.helper.isComponent( value ) || ccm.helper.isInstance( value ) ) continue;
+                    if ( ccm.helper.isNode( value ) || ccm.helper.isComponent( value ) || ccm.helper.isInstance( value ) ) continue;
 
                     // add to founded relevant inner object and arrays
                     inner.push( value );
@@ -2282,44 +2343,84 @@ ccm = function () {
       },
 
       /**
-       * catches ccm custom elements inside the childNode property of an <i>ccm</i> instance
-       * @param {ccm.types.instance} instance - <i>ccm</i> instance
+       * @summary convert inner <i>ccm</i> component HTML tags of an given <i>ccm</i> instance to accessible <i>ccm</i> instances
+       * @description
+       * This function does the following things:
+       * <ul>
+       *   <li>catches all HTML tags for embedding of <i>ccm</i> components inside the childNode property of an <i>ccm</i> instance</li>
+       *   <li>creates for each founded <i>ccm</i> component HTML tag an new ccm instance out of the corresponding <i>ccm</i> component</li>
+       *   <li>gives every created <i>ccm</i> instance a new empty website area</li>
+       *   <li>replaces every founded <i>ccm</i> component HTML tag with the website area of the corresponding created <i>ccm</i> instance</li>
+       *   <li>put each created <i>ccm</i> instance in the new object at the childInstances property of the given <i>ccm</i> instance</li>
+       * </ul>
+       * @param {ccm.types.instance} instance - given <i>ccm</i> instance
        * @param {function} callback
        */
-      catchComponentTags: function ( instance, callback ) {
+      convertComponentTags: function ( instance, callback ) {  // TODO: not a framework relevant helper function
 
+        // counter for unfinished asynchron tasks
         var counter = 1;
+
+        // no childNodes property? => abort and perform callback
         if ( !Array.isArray( instance.childNodes ) ) return callback();
-        instance.childInstances = {};
+
+        instance.childInstances = {};  // TODO: instance.childInstances
+
+        // start recursive search for ccm custom elements
         recursive( instance.childNodes );
+
         check();
 
         function recursive( children ) {
+
           children.map( function ( child, i ) {
-            if ( !child.tagName ) return;
+
+            // child is no element node? => skip
+            if ( !ccm.helper.isElementNode( child ) ) return;
+
+            // child is no ccm specific HTML tag? => skip and search children of the child (recursive call)
             if ( child.tagName.indexOf( 'CCM-' ) !== 0 ) return recursive( ccm.helper.makeIterable( child.childNodes ) );
+
             var split = child.tagName.toLowerCase().split( '-' );
+
+            // child is a custom element of the ccm component? => skip
             if ( split[ 1 ] === instance.component.name && split.length > 2 ) return;
+
+            // from here: child is a founded ccm custom element
+            // next step: replace child with website area for new ccm instance
+
             counter++;
+
+            // missing part for config property in tag name? => use component name as default
             if ( split.length < 3 ) split[ 2 ] = split[ 1 ];
-            var id = 'ccm-' + instance.index + '-' + split[ 2 ];
+
+            // prepare website area
+            var div = document.createElement( 'div' );
+            div.setAttribute( 'id', ccm.helper.getElementID( instance ) + '-' + split[ 2 ] );
+
+            // prepare instance configuration
             var config = ccm.helper.generateConfig( child );
             config.parent = instance;
-            config.element = jQuery( '#' + id );
-            var div = document.createElement( 'div' );
-            div.setAttribute( 'id', id );
+            config.element = div;
+
+            // replace child with website area
             if ( child.parentNode )
               child.parentNode.replaceChild( div, child );
             else
               children[ i ] = div;
+
+            // create new ccm instance and add it to childInstances property of the given ccm instance
             closure( instance, split[ 1 ], config, split[ 2 ] );
 
+            // do it in additional closure because of map iteration in recursive call in combination with asynchron operations (needed?)
             function closure( instance, name, config, key ) {
+
+              // check if there is a individual ccm component object in current ccm context that could be used for instance creation
               var component = ccm.context.find( instance, name );
               if ( ccm.helper.isComponent( component ) && component.name === name )
-                component.instance( config, proceed );
+                component.instance( config, proceed );  // create ccm instance out of a individual ccm component object (with other default values for instance configuration)
               else
-                ccm.instance( name, config, proceed );
+                ccm.instance( name, config, proceed );  // create ccm instance out of the unique registered ccm component object within the ccm framework
 
               function proceed( result ) {
                 instance.childInstances[ key ] = result;
@@ -2331,20 +2432,34 @@ ccm = function () {
 
         function check() {
           counter--;
-          if ( counter == 0 ) callback();
+          if ( counter == 0 ) callback();  // perform callback after all ccm custom HTML tags are converted
         }
 
       },
 
       /**
-       * @summary create a deep or flat copy of an object
-       * @param {object} obj - object
-       * @param {boolean} [flat=false] - true: flat copy, false: deep copy (default)
-       * @returns {object} object copy
+       * @summary create a deep copy of a given value
+       * @param {*} value - given value
+       * @returns {*} deep copy of given value
        */
-      clone: function ( obj, flat ) {
+      clone: function ( value ) {
 
-        return ccm.helper.isObject( obj ) || Array.isArray( obj ) ? jQuery.extend( !flat, {}, obj ) : obj;
+        return recursive( value );
+
+        function recursive( value ) {
+
+          if ( ccm.helper.isNode( value ) ) return value;
+
+          if ( Array.isArray( value ) || ccm.helper.isObject( value ) ) {
+            var copy = Array.isArray( value ) ? [] : {};
+            for ( var i in value )
+              copy[ i ] = ccm.helper.clone( value[ i ] );
+            return copy;
+          }
+
+          return value;
+
+        }
 
       },
 
@@ -2357,7 +2472,7 @@ ccm = function () {
        * @param {function} [callback] - callback (first parameter is result dataset)
        * @returns {ccm.types.dataset} resulting dataset (only if synchron and dataset exists)
        */
-      dataset: function ( obj, callback ) {
+      dataset: function ( obj, callback ) {  // TODO: not a framework relevant helper function
 
         // no object => abort
         if ( !ccm.helper.isObject( obj ) ) { if ( callback ) callback(); return undefined; }
@@ -2390,45 +2505,37 @@ ccm = function () {
 
       },
 
-      dataSource: function ( data ) {
+      dataSource: function ( data ) {  // TODO: not a framework relevant helper function
 
         return ccm.helper.isDatastore( data.store ) ? { key: data.key, store: data.store.source(), dataset: data.store.get( data.key ) } : data;
 
       },
 
       /**
-       * @summary reselect website area of <i>ccm</i> instance and add html div tag inside for embedded content with <i>ccm</i> loading icon inside
+       * @summary reselect the content area of an <i>ccm</i> instance and add html div tag inside for embedded content with <i>ccm</i> loading icon inside
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
        * @returns {ccm.types.element} added html div tag
        */
-      element: function ( instance ) {
+      element: function ( instance ) {  // TODO: not a framework relevant helper function
 
-        // reselect ccm instance website area
+        // TODO: ccm.helper.element call could be automatically done via framework
+
+        if ( !instance.element ) instance.element = document.body;
+
+        // reselect content area of the ccm instance
         ccm.helper.reselect( instance );
 
-        /**
-         * ccm component name
-         * @type {ccm.types.name}
-         */
-        var name = instance.component.name;
+        // CSS classes given as array? => join it to string
+        if ( Array.isArray( instance.classes ) ) instance.classes = instance.classes.join( ' ' );
 
-        // css classes given as array? => join to string
-        if ( jQuery.isArray( instance.classes ) ) instance.classes = instance.classes.join( ' ' );
+        // prepare website area for own content of ccm instance
+        var element = ccm.helper.html( { tag: 'div', id: ccm.helper.getElementID( instance ), class: 'ccm ' + ( instance.classes ? instance.classes : 'ccm-' + instance.component.name ), inner: ccm.helper.loading() } );
 
-        // add html div tag in ccm instance website area
-        instance.element.html( '<div id="ccm-' + instance.index + '" class="ccm ' + ( instance.classes ? instance.classes : 'ccm-' + name ) + '"></div>' );
+        // add prepared website area ccm instance website area
+        instance.element.appendChild( element );
 
-        /**
-         * added html div
-         * @type {ccm.types.element}
-         */
-        var element = instance.element.find( 'div[id="ccm-' + instance.index + '"]' );
-
-        // render css loading icon
-        ccm.helper.loading( element );
-
-        // return added html div tag
-        return element;
+        // ...
+        instance.element = element;
 
       },
 
@@ -2456,7 +2563,7 @@ ccm = function () {
        * @param {object} dataset - dataset
        * @returns {object} priority data with removed identical property values
        */
-      filter: function ( priodata, dataset ) {
+      filter: function ( priodata, dataset ) {  // TODO: not a framework relevant helper function
 
         // Kopie von Prioritätsdaten verwenden
         priodata = ccm.helper.clone( priodata );
@@ -2468,30 +2575,31 @@ ccm = function () {
       },
 
       /**
-       * @summary find elements inside a website area of a <i>ccm</i> instance
+       * @summary find HTML tags of an <i>ccm</i> instance inside a HTML DOM Element with a CSS selector
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
-       * @param {ccm.types.element} [element] - website area of <i>ccm</i> instance (default: own website area)
-       * @param {string} selector - jQuery selector
+       * @param {ccm.types.element} [element] - HTML DOM Element (default: website area of <i>ccm</i> instance)
+       * @param {string} selector - CSS selector
        */
       find: function ( instance, element, selector ) {
 
+        // element parameter is skippable
         if ( typeof element === 'string' ) { selector = element; element = undefined; }
 
+        // no given element parameter? => use website area of ccm instance
         if ( !element ) element = instance.element;
 
-        return element.find( selector + ':not(.ccm, #ccm-' + instance.index + ' .ccm *)' );
+        var id = ccm.helper.getElementID( instance );
+        return element.querySelectorAll( '#' + id + ' ' + selector + ':not(.ccm, #' + id + ' .ccm *)' );
 
       },
 
       /**
-       * @summary focus input field and set cursor to specific position
-       * @param {ccm.types.element} input - input field
-       * @param {number} [position] - cursor position in input field (default: behind last character)
+       * @summary focus input field and set cursor to a specific position
+       * @param {ccm.types.element} input - HTML DOM Element of the input field
+       * @param {number} [position] - cursor position (default: behind last character)
        */
-      focusInput: function( input, position ) {
+      focusInput: function( input, position ) {  // TODO: not a framework relevant helper function
 
-        // source: http://stackoverflow.com/a/12654402 and http://stackoverflow.com/a/18903492
-        input = input.get( 0 );
         if ( position === undefined ) position = input.value.length;
         input.selectionStart = input.selectionEnd = position;
         input.focus();
@@ -2541,54 +2649,45 @@ ccm = function () {
 
       /**
        * @summary get html form data
-       * @param {ccm.types.element} form - html form tag
+       * @param {ccm.types.element} form - HTML DOM Element of the HTML form tag
        * @returns {Object.<string, string>} result data
        */
-      formData: function ( form ) {
+      formData: function ( form ) {  // TODO: not a framework relevant helper function
 
         // Checkboxen selektieren
-        form.find( 'input[type=checkbox]' ).each( function () {
-
-          /**
-           * Selektierte Checkbox
-           * @type {ccm.types.element}
-           */
-          var checkbox = jQuery( this );
+        ccm.helper.makeIterable( form.querySelectorAll( 'input[type=checkbox]' ) ).map( function ( checkbox ) {
 
           // Checkbox nicht gesetzt?
-          if ( !checkbox.is( ':checked' ) ) {
+          if ( !checkbox.checked ) {
 
             // Alten Ergebniswert merken
-            checkbox.attr( 'data-input', checkbox.attr( 'value' ) );
+            checkbox.setAttribute( 'data-input', checkbox.getAttribute( 'value' ) );
 
             // Leerer String als Ergebniswert setzen
-            checkbox.attr( 'value', '' );
+            checkbox.setAttribute( 'value', '' );
+
           }
 
           // Checkbox in jedem Fall Ergebniswert liefern lassen
-          checkbox.prop( 'checked', true );
-        });
+          checkbox.checked = true;
+
+        } );
 
         /**
          * Ergebnisdaten
          * @type {Array}
          */
-        var data = form.serializeArray();
+        var data = form.serializeArray();  // TODO: jQuery.serializeArray
 
         // Nicht gesetzte Checkboxen selektieren
-        form.find( 'input[type=checkbox][value=""]' ).each( function() {
-
-          /**
-           * Selektierte Checkbox
-           * @type {ccm.types.element}
-           */
-          var checkbox = jQuery( this );
+        ccm.helper.makeIterable( form.querySelectorAll( 'input[type=checkbox][value=""]' ) ).map( function ( checkbox ) {
 
           // Checkbox zurücksetzen
-          checkbox.prop( 'checked', false );
-          checkbox.attr( 'value', checkbox.attr( 'data-input' ) );
-          checkbox.removeAttr( 'data-input' );
-        });
+          checkbox.checked = false;
+          checkbox.setAttribute( 'value', checkbox.getAttribute( 'data-input' ) );
+          checkbox.removeAttribute( 'data-input' );
+
+        } );
 
         /**
          * Umgewandelte Ergebnisdaten
@@ -2602,6 +2701,7 @@ ccm = function () {
 
         // Ergebnisdaten zurückgeben
         return result;
+
       },
 
       /*
@@ -2743,11 +2843,11 @@ ccm = function () {
       },
 
       /**
-       * @summary get cursor position in an input field
+       * @summary get cursor position in a input field
        * @param {ccm.types.element} input - input field
        * @returns {number}
        */
-      getCursor: function ( input ) {
+      getCursor: function ( input ) {  // TODO: not a framework relevant helper function
 
         return input.get( 0 ).selectionStart;
 
@@ -2784,7 +2884,7 @@ ccm = function () {
        */
 
       /**
-       * @summary get id of the website area for content of an <i>ccm</i> instance
+       * @summary get HTML DOM ID of the website area for the content of an <i>ccm</i> instance
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
        * @returns {string}
        */
@@ -2802,11 +2902,13 @@ ccm = function () {
        */
       html: function( html, values ) {
 
+        if ( ccm.helper.isNode( html ) ) return html;
+
         // replace placeholder
         if ( arguments.length > 1 ) html = ccm.helper.format.apply( this, arguments );
 
         // get more than one HTML tag?
-        if ( jQuery.isArray( html ) ) {
+        if ( Array.isArray( html ) ) {
 
           // generate each HTML tag
           var result = [];
@@ -2817,7 +2919,7 @@ ccm = function () {
         }
 
         // get string instead of ccm html data? => remove script tags
-        if ( typeof html === 'string' ) html = ccm.helper.val( html, true );
+        if ( typeof html === 'string' || typeof html === 'number' ) return document.createTextNode( ccm.helper.val( html ) );
 
         // get no ccm html data? => return parameter value
         if ( typeof html !== 'object' ) return html;
@@ -2830,7 +2932,7 @@ ccm = function () {
          * HTML tag
          * @type {ccm.types.element}
          */
-        var element = jQuery( '<' + ccm.helper.val( html.tag || 'div', true ) + '>' );
+        var element = document.createElement( ccm.helper.val( html.tag || 'div', true ) );
 
         // remove 'tag' and 'key' property
         delete html.tag; delete html.key;
@@ -2854,12 +2956,16 @@ ccm = function () {
             case 'readonly':
             case 'required':
             case 'selected':
-              if ( value && value !== 'undefined' && value !== 'false' ) element.prop( key, true );
+              if ( value && value !== 'undefined' && value !== 'false' ) element.setAttribute( key, true );
               break;
 
             // HTML tag content
             case 'inner':
-              element.html( this.html( value ) );  // recursive call
+              var children = this.html( value );  // recursive call
+              if ( !Array.isArray( children ) )
+                children = [ children ];
+              for ( var i = 0; i < children.length; i++ )
+                element.appendChild( children[ i ] );
               break;
 
             // HTML tag events
@@ -2873,7 +2979,7 @@ ccm = function () {
 
             // HTML value attributes
             default:
-              element.attr( key, ccm.helper.val( value, true ) );
+              element.setAttribute( key, ccm.helper.val( value, true ) );
 
           }
 
@@ -2896,7 +3002,7 @@ ccm = function () {
 
         if ( typeof value !== 'string' ) value = value.toString();
         value = trim || trim === undefined ? value.trim() : value;
-        value = jQuery( '<div>' ).text( value ).text();
+        value = document.createElement( 'a' ).appendChild( document.createTextNode( value ) ).parentNode.innerHTML;
         value = quot || quot === undefined ? value.replace( /"/g, '&quot;' ) : value;
         return value;
 
@@ -3007,7 +3113,7 @@ ccm = function () {
        */
       isDependency: function ( value ) {
 
-        if ( jQuery.isArray( value ) )
+        if ( Array.isArray( value ) )
           if ( value.length > 0 )
             switch ( value[ 0 ] ) {
               case ccm.load:
@@ -3032,13 +3138,13 @@ ccm = function () {
       },
 
       /**
-       * @summary check value if it is an jQuery element
-       * @param value
+       * @summary check value for element node
+       * @param {*} value - value to check
        * @returns {boolean}
        */
-      isElement: function ( value ) {
+      isElementNode: function ( value ) {
 
-        return value instanceof jQuery;
+        return ccm.helper.isNode( value ) && value.tagName;
 
       },
 
@@ -3049,7 +3155,7 @@ ccm = function () {
        */
       isInDOM: function ( instance ) {
 
-        return ccm.helper.tagExists( jQuery( '#ccm-' + instance.index ) );
+        return ccm.helper.tagExists( jQuery( '#' + ccm.helper.isElementNode( instance ) ) );
 
       },
 
@@ -3118,11 +3224,13 @@ ccm = function () {
       },
 
       /**
-       * render <i>ccm</i> loading icon in a website area
-       * @param {ccm.types.element} element - website area
+       * returns an <i>ccm</i> loading icon
        */
-      loading: function ( element ) {
+      loading: function () {
 
+        return ccm.helper.html( { style: 'display: inline-block; width: 0.5em; height: 0.5em; border: 0.15em solid #009ee0; border-right-color: transparent; border-radius: 50%; animation: ccm_loading 1s linear infinite;' } );
+
+        /*
         ( element ? element : jQuery( 'body' ) ).html( jQuery( '<div>' ).css( {
 
           display: 'inline-block',
@@ -3134,6 +3242,7 @@ ccm = function () {
           animation: 'ccm_loading 1s linear infinite'
 
         } ) );
+        */
 
       },
 
@@ -3156,9 +3265,11 @@ ccm = function () {
        */
       noScript: function ( value ) {
 
-        var div = jQuery( '<div>' ).html( value );
-        div.find( 'script' ).remove();
-        return div.html();
+        var tag = document.createElement( 'div' );
+        tag.innerHTML = value;
+        var scripts = tag.getElementsByTagName( 'script' );
+        ccm.helper.makeIterable( scripts ).map( tag.removeChild );
+        return tag.innerHTML;
 
       },
 
@@ -3216,15 +3327,15 @@ ccm = function () {
       },
 
       /**
-       * @summary reselect an website area of an <i>ccm</i> instance
+       * @summary reselect the website area of an <i>ccm</i> instance (only if the website area has an unique HTML DOM ID)
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
        */
       reselect: function ( instance ) {
 
         if ( ccm.helper.isInstance( instance ) )
-          if ( ccm.helper.isElement( instance.element ) )
-            if ( instance.element.selector )
-              instance.element = jQuery( instance.element.selector );
+          if ( ccm.helper.isElementNode( instance.element ) )
+            if ( instance.element.hasAttribute( 'id' ) )
+              instance.element = document.getElementById( instance.element.id );
 
       },
 
