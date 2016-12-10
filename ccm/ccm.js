@@ -3408,7 +3408,7 @@ var ccm = function () {
        * @summary get or set the value of a deeper object property
        * @param {object} obj - object that contains the deeper property
        * @param {string} key - key path to the deeper property in dot notation
-       * @param {*} value - value that should be set for the deeper property
+       * @param {*} [value] - value that should be set for the deeper property
        * @returns {string} value of the deeper property
        * @example
        * var obj = {
