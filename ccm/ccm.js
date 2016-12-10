@@ -2760,12 +2760,12 @@ var ccm = function () {
               if ( split.length < 3 ) split[ 2 ] = split[ 1 ];
               switch ( split[ 1 ] ) {
                 case 'load':
-                  ccm.helper.value( config, split[ 2 ], interpretLoadTag( child, split[ 2 ] ) );
+                  ccm.helper.deeperValue( config, split[ 2 ], interpretLoadTag( child, split[ 2 ] ) );
                   break;
                 case 'component':
                 case 'instance':
                 case 'proxy':
-                  ccm.helper.value( config, split[ 2 ], [ 'ccm.' + split[ 1 ], child.getAttribute( 'src' ) || split[ 2 ], ccm.helper.generateConfig( child ) ] );
+                  ccm.helper.deeperValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], child.getAttribute( 'src' ) || split[ 2 ], ccm.helper.generateConfig( child ) ] );
                   break;
                 case 'store':
                 case 'dataset':
@@ -2773,7 +2773,7 @@ var ccm = function () {
                   catchAttributes( child, settings );
                   var key = settings.key;
                   delete settings.key;
-                  ccm.helper.value( config, split[ 2 ], [ 'ccm.' + split[ 1 ], settings, key ] );
+                  ccm.helper.deeperValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], settings, key ] );
                   break;
                 case 'list':
                   var list = null;
@@ -2785,10 +2785,10 @@ var ccm = function () {
                       if ( split.length < 3 )
                         list.push( entry.getAttribute( 'value' ) );
                       else
-                        ccm.helper.value( list, split[ 2 ], entry.getAttribute( 'value' ) );
+                        ccm.helper.deeperValue( list, split[ 2 ], entry.getAttribute( 'value' ) );
                     }
                   } );
-                  if ( list ) ccm.helper.value( config, split[ 2 ], list );
+                  if ( list ) ccm.helper.deeperValue( config, split[ 2 ], list );
                   break;
                 default:
                   config.childNodes.push( child );
@@ -3067,7 +3067,7 @@ var ccm = function () {
         for ( var key in priodata ) {
 
           // set value for the same property in the given dataset
-          ccm.helper.value( dataset, key, priodata[ key ] );
+          ccm.helper.deeperValue( dataset, key, priodata[ key ] );
 
         }
 
@@ -3407,28 +3407,24 @@ var ccm = function () {
       /**
        * @summary get or set the value of a deeper object property
        * @param {object} obj - object that contains the deeper property
-       * @param {string} key - key in dot notation
-       * @param {*} value - value that should be set for deeper property
-       * @returns {string} deeper property value
+       * @param {string} key - key path to the deeper property in dot notation
+       * @param {*} value - value that should be set for the deeper property
+       * @returns {string} value of the deeper property
        * @example
        * var obj = {
        *   test: 123,
        *   foo.bar: 'abc',
        *   foo.baz: 'xyz'
        * };
-       * var result = ccm.helper.value( obj, 'foo.bar' );
+       * var result = ccm.helper.deeperValue( obj, 'foo.bar' );
        * console.log( result ); // => 'abc'
        */
-      value: function ( obj, key, value ) {
+      deeperValue: function ( obj, key, value ) {
 
         return recursive( obj, key.split( '.' ), value );
 
         /**
-         * recursive helper function
-         * @param {object} obj - object that contains the deeper property
-         * @param {string[]} key - path to deeper property (dot splitted key)
-         * @param {*} value - value that should be set for deeper property
-         * @returns {string} value of deeper property
+         * recursive helper function, key path is given as array
          */
         function recursive( obj, key, value ) {
 
@@ -3437,7 +3433,7 @@ var ccm = function () {
           if ( key.length === 0 )
             return value !== undefined ? obj[ next ] = value : obj[ next ];
           if ( !obj[ next ] && value !== undefined ) obj[ next ] = {};
-          return recursive( obj[ next ], key, value );                      // recursive call
+          return recursive( obj[ next ], key, value );                  // recursive call
 
         }
 
