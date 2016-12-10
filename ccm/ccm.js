@@ -3449,7 +3449,7 @@ var ccm = function () {
        * @param {function} callback - performed function after waiting time
        * @example ccm.helper.wait( 1000, function () { console.log( 'I was called after 1 second' ) } );
        */
-      wait: function ( time, callback ) {
+      wait: function ( time, callback ) {  // TODO: not a framework relevant helper function
 
         window.setTimeout( callback, time );
 
