@@ -202,9 +202,11 @@ ccm.component( {
     };
 
     /**
-     * finishes current test with positive result if given expected value equals given actual value
+     * finishes current test with positive result if given expected and actual value contains same data
+     * @param {object} expected
+     * @param {object} actual
      */
-    this.assertEquals = function ( expected, actual ) {
+    this.assertSame = function ( expected, actual ) {
       var result = expected === actual;
       addResult( result );
       if ( !result )
@@ -213,10 +215,12 @@ ccm.component( {
     };
 
     /**
-     * finishes current test with positive result if given expected and actual value contains same data
+     * finishes current test with positive result if given expected value equals given actual value
+     * @param {object} expected
+     * @param {object} actual
      */
-    this.assertSame = function ( expected, actual ) {
-      this.assertEquals( JSON.stringify( expected ), JSON.stringify( actual ) );
+    this.assertEquals = function ( expected, actual ) {
+      this.assertSame( JSON.stringify( expected ), JSON.stringify( actual ) );
     };
 
     /**

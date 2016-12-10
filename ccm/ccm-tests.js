@@ -19,18 +19,18 @@ ccm.components.testsuite.ccm = {
       tests: {
         'local': function ( suite ) {
           ccm.load( 'dummy/dummy.html', function ( result ) {
-            suite.assertEquals( suite.expected_html_result, result );
+            suite.assertSame( suite.expected_html_result, result );
           } );
         },
         'remote': function ( suite ) {
           ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy.html', function ( result ) {
-            suite.assertEquals( suite.expected_html_result, result );
+            suite.assertSame( suite.expected_html_result, result );
           } );
         },
         'cached': function ( suite ) {
           ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy.html', function () {
             var local_cached_return_value = ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy.html' );
-            suite.assertEquals( suite.expected_html_result, local_cached_return_value );
+            suite.assertSame( suite.expected_html_result, local_cached_return_value );
           } );
         }
       }
@@ -39,18 +39,18 @@ ccm.components.testsuite.ccm = {
       tests: {
         'local': function ( suite ) {
           ccm.load( 'dummy/dummy.css', function ( result ) {
-            suite.assertEquals( 'dummy/dummy.css', result );
+            suite.assertSame( 'dummy/dummy.css', result );
           } );
         },
         'remote': function ( suite ) {
           ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', function ( result ) {
-            suite.assertEquals( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', result );
+            suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', result );
           } );
         },
         'cached': function ( suite ) {
           ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', function () {
             var local_cached_return_value = ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css' );
-            suite.assertEquals( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', local_cached_return_value );
+            suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', local_cached_return_value );
           } );
         }
       }
@@ -59,18 +59,18 @@ ccm.components.testsuite.ccm = {
       tests: {
         'local': function ( suite ) {
           ccm.load( 'dummy/dummy.png', function ( result ) {
-            suite.assertEquals( 'dummy/dummy.png', result );
+            suite.assertSame( 'dummy/dummy.png', result );
           } );
         },
         'remote': function ( suite ) {
           ccm.load( 'https://kaul.inf.h-brs.de/ccm/img/config.png', function ( result ) {
-            suite.assertEquals( 'https://kaul.inf.h-brs.de/ccm/img/config.png', result );
+            suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/img/config.png', result );
           } );
         },
         'cached': function ( suite ) {
           ccm.load( 'https://kaul.inf.h-brs.de/ccm/img/config.png', function () {
             var local_cached_return_value = ccm.load( 'https://kaul.inf.h-brs.de/ccm/img/config.png' );
-            suite.assertEquals( 'https://kaul.inf.h-brs.de/ccm/img/config.png', local_cached_return_value );
+            suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/img/config.png', local_cached_return_value );
           } );
         }
       }
@@ -79,18 +79,18 @@ ccm.components.testsuite.ccm = {
       tests: {
         'local': function ( suite ) {
           ccm.load( 'dummy/dummy.js', function ( result ) {
-            suite.assertEquals( 'dummy/dummy.js', result );
+            suite.assertSame( 'dummy/dummy.js', result );
           } );
         },
         'remote': function ( suite ) {
           ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', function ( result ) {
-            suite.assertEquals( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', result );
+            suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', result );
           } );
         },
         'cached': function ( suite ) {
           ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', function () {
             var local_cached_return_value = ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js' );
-            suite.assertEquals( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', local_cached_return_value );
+            suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', local_cached_return_value );
           } );
         },
         'executed': function ( suite ) {
@@ -145,7 +145,7 @@ ccm.components.testsuite.ccm = {
           'exists': function ( suite ) {
             var dataset = { key: 'existing_key' };
             suite.store.set( dataset );
-            suite.assertSame( dataset, suite.store.get( 'existing_key' ) );
+            suite.assertEquals( dataset, suite.store.get( 'existing_key' ) );
           },
           'notExists': function ( suite ) {
             suite.assertEquals( null, suite.store.get( 'not_existing_key' ) );
@@ -161,15 +161,15 @@ ccm.components.testsuite.ccm = {
             suite.store.set( baz );
             suite.store.set( abc );
             suite.store.set( xyz );
-            suite.assertSame( [ bar, xyz ], suite.store.get( { value: 4711, exists: true } ) );
+            suite.assertEquals( [ bar, xyz ], suite.store.get( { value: 4711, exists: true } ) );
           },
           'all': function ( suite ) {
             var datasets = [ { key: 'foo' }, { key: 'bar' }, { key: 'baz' } ];
             suite.store.set( datasets[ 0 ] ); suite.store.set( datasets[ 1 ] ); suite.store.set( datasets[ 2 ] );
-            suite.assertSame( datasets, suite.store.get() );
+            suite.assertEquals( datasets, suite.store.get() );
           },
           'allEmpty': function ( suite ) {
-            suite.assertSame( [], suite.store.get() );
+            suite.assertEquals( [], suite.store.get() );
           }
         }
       }
