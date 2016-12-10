@@ -178,7 +178,7 @@ ccm.components.testsuite.ccm = {
   helper: {
     deepValue: {
       tests: {
-        get: function ( suite ) {
+        'get': function ( suite ) {
           var obj = {
             test: 123,
             foo: {
@@ -188,12 +188,12 @@ ccm.components.testsuite.ccm = {
           };
           suite.assertSame( 'abc', ccm.helper.deepValue( obj, 'foo.bar' ) );
         },
-        setObject: function ( suite ) {
+        'setObject': function ( suite ) {
           var obj = {};
           ccm.helper.deepValue( obj, 'foo.bar', 'abc' );
           suite.assertEquals( { foo: { bar: 'abc' } }, obj );
         },
-        setReturn: function ( suite ) {
+        'setReturn': function ( suite ) {
           var obj = {};
           suite.assertSame( 'abc', ccm.helper.deepValue( obj, 'foo.bar', 'abc' ) );
         }
