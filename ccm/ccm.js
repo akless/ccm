@@ -2760,12 +2760,12 @@ var ccm = function () {
               if ( split.length < 3 ) split[ 2 ] = split[ 1 ];
               switch ( split[ 1 ] ) {
                 case 'load':
-                  ccm.helper.deeperValue( config, split[ 2 ], interpretLoadTag( child, split[ 2 ] ) );
+                  ccm.helper.deepValue( config, split[ 2 ], interpretLoadTag( child, split[ 2 ] ) );
                   break;
                 case 'component':
                 case 'instance':
                 case 'proxy':
-                  ccm.helper.deeperValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], child.getAttribute( 'src' ) || split[ 2 ], ccm.helper.generateConfig( child ) ] );
+                  ccm.helper.deepValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], child.getAttribute( 'src' ) || split[ 2 ], ccm.helper.generateConfig( child ) ] );
                   break;
                 case 'store':
                 case 'dataset':
@@ -2773,7 +2773,7 @@ var ccm = function () {
                   catchAttributes( child, settings );
                   var key = settings.key;
                   delete settings.key;
-                  ccm.helper.deeperValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], settings, key ] );
+                  ccm.helper.deepValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], settings, key ] );
                   break;
                 case 'list':
                   var list = null;
@@ -2785,10 +2785,10 @@ var ccm = function () {
                       if ( split.length < 3 )
                         list.push( entry.getAttribute( 'value' ) );
                       else
-                        ccm.helper.deeperValue( list, split[ 2 ], entry.getAttribute( 'value' ) );
+                        ccm.helper.deepValue( list, split[ 2 ], entry.getAttribute( 'value' ) );
                     }
                   } );
-                  if ( list ) ccm.helper.deeperValue( config, split[ 2 ], list );
+                  if ( list ) ccm.helper.deepValue( config, split[ 2 ], list );
                   break;
                 default:
                   config.childNodes.push( child );
@@ -3067,7 +3067,7 @@ var ccm = function () {
         for ( var key in priodata ) {
 
           // set value for the same property in the given dataset
-          ccm.helper.deeperValue( dataset, key, priodata[ key ] );
+          ccm.helper.deepValue( dataset, key, priodata[ key ] );
 
         }
 
@@ -3413,13 +3413,20 @@ var ccm = function () {
        * @example
        * var obj = {
        *   test: 123,
-       *   foo.bar: 'abc',
-       *   foo.baz: 'xyz'
+       *   foo: {
+       *     bar: 'abc',
+       *     baz: 'xyz'
+       *   }
        * };
-       * var result = ccm.helper.deeperValue( obj, 'foo.bar' );
+       * var result = ccm.helper.deepValue( obj, 'foo.bar' );
+       * console.log( result ); // => 'abc'
+       * @example
+       * var obj = {};
+       * var result = ccm.helper.deepValue( obj, 'foo.bar', 'abc' );
+       * console.log( obj );    // => { foo: { bar: 'abc' } }
        * console.log( result ); // => 'abc'
        */
-      deeperValue: function ( obj, key, value ) {
+      deepValue: function (obj, key, value ) {
 
         return recursive( obj, key.split( '.' ), value );
 
