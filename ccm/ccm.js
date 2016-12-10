@@ -2574,6 +2574,16 @@ var ccm = function () {
             delete priodata[ i ];
       },
 
+      filterProperties: function ( obj, properties ) {
+        var result = {};
+        properties = ccm.helper.makeIterable( arguments );
+        properties.shift();
+        properties.map( function ( property ) {
+          result[ property ] = obj[ property ];
+        } );
+        return result;
+      },
+
       /**
        * @summary find HTML tags of an <i>ccm</i> instance inside a HTML DOM Element with a CSS selector
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
@@ -3452,32 +3462,26 @@ var ccm = function () {
   /*---------------------------------------------- private ccm methods -----------------------------------------------*/
 
   /**
-   * @summary get <i>ccm</i> component index by URL
+   * @summary get ccm component index by URL
    * @private
-   * @param {string} url - <i>ccm</i> component URL
-   * @returns {string} <i>ccm</i> component index
+   * @param {string} url - ccm component URL
+   * @returns {ccm.types.index} ccm component index
    */
   function getIndex( url ) {
 
-    // url is already ccm component index? => return ccm component index
+    // url is already an ccm component index? => abort and return it
     if ( url.indexOf( '.js' ) === -1 ) return url;
 
     /**
-     * filename of ccm component
+     * from given url extracted filename of the ccm component
      * @type {string}
      */
     var filename = url.split( '/' ).pop();
 
-    /**
-     * regular expression for filename of a ccm component
-     * @type {RegExp}
-     */
-    var regex = ccm.helper.regex( 'filename' );
+    // abort if extracted filename is not a valid filename for a ccm component
+    if ( !ccm.helper.regex( 'filename' ).test( filename ) ) return '';
 
-    // correct filename of a ccm component? => abort
-    if ( !regex.test( filename ) ) return '';
-
-    // filter and return component index
+    // filter and return the component index out of the extracted filename
     var split = filename.split( '.' );
     if ( split[ 0 ] === 'ccm' )
       split.shift();
@@ -3489,9 +3493,9 @@ var ccm = function () {
   }
 
   /**
-   * @summary get <i>ccm</i> datastore source
+   * @summary get ccm datastore source
    * @private
-   * @param {ccm.types.settings} settings - <i>ccm</i> datastore settings
+   * @param {ccm.types.settings} settings - ccm datastore settings
    * @returns {string}
    */
   function getSource( settings ) {
@@ -3500,14 +3504,12 @@ var ccm = function () {
      * ccm datastore source
      * @type {string|number}
      */
-    var source = JSON.stringify( settings );
+    var source = JSON.stringify( ccm.helper.filterProperties( settings, 'url', 'db', 'store' ) );
 
-    // source is empty object? => use number as source
-    if ( source === '{}' || source === '{"delayed":true}' ) source = Object.keys( stores ).length;
+    // source is empty object? => use unique number as source
+    if ( source === '{}' ) source = Object.keys( stores ).length;
 
-    // return ccm datastore source
     return source;
-
   }
 
   /*---------------------------------------------- ccm type definitions ----------------------------------------------*/
