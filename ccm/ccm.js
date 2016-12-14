@@ -3415,11 +3415,10 @@ var ccm = function () {
        * @param {function} [callback] - callback (first parameter is the result of the solved dependency)
        * @returns {*} result of the solved dependency (only of synchron)
        * @example
-       * var obj = { chat: [ ccm.load, 'style.css' ] };
-       * var return_result = ccm.helper.solveDependency( obj, 'chat', function ( callback_result ) {
-       *   console.log( callback_result );  // => 'style.css'
+       * var obj = { layout: [ ccm.load, 'style.css' ] };
+       * ccm.helper.solveDependency( obj, 'layout', function ( result ) {
+       *   console.log( result );  // => 'style.css'
        * } );
-       * console.log( return_result );  // => 'style.css'
        */
       solveDependency: function ( obj, key, callback ) {
 
