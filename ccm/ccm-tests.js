@@ -198,6 +198,45 @@ ccm.components.testsuite.ccm = {
           suite.assertSame( 'abc', ccm.helper.deepValue( obj, 'foo.bar', 'abc' ) );
         }
       }
+    },
+    isInDOM: {
+      setup: function ( suite, callback ) {
+        suite.root = document.createElement( 'div' );
+        var p = document.createElement( 'p' );
+        suite.node = document.createElement( 'span' );
+        suite.root.appendChild( p );
+        p.appendChild( suite.node );
+        callback();
+      },
+      tests: {
+        'bothNodes': function ( suite ) {
+          suite.assertTrue( ccm.helper.isInDOM( suite.node, suite.root ) );
+        },
+        'bothNodesReversed': function ( suite ) {
+          suite.assertFalse( ccm.helper.isInDOM( suite.root, suite.node ) );
+        },
+        'bothNodesEqual': function ( suite ) {
+          suite.assertTrue( ccm.helper.isInDOM( suite.root, suite.root ) );
+        },
+        'noRoot': function ( suite ) {
+          suite.root.id = 'dummy';
+          var root = suite.root.cloneNode( true );
+          document.body.appendChild( root );
+          suite.assertTrue( ccm.helper.isInDOM( root ) );
+          document.body.removeChild( root );
+        },
+        'bothInstances': function ( suite ) {
+          var component = ccm.component( {
+            name: 'dummy',
+            Instance: function () {
+              this.render = function () {}
+            }
+          } );
+          suite.root = component.instance( suite.root );
+          suite.node = component.instance( suite.node );
+          suite.assertTrue( ccm.helper.isInDOM( suite.node, suite.root ) );
+        }
+      }
     }
   }
 };

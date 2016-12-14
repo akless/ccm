@@ -109,8 +109,8 @@ ccm.component( /** @lends ccm.components.chat */ {
             // render html structure for a given message
             messages_div.append( ccm.helper.html( self.html.get( 'message' ), {
 
-              name: ccm.helper.val( message.user ),
-              text: ccm.helper.val( message.text )
+              name: ccm.helper.noScript( message.user ),
+              text: ccm.helper.noScript( message.text )
 
             } ) );
 
@@ -123,7 +123,7 @@ ccm.component( /** @lends ccm.components.chat */ {
              * submitted massage
              * @type {string}
              */
-            var value = ccm.helper.val( ccm.helper.find( self, 'input' ).val() ).trim();
+            var value = ccm.helper.validateString( ccm.helper.find( self, 'input' ).validateString() ).trim();
 
             // message is empty? => abort
             if ( value === '' ) return;

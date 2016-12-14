@@ -17,8 +17,11 @@
  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * @version latest (7.4.0)
+ * @version latest (8.0.0)
  * @changes
+ * version 8.0.0 (??.??.201?):
+ * - no more jQuery dependency
+ * - ...
  * version 7.4.0 (25.11.2016):
  * - ccm.helper.dataset gives information if resulting dataset is a new dataset
  * - ccm.helper.privatize privatizes all possible members as default
@@ -966,7 +969,7 @@ var ccm = function () {
      * @type {ccm.types.version}
      * @readonly
      */
-    version: [ 7, 4, 0 ],
+    version: [ 8, 0, 0 ],
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
 
@@ -1552,14 +1555,22 @@ var ccm = function () {
        */
       function finish() {
 
-        // make deep copy of component
-        component = ccm.helper.clone( components[ typeof component === 'string' ? getIndex( component ) : component.index ] );
+        // component has individual default for default instance configuration?
+        if ( config ) {
 
-        // set given default of default ccm instance configuration
-        component.config = ccm.helper.integrate( ccm.helper.clone( config ), component.config );
+          // make deep copy of component
+          component = ccm.helper.clone( components[ typeof component === 'string' ? getIndex( component ) : component.index ] );
 
-        // open closure for correct later variable visibility
-        closure( component );
+          // default ccm instance configuration is a HTML element node? => configuration has only element property
+          if ( ccm.helper.isElementNode( config ) ) config = { element: config };
+
+          // set given default of default ccm instance configuration
+          component.config = ccm.helper.integrate( ccm.helper.clone( config ), component.config );
+
+          // open closure for correct later variable visibility
+          closure( component );
+
+        }
 
         // perform callback with component
         if ( callback ) callback( component );
@@ -1571,8 +1582,8 @@ var ccm = function () {
 
           // has given default for default instance configuration? => consider this in later instance() and render() calls
           if ( component.config ) {
-            component.instance = function ( config, callback ) { config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.instance( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
-            component.render   = function ( config, callback ) { config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.render  ( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
+            component.instance = function ( config, callback ) { if ( ccm.helper.isElementNode( config ) ) config = { element: config }; config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.instance( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
+            component.render   = function ( config, callback ) { if ( ccm.helper.isElementNode( config ) ) config = { element: config }; config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.render  ( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
           }
 
         }
@@ -1595,7 +1606,7 @@ var ccm = function () {
       // ccm instance configuration is a function? => configuration is callback
       if ( typeof config === 'function' ) { callback = config; config = undefined; }
 
-      // ccm instance configuration is a element node? => configuration has only element property
+      // ccm instance configuration is a HTML element node? => configuration has only element property
       if ( ccm.helper.isElementNode( config ) ) config = { element: config };
 
       /**
@@ -2512,6 +2523,48 @@ var ccm = function () {
       },
 
       /**
+       * @summary get or set the value of a deeper object property
+       * @param {object} obj - object that contains the deeper property
+       * @param {string} key - key path to the deeper property in dot notation
+       * @param {*} [value] - value that should be set for the deeper property
+       * @returns {string} value of the deeper property
+       * @example
+       * var obj = {
+       *   test: 123,
+       *   foo: {
+       *     bar: 'abc',
+       *     baz: 'xyz'
+       *   }
+       * };
+       * var result = ccm.helper.deepValue( obj, 'foo.bar' );
+       * console.log( result ); // => 'abc'
+       * @example
+       * var obj = {};
+       * var result = ccm.helper.deepValue( obj, 'foo.bar', 'abc' );
+       * console.log( obj );    // => { foo: { bar: 'abc' } }
+       * console.log( result ); // => 'abc'
+       */
+      deepValue: function ( obj, key, value ) {
+
+        return recursive( obj, key.split( '.' ), value );
+
+        /**
+         * recursive helper function, key path is given as array
+         */
+        function recursive( obj, key, value ) {
+
+          if ( !obj ) return;
+          var next = key.shift();
+          if ( key.length === 0 )
+            return value !== undefined ? obj[ next ] = value : obj[ next ];
+          if ( !obj[ next ] && value !== undefined ) obj[ next ] = {};
+          return recursive( obj[ next ], key, value );                  // recursive call
+
+        }
+
+      },
+
+      /**
        * @summary reselect the content area of an <i>ccm</i> instance and add html div tag inside for embedded content with <i>ccm</i> loading icon inside
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
        * @returns {ccm.types.element} added html div tag
@@ -2929,7 +2982,7 @@ var ccm = function () {
         }
 
         // get string instead of ccm html data? => remove script tags
-        if ( typeof html === 'string' || typeof html === 'number' ) return document.createTextNode( ccm.helper.val( html ) );
+        if ( typeof html === 'string' || typeof html === 'number' ) return document.createTextNode( ccm.helper.noScript( html ) );
 
         // get no ccm html data? => return parameter value
         if ( typeof html !== 'object' ) return html;
@@ -2942,7 +2995,7 @@ var ccm = function () {
          * HTML tag
          * @type {ccm.types.element}
          */
-        var element = document.createElement( ccm.helper.val( html.tag || 'div', true ) );
+        var element = document.createElement( ccm.helper.htmlEncode( html.tag || 'div' ) );
 
         // remove 'tag' and 'key' property
         delete html.tag; delete html.key;
@@ -2989,7 +3042,7 @@ var ccm = function () {
 
             // HTML value attributes
             default:
-              element.setAttribute( key, ccm.helper.val( value, true ) );
+              element.setAttribute( key, ccm.helper.htmlEncode( value ) );
 
           }
 
@@ -3148,24 +3201,30 @@ var ccm = function () {
       },
 
       /**
-       * @summary check value for element node
+       * @summary check value for HTML element node
        * @param {*} value - value to check
        * @returns {boolean}
        */
       isElementNode: function ( value ) {
 
-        return ccm.helper.isNode( value ) && value.tagName;
+        return !!( ccm.helper.isNode( value ) && value.tagName );
 
       },
 
       /**
-       * @summary check if website area for own content of a ccm instance exists in DOM
-       * @param {ccm.types.instance} instance - <i>ccm</i> instance
+       * @summary checks if a HTML element node exists in a DOM structure
+       * @description
+       * If <code>node</code> or <code>root</code> is an <i>ccm</i> instance, than the website area of this instance is used.
+       * Returns <code>true</code> if <code>node</code> or <code>root</code> are equal.
+       * @param {ccm.types.node|ccm.types.instance} node - HTML element node
+       * @param {ccm.types.node|ccm.types.instance} [root] - root of the DOM structure that has to be checked, default is <code>document.body</code>
        * @returns {boolean}
        */
-      isInDOM: function ( instance ) {
+      isInDOM: function ( node, root ) {
 
-        return ccm.helper.tagExists( jQuery( '#' + ccm.helper.isElementNode( instance ) ) );
+        if ( ccm.helper.isInstance( node ) ) node = node.element;
+        if ( ccm.helper.isInstance( root ) ) root = root.element;
+        return ( root ? root : document.body ).contains( node );
 
       },
 
@@ -3364,90 +3423,7 @@ var ccm = function () {
       },
 
       /**
-       * @summary check if html tag exists
-       * @param {ccm.types.element} element - html tag
-       * @returns {boolean}
-       */
-      tagExists: function ( element ) {
-
-        // Existenz prüfen
-        return element.closest( 'html' ).length > 0;
-      },
-
-      /**
-       * @summary validate a given string
-       * @description
-       * This function returns the given string only if it matches the given regular expression.
-       * The result is <code>null</code> if the given string not matches the given regular expression.
-       * The result is the return value of [<code>ccm.helper.htmlEncode(string)</code>]{@link ccm.helper.htmlEncode} if the given regular expression equals <code>true</code> (<code>string === true</code>).
-       * The result is the return value of [<code>ccm.helper.noScript(string)</code>]{@link ccm.helper.noScript} if the optional given regular expression is a falsy value (<code>false</code>, <code>null</code>, <code>undefined</code>, <code>0</code>, <code>NaN</code>, <code>''</code> or <code>""</code>).
-       * The given regular expression passes [<code>ccm.helper.regex(regex)</code>]{@link ccm.helper.regex} if the given regular expression is a string.
-       * @param {string} string - given string
-       * @param {ccm.types.regex|string|boolean} [regex] - given regular expression
-       * @example
-       * ccm.helper.val( 'Hello, world!', /^[A-Z][a-z ,!]*$/ );  // => 'Hello, world!'
-       * @example
-       * ccm.helper.val( 'Hello, world!', /^[A-Z][a-z]*$/ );     // => null
-       * @example
-       * ccm.helper.val( 'Hello, world!<script>alert("XSS");</script>', true );
-       * // => 'Hello, world!<script>alert("XSS");</script>' (no alert call)
-       * @example
-       * ccm.helper.val( 'Hello, world!<script>alert("XSS");</script>' );
-       * // => 'Hello, world!' (no alert call)
-       * @returns {string} returns given string or null
-       */
-      val: function ( string, regex ) {
-
-        if ( !regex ) return ccm.helper.noScript( string );
-        if ( regex === true ) return ccm.helper.htmlEncode( string );
-        return ( typeof regex === 'string' ? ccm.helper.regex( regex ) : regex ).test( string ) ? string : null;
-
-      },
-
-      /**
-       * @summary get or set the value of a deeper object property
-       * @param {object} obj - object that contains the deeper property
-       * @param {string} key - key path to the deeper property in dot notation
-       * @param {*} [value] - value that should be set for the deeper property
-       * @returns {string} value of the deeper property
-       * @example
-       * var obj = {
-       *   test: 123,
-       *   foo: {
-       *     bar: 'abc',
-       *     baz: 'xyz'
-       *   }
-       * };
-       * var result = ccm.helper.deepValue( obj, 'foo.bar' );
-       * console.log( result ); // => 'abc'
-       * @example
-       * var obj = {};
-       * var result = ccm.helper.deepValue( obj, 'foo.bar', 'abc' );
-       * console.log( obj );    // => { foo: { bar: 'abc' } }
-       * console.log( result ); // => 'abc'
-       */
-      deepValue: function (obj, key, value ) {
-
-        return recursive( obj, key.split( '.' ), value );
-
-        /**
-         * recursive helper function, key path is given as array
-         */
-        function recursive( obj, key, value ) {
-
-          if ( !obj ) return;
-          var next = key.shift();
-          if ( key.length === 0 )
-            return value !== undefined ? obj[ next ] = value : obj[ next ];
-          if ( !obj[ next ] && value !== undefined ) obj[ next ] = {};
-          return recursive( obj[ next ], key, value );                  // recursive call
-
-        }
-
-      },
-
-      /**
-       * @summary perform a function after a waiting time
+       * @summary performs a function after a waiting time
        * @param {number} time - waiting time in milliseconds
        * @param {function} callback - performed function after waiting time
        * @example ccm.helper.wait( 1000, function () { console.log( 'I was called after 1 second' ) } );
@@ -3731,9 +3707,6 @@ var ccm = function () {
    * @typedef {object} ccm.types.node
    * @summary HTML DOM Node
    * @description For more informations see ({@link http://www.w3schools.com/jsref/dom_obj_all.asp}).
-   * @example var element = jQuery( 'body' );
-   * @example var element = jQuery( '#menu' );
-   * @example var element = jQuery( '.entry' );
    */
 
   /**
