@@ -66,18 +66,18 @@
   color: red;
 }
 
-.ccm-testsuite > .table > div > .assert_equals > div {
+.ccm-testsuite > .table > div > .expected > div {
   display: inline-block;
 }
 
-.ccm-testsuite > .table > div > .assert_equals > div:nth-child(1):before {
+.ccm-testsuite > .table > div > .expected > div:nth-child(1):before {
   content: 'expected';
   margin-right: 0.2em;
   background-color: lime;
   padding: 0 0.1em;
 }
 
-.ccm-testsuite > .table > div > .assert_equals > div:nth-child(2):before {
+.ccm-testsuite > .table > div > .expected > div:nth-child(2):before {
   content: 'but was';
   margin: 0 0.2em;
   background-color: tomato;

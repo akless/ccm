@@ -69,7 +69,7 @@ ccm.component( {
         onFinish = callback;      // remember finish callback
 
         // prepare table
-        self.element.appendChild( ccm.helper.html( { class: 'label', inner: document.createTextNode( ( dataset.package || dataset.key ).split( '.' ).join( ' > ' ) ) } ) );
+        self.element.appendChild( ccm.helper.html( { class: 'label', inner: document.createTextNode( ( dataset.package || dataset.key ) ) } ) );
         table = ccm.helper.html( { class: 'table' } );
         self.element.appendChild( table );
 
@@ -210,7 +210,7 @@ ccm.component( {
       var result = expected === actual;
       addResult( result );
       if ( !result )
-        row.appendChild( ccm.helper.html( { class: 'assert_equals', inner: [ { inner: expected }, { inner: actual ? actual : { tag: 'i', inner: JSON.stringify( actual ) } } ] } ) );
+        row.appendChild( ccm.helper.html( { class: 'expected', inner: [ { inner: expected }, { inner: actual ? actual : { tag: 'i', inner: actual === undefined ? 'undefined' : JSON.stringify( actual ) } } ] } ) );
       finishTest();
     };
 
