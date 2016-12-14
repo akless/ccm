@@ -237,6 +237,33 @@ ccm.components.testsuite.ccm = {
           suite.assertTrue( ccm.helper.isInDOM( suite.node, suite.root ) );
         }
       }
+    },
+    solveDependency: {
+      setup: function ( suite, callback ) {
+        suite.url = 'dummy/dummy.css';
+        suite.obj_key = 'dummy';
+        callback();
+      },
+      tests: {
+        'callbackResult': function ( suite ) {
+          var obj = { dummy: [ ccm.load, suite.url ] };
+          ccm.helper.solveDependency( obj, suite.obj_key, function ( result ) {
+            suite.assertSame( suite.url, result );
+          } );
+        },
+        'noReturnResult': function ( suite ) {
+          var obj = { dummy: [ ccm.load, suite.url ] };
+          var result = ccm.helper.solveDependency( obj, suite.obj_key );
+          suite.assertFalse( result );
+        },
+        'cachedReturnResult': function ( suite ) {
+          ccm.load( suite.url, function () {
+            var obj = { dummy: [ ccm.load, suite.url ] };
+            var result = ccm.helper.solveDependency( obj, suite.obj_key );
+            suite.assertSame( suite.url, result );
+          } );
+        }
+      }
     }
   }
 };
