@@ -3409,15 +3409,30 @@ var ccm = function () {
       },
 
       /**
-       * solve <i>ccm</i> dependency
+       * @summary solves a <i>ccm</i> dependency
        * @param {object} obj - object that contains the <i>ccm</i> dependency
        * @param {number|string} key - object key that contains the <i>ccm</i> dependency
-       * @param {function} callback - callback (first parameter ist result of solved dependency)
-       * @returns {*} result (only of synchron)
+       * @param {function} [callback] - callback (first parameter is the result of the solved dependency)
+       * @returns {*} result of the solved dependency (only of synchron)
+       * @example
+       * var obj = { chat: [ ccm.load, 'style.css' ] };
+       * var return_result = ccm.helper.solveDependency( obj, 'chat', function ( callback_result ) {
+       *   console.log( callback_result );  // => 'style.css'
+       * } );
+       * console.log( return_result );  // => 'style.css'
        */
       solveDependency: function ( obj, key, callback ) {
 
-        obj[ key ].push( function ( result ) { obj[ key ] = result; callback( result ); } );
+        // given object not contains a ccm dependency at the given key? => abort and perform callback without a result
+        if ( !ccm.helper.isDependency( obj[ key ] ) ) { if ( callback ) callback(); return; }
+
+        // add a callback to the ccm action data of the ccm dependency
+        obj[ key ].push( function ( result ) {
+          obj[ key ] = result;                  // replace ccm dependency with the result of the solved dependency
+          if ( callback) callback( result );
+        } );
+
+        // perform the ccm action data of the ccm dependency
         return ccm.helper.action( obj[ key ] );
 
       },
