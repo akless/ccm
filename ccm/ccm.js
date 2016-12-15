@@ -3396,10 +3396,11 @@ var ccm = function () {
       },
 
       /**
-       * @summary reselect the website area of an <i>ccm</i> instance (only if the website area has an unique HTML DOM ID)
+       * @summary reselects the website area of an <i>ccm</i> instance (the website area must have an unique HTML DOM ID)
+       * @description Works only if the website area of the <i>ccm</i> instance has an unique HTML DOM ID.
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
        */
-      reselect: function ( instance ) {
+      reselect: function ( instance ) {  // TODO: not a framework relevant helper function
 
         if ( ccm.helper.isInstance( instance ) )
           if ( ccm.helper.isElementNode( instance.element ) )
