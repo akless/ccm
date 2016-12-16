@@ -402,6 +402,7 @@ var ccm = function () {
      * See [table of supported operations]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#supported-operations} to check this.
      * The resulting created or updated dataset will be provided via callback.
      * If the dataset is only managed via local cache, than the results could be received via return value.
+     * If priodata contains a not valid ccm dataset key, than the result is <code>null</code>.
      * @param {ccm.types.dataset} priodata - priority data
      * @param {ccm.types.setResult} [callback] - when data operation is finished
      * @returns {ccm.types.dataset} created or updated dataset (only if no inner operation is asynchron)
@@ -441,6 +442,12 @@ var ccm = function () {
 
       // priority data has no key? => generate unique key
       if ( !priodata.key ) priodata.key = ccm.helper.generateKey();
+
+      // priority data does not contains a valid ccm dataset key? => abort and perform callback without a result
+      if ( !ccm.helper.regex( 'key' ).test( priodata.key ) ) {
+        if ( callback ) callback( null );
+        return null;
+      }
 
       // choose data level
       if ( my.url   ) return serverDB();    // server-side database
@@ -3379,18 +3386,44 @@ var ccm = function () {
       },
 
       /**
-       * @summary get regular expression
-       * @param {string} index - regular expression index
-       * @returns {object} regular expression object
+       * @summary get a <i>ccm</i> relevant regular expression
+       * @description
+       * Possible index values, it's meanings and it's associated regular expressions:
+       * <table>
+       *   <tr>
+       *     <th>index</th>
+       *     <th>meaning</th>
+       *     <th>regular expression</th>
+       *   </tr>
+       *   <tr>
+       *     <td><code>'filename'</code></td>
+       *     <td>filename for an <i>ccm</i> instance</td>
+       *     <td>/^(ccm.)?([^.-]+)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/</td>
+       *   </tr>
+       *   <tr>
+       *     <td><code>'key'</code></td>
+       *     <td>key for a <i>ccm</i> dataset</td>
+       *     <td>/^[a-z_0-9][a-zA-Z_0-9]*$/</td>
+       *   </tr>
+       * </table>
+       * @param {string} index - index of the regular expression
+       * @returns {RegExp} RegExp Object
+       * @example
+       * // test if a given string is a valid filename for an ccm instance
+       * var string = 'ccm.dummy-3.2.1.min.js';
+       * var result = ccm.helper.regex( 'filename' ).test( string );
+       * console.log( result );  // => true
+       * @example
+       * // test if a given string is a valid key for a ccm dataset
+       * var string = 'dummy12_Foo3';
+       * var result = ccm.helper.regex( 'key' ).test( string );
+       * console.log( result );  // => true
        */
       regex: function ( index ) {
 
         switch ( index ) {
-          case 'filename': return /^(ccm.)?([^.-]+)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/;
+          case 'filename': return /^ccm\.([^.-]+)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/;
           case 'key':      return /^[a-z_0-9][a-zA-Z_0-9]*$/;
-          case 'name':     return /^[a-z][a-z_0-9]*$/;
-          case 'tag':      return /^[a-z][a-zA-Z]*$/;
-          case 'url':      return /^(((http|ftp|https):\/\/)?[\w-]+(\.[\w-]*)+)?([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?$/;
         }
 
       },
@@ -3722,13 +3755,6 @@ var ccm = function () {
    * @typedef {object} ccm.types.node
    * @summary HTML DOM Node
    * @description For more informations see ({@link http://www.w3schools.com/jsref/dom_obj_all.asp}).
-   */
-
-  /**
-   * @typedef {object} ccm.types.regex
-   * @summary regular expression
-   * @example var regex = /^[A-Z][a-z]*$/g;
-   * @example var regex = new RegExp( '^[A-Z][a-z]*$', 'g' );
    */
 
   /**

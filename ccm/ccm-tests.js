@@ -238,6 +238,16 @@ ccm.components.testsuite.ccm = {
         }
       }
     },
+    regex: {
+      tests: {
+        'filename': function ( suite ) {
+          suite.assertTrue( ccm.helper.regex( 'filename' ).test( 'ccm.dummy-3.2.1.min.js' ) );
+        },
+        'key': function ( suite ) {
+          suite.assertTrue( ccm.helper.regex( 'key' ).test( 'dummy12_Foo3' ) );
+        }
+      }
+    },
     solveDependency: {
       setup: function ( suite, callback ) {
         suite.url = 'dummy/dummy.css';
