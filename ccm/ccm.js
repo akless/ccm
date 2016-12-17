@@ -3323,15 +3323,21 @@ var ccm = function () {
       },
 
       /**
-       * @summary make something thats nearly array-like iterable (see examples)
-       * @param array
+       * @summary make something that's nearly array-like iterable (see examples)
+       * @param array_like
        * @returns {Array}
-       * @example ccm.helper.makeIterable( arguments ).map( function ( arg ) { ... } );
-       * @example ccm.helper.makeIterable( document.getElementById( "demo" ).children ).map( function ( child ) { ... } );
-       * @example ccm.helper.makeIterable( document.getElementById( "demo" ).attributes ).map( function ( attr ) { ... } );
+       * @example
+       * // makes arguments of a function iterable
+       * ccm.helper.makeIterable( arguments ).map( function ( arg ) { ... } );
+       * @example
+       * // makes the children of a HTML DOM Node Element iterable
+       * ccm.helper.makeIterable( document.getElementById( "dummy" ).children ).map( function ( child ) { ... } );
+       * @example
+       * // makes the attributes of a HTML DOM Node Element iterable
+       * ccm.helper.makeIterable( document.getElementById( "dummy" ).attributes ).map( function ( attr ) { ... } );
        */
-      makeIterable: function ( array ) {
-        return Array.prototype.slice.call( array );
+      makeIterable: function ( array_like ) {
+        return Array.prototype.slice.call( array_like );
       },
 
       /**
