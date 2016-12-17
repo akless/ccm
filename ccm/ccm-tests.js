@@ -238,6 +238,47 @@ ccm.components.testsuite.ccm = {
         }
       }
     },
+    privatize: {
+      tests: {
+        'someProperties': function ( suite ) {
+          var component = ccm.component( {
+            name: 'dummy1',
+            Instance: function () {
+              var self = this;
+              var my;
+              this.foo = 'abc';
+              this.bar = 'xyz';
+              this.ready = function ( callback ) {
+                my = ccm.helper.privatize( self, 'childNodes', 'component', 'element', 'bar', 'baz', 'id', 'index', 'init', 'ready', 'render' );
+                if ( Object.keys( my ).length !== 1 || my.bar !== 'xyz' ) suite.failed( 'wrong privatized properties: ' + JSON.stringify( my ) );
+                callback();
+              };
+            }
+          } );
+          var instance = component.instance();
+          if ( instance.foo !== 'abc' ) suite.failed( 'no public property "foo" with value "abc"' );
+          suite.assertEquals( [ 'foo', 'id', 'index', 'component' ], Object.keys( instance ) );
+        },
+        'allProperties': function ( suite ) {
+          var component = ccm.component( {
+            name: 'dummy2',
+            Instance: function () {
+              var self = this;
+              var my;
+              this.foo = 'abc';
+              this.bar = 'xyz';
+              this.ready = function ( callback ) {
+                my = ccm.helper.privatize( self );
+                if ( Object.keys( my ).length !== 2 || my.foo !== 'abc' || my.bar !== 'xyz' ) suite.failed( 'wrong privatized properties: ' + JSON.stringify( my ) );
+                callback();
+              };
+            }
+          } );
+          var instance = component.instance();
+          suite.assertEquals( [ 'id', 'index', 'component' ], Object.keys( instance ) );
+        }
+      }
+    },
     regex: {
       tests: {
         'validFilename': function ( suite ) {
