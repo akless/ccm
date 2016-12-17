@@ -1562,11 +1562,11 @@ var ccm = function () {
        */
       function finish() {
 
+        // make deep copy of component
+        component = ccm.helper.clone( components[ typeof component === 'string' ? getIndex( component ) : component.index ] );
+
         // component has individual default for default instance configuration?
         if ( config ) {
-
-          // make deep copy of component
-          component = ccm.helper.clone( components[ typeof component === 'string' ? getIndex( component ) : component.index ] );
 
           // default ccm instance configuration is a HTML element node? => configuration has only element property
           if ( ccm.helper.isElementNode( config ) ) config = { element: config };
@@ -3350,38 +3350,54 @@ var ccm = function () {
       },
 
       /**
-       * @summary privatization of public <i>ccm</i> instance members
-       * @description Delete all given properties in the given <i>ccm</i> instance and returns an object with the deleted properties and there values.
+       * @summary privatizes public members of an <i>ccm</i> instance
+       * @description
+       * Deletes all given properties in a given <i>ccm</i> instance and returns an object with the deleted properties and there values.
+       * If no properties are given, then all not <i>ccm</i> relevant instance properties will be privatized.
+       * List of <i>ccm</i> relevant properties that could not be privatized:
+       * <ul>
+       *   <li><code>childNodes</code></li>
+       *   <li><code>component</code></li>
+       *   <li><code>element</code></li>
+       *   <li><code>id</code></li>
+       *   <li><code>index</code></li>
+       *   <li><code>init</code></li>
+       *   <li><code>ready</code></li>
+       *   <li><code>render</code></li>
+       * </ul>
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
-       * @param {...string} [properties] - properties that have to privatized, default: privatize all possible properties
+       * @param {...string} [properties] - properties that have to privatized, default: privatizes all not <i>ccm</i> relevant properties
        * @returns {object} object that contains the privatized properties and there values
+       * @example
+       *
        */
       privatize: function ( instance, properties ) {
 
         var obj = {};
         if ( properties )
-          for ( var i = 1; i < arguments.length; i++ ) {
-            var key = arguments[ i ];
-            if ( instance[ key ] !== undefined ) obj[ key ] = instance[ key ];
-            delete instance[ key ];
-          }
+          for ( var i = 1; i < arguments.length; i++ )
+            privatizeProperty( arguments[ i ] );
         else
           for ( var key in instance )
-            switch ( key ) {
-              case 'childNodes':
-              case 'component':
-              case 'element':
-              case 'id':
-              case 'index':
-              case 'init':
-              case 'ready':
-              case 'render':
-                break;
-              default:
-                if ( instance[ key ] !== undefined ) obj[ key ] = instance[ key ];
-                delete instance[ key ];
-            }
+            privatizeProperty( key )
         return obj;
+
+        function privatizeProperty( key ) {
+          switch ( key ) {
+            case 'childNodes':
+            case 'component':
+            case 'element':
+            case 'id':
+            case 'index':
+            case 'init':
+            case 'ready':
+            case 'render':
+              break;
+            default:
+              if ( instance[ key ] !== undefined ) obj[ key ] = instance[ key ];
+              delete instance[ key ];
+          }
+        }
 
       },
 
