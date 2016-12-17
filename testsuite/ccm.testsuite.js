@@ -171,15 +171,10 @@ ccm.component( {
 
     };
 
-    /** finishes current test with a positive result */
-    this.passed = function () {
-      addResult( true );
-      finishTest();
-    };
-
     /** finishes current test with a negative result */
-    this.failed = function () {
+    this.failed = function ( message ) {
       addResult( false );
+      row.appendChild( ccm.helper.html( { class: 'message', inner: message } ) );
       finishTest();
     };
 
