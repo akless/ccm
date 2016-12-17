@@ -3335,16 +3335,21 @@ var ccm = function () {
       },
 
       /**
-       * @summary remove script tags in a string
-       * @param {string} value - string
+       * @summary remove script tags in a string to prevent XSS attacks (XSS = Cross-Site-Scripting)
+       * @param {string} string
        * @returns {string} string without script tags
+       * @example
+       * var string = 'Hello, world!<script type="text/javascript">alert("XSS");</script>'
+       * var result = ccm.helper.noScript( string );
+       * console.log( result );  // => 'Hello, world!'
        */
-      noScript: function ( value ) {
+      noScript: function ( string ) {
 
         var tag = document.createElement( 'div' );
-        tag.innerHTML = value;
-        var scripts = tag.getElementsByTagName( 'script' );
-        ccm.helper.makeIterable( scripts ).map( tag.removeChild );
+        tag.innerHTML = string;
+        ccm.helper.makeIterable( tag.getElementsByTagName( 'script' ) ).map( function ( child ) {
+          child.parentNode.removeChild( child );
+        } );
         return tag.innerHTML;
 
       },

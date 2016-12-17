@@ -238,6 +238,16 @@ ccm.components.testsuite.ccm = {
         }
       }
     },
+    noScript: {
+      tests: {
+        'preventXSS': function ( suite ) {
+          suite.assertSame( 'Hello, world!', ccm.helper.noScript( 'Hello, world!<script type="text/javascript">alert("XSS");</script>' ) );
+        },
+        'preventDeeperXSS': function ( suite ) {
+          suite.assertSame( '<span>Hello, world!</span>', ccm.helper.noScript( '<span>Hello, world!<script type="text/javascript">alert("XSS");</script></span>' ) );
+        }
+      }
+    },
     privatize: {
       tests: {
         'someProperties': function ( suite ) {
