@@ -171,7 +171,10 @@ ccm.component( {
 
     };
 
-    /** finishes current test with a negative result */
+    /**
+     * finishes current test with a negative result
+     * @param {string} [message] - message that explains why the test has failed
+     */
     this.failed = function ( message ) {
       addResult( false );
       row.appendChild( ccm.helper.html( { class: 'message', inner: message } ) );
@@ -216,6 +219,26 @@ ccm.component( {
      */
     this.assertEquals = function ( expected, actual ) {
       this.assertSame( JSON.stringify( expected ), JSON.stringify( actual ) );
+    };
+
+    /**
+     * finishes current test with positive result if given expected and actual value NOT contains same data
+     * @param {object} expected
+     * @param {object} actual
+     */
+    this.assertNotSame = function ( expected, actual ) {
+      var result = expected !== actual;
+      addResult( result );
+      finishTest();
+    };
+
+    /**
+     * finishes current test with positive result if given expected value NOT equals given actual value
+     * @param {object} expected
+     * @param {object} actual
+     */
+    this.assertNotEquals = function ( expected, actual ) {
+      this.assertNotSame( JSON.stringify( expected ), JSON.stringify( actual ) );
     };
 
     /**
