@@ -238,6 +238,64 @@ ccm.components.testsuite.ccm = {
         }
       }
     },
+    makeIterable: {
+      arguments: {
+        tests: {
+          'notIterable': function ( suite ) {
+            dummy( 'foo', 'bar', 'baz' );
+            function dummy() {
+              suite.assertNotEquals( [ 'foo', 'bar', 'baz' ], arguments );
+            }
+          },
+          'iterable': function ( suite ) {
+            dummy( 'foo', 'bar', 'baz' );
+            function dummy() {
+              suite.assertEquals( [ 'foo', 'bar', 'baz' ], ccm.helper.makeIterable( arguments ) );
+            }
+          }
+        }
+      },
+      children: {
+        setup: function ( suite, callback ) {
+          suite.parent = document.createElement( 'div' );
+          suite.child1 = document.createElement( 'span' );
+          suite.child2 = document.createElement( 'p' );
+          suite.child3 = document.createElement( 'a' );
+          suite.parent.appendChild( suite.child1 );
+          suite.parent.appendChild( suite.child2 );
+          suite.parent.appendChild( suite.child3 );
+          callback();
+        },
+        tests: {
+          'notIterable': function ( suite ) {
+            suite.assertNotEquals( [ suite.child1, suite.child2, suite.child3 ], suite.parent.children );
+          },
+          'iterable': function ( suite ) {
+            suite.assertEquals( [ suite.child1, suite.child2, suite.child3 ], ccm.helper.makeIterable( suite.parent.children ) );
+          }
+        }
+      },
+      attributes: {
+        setup: function ( suite, callback ) {
+          suite.parent = document.createElement( 'div' );
+          suite.attr_1 = document.createAttribute( 'id' );
+          suite.attr_2 = document.createAttribute( 'class' );
+          suite.attr_3 = document.createAttribute( 'title' );
+          suite.parent.setAttributeNode( suite.attr_1 );
+          suite.parent.setAttributeNode( suite.attr_2 );
+          suite.parent.setAttributeNode( suite.attr_3 );
+          callback();
+        },
+        tests: {
+          'notIterable': function ( suite ) {
+            suite.assertNotEquals( [ suite.attr_1, suite.attr_2, suite.attr_3 ], suite.parent.attributes );
+          },
+          'iterable': function ( suite ) {
+            suite.assertEquals( [ suite.attr_1, suite.attr_2, suite.attr_3 ], ccm.helper.makeIterable( suite.parent.attributes ) );
+          }
+        }
+      }
+    },
     noScript: {
       tests: {
         'preventXSS': function ( suite ) {
