@@ -3362,6 +3362,7 @@ var ccm = function () {
        *   <li><code>id</code></li>
        *   <li><code>index</code></li>
        *   <li><code>init</code></li>
+       *   <li><code>parent</code></li>
        *   <li><code>ready</code></li>
        *   <li><code>render</code></li>
        * </ul>
@@ -3390,6 +3391,7 @@ var ccm = function () {
             case 'id':
             case 'index':
             case 'init':
+            case 'parent':
             case 'ready':
             case 'render':
               break;
