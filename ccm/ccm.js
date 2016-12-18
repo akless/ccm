@@ -1485,6 +1485,37 @@ var ccm = function () {
       if ( component.init ) { component.init( finish ); delete component.init; } else return finish();
 
       /**
+       * @summary get ccm component index by URL
+       * @private
+       * @param {string} url - ccm component URL
+       * @returns {ccm.types.index} ccm component index
+       */
+      function getIndex( url ) {
+
+        // url is already an ccm component index? => abort and return it
+        if ( url.indexOf( '.js' ) === -1 ) return url;
+
+        /**
+         * from given url extracted filename of the ccm component
+         * @type {string}
+         */
+        var filename = url.split( '/' ).pop();
+
+        // abort if extracted filename is not a valid filename for a ccm component
+        if ( !ccm.helper.regex( 'filename' ).test( filename ) ) return '';
+
+        // filter and return the component index out of the extracted filename
+        var split = filename.split( '.' );
+        if ( split[ 0 ] === 'ccm' )
+          split.shift();
+        split.pop();
+        if ( split[ split.length - 1 ] === 'min' )
+          split.pop();
+        return split.join( '.' );
+
+      }
+
+      /**
        * set ccm component index
        */
       function setIndex() {
@@ -1602,8 +1633,8 @@ var ccm = function () {
     /**
      * @summary creates an <i>ccm</i> instance out of a <i>ccm</i> component
      * @memberOf ccm
-     * @param {ccm.types.index|ccm.types.url} component - index or URL of a <i>ccm</i> component
-     * @param {ccm.types.config} [config] - <i>ccm</i> instance configuration (check documentation of associated <i>ccm</i> component to see which properties could be set)
+     * @param {ccm.types.index|ccm.types.url} component - index, object or URL of a <i>ccm</i> component
+     * @param {ccm.types.config|function} [config] - <i>ccm</i> instance configuration (check documentation of associated <i>ccm</i> component to see which properties could be set)
      * @param {function} [callback] - callback when <i>ccm</i> instance is created (first parameter is the created <i>ccm</i> instance)
      * @returns {ccm.types.instance} created <i>ccm</i> instance (only if synchron)
      * @example ccm.instance( 'ccm.chat.js', { key: 'demo' }, function ( instance ) {...} );
@@ -1612,9 +1643,6 @@ var ccm = function () {
 
       // ccm instance configuration is a function? => configuration is callback
       if ( typeof config === 'function' ) { callback = config; config = undefined; }
-
-      // ccm instance configuration is a HTML element node? => configuration has only element property
-      if ( ccm.helper.isElementNode( config ) ) config = { element: config };
 
       /**
        * @summary number of loading resources
@@ -1639,7 +1667,7 @@ var ccm = function () {
 
       /**
        * recursion to create instance and solve dependencies (in breadth-first-order)
-       * @param {string} comp - index or URL of component
+       * @param {string|object} comp - index, object or URL of component
        * @param {ccm.types.config} [cfg={}] - instance configuration (current recursive level)
        * @param {ccm.types.config} [prev_cfg] - parent instance configuration (previous recursive level)
        * @param {string} [prev_key] - relevant key in parent instance configuration (previous recursive level)
@@ -1648,28 +1676,30 @@ var ccm = function () {
        */
       function recursive( comp, cfg, prev_cfg, prev_key, parent ) {
 
-        /**
-         * component index
-         * @type {ccm.types.index}
-         */
-        var index = getIndex( comp );
-
         // increase number of loading resources
         counter++;
 
-        // load ccm component if necessary (asynchron)
-        return !components[ index ] ? ccm.load( comp, proceed ) : proceed();
+        // make sure that the component is registered and get it's component index
+        var async = false;
+        var comp = ccm.component( comp, function ( comp ) {
+          if ( async ) proceed( comp.index );
+        } );
+        if ( comp ) return proceed( comp.index );
+        async = true;
 
         /**
-         * proceed with creating ccm instance and solving dependencies
+         * @param {ccm.types.index} index - component index
          * @returns {ccm.types.instance} created ccm instance (only if synchron)
          */
-        function proceed() {
+        function proceed( index ) {
 
           // load instance configuration if necessary (asynchron)
           return ccm.helper.isDependency( cfg ) ? ccm.dataset( cfg[ 1 ], cfg[ 2 ], proceed ) : proceed( cfg );
 
           function proceed( cfg ) {
+
+            // ccm instance configuration is a HTML element node? => configuration has only element property
+            if ( ccm.helper.isElementNode( cfg ) ) cfg = { element: cfg };
 
             /**
              * created instance
@@ -2583,7 +2613,7 @@ var ccm = function () {
         if ( !instance.element ) instance.element = document.body;
 
         // reselect content area of the ccm instance
-        ccm.helper.reselect( instance );
+        //ccm.helper.reselect( instance );
 
         // CSS classes given as array? => join it to string
         if ( Array.isArray( instance.classes ) ) instance.classes = instance.classes.join( ' ' );
@@ -3458,20 +3488,6 @@ var ccm = function () {
       },
 
       /**
-       * @summary reselects the website area of an <i>ccm</i> instance (the website area must have an unique HTML DOM ID)
-       * @description Works only if the website area of the <i>ccm</i> instance has an unique HTML DOM ID.
-       * @param {ccm.types.instance} instance - <i>ccm</i> instance
-       */
-      reselect: function ( instance ) {  // TODO: not a framework relevant helper function
-
-        if ( ccm.helper.isInstance( instance ) )
-          if ( ccm.helper.isElementNode( instance.element ) )
-            if ( instance.element.hasAttribute( 'id' ) )
-              instance.element = document.getElementById( instance.element.id );
-
-      },
-
-      /**
        * @summary solves a <i>ccm</i> dependency
        * @param {object} obj - object that contains the <i>ccm</i> dependency
        * @param {number|string} key - object key that contains the <i>ccm</i> dependency
@@ -3497,18 +3513,6 @@ var ccm = function () {
         // perform the ccm action data of the ccm dependency
         return ccm.helper.action( obj[ key ] );
 
-      },
-
-      /**
-       * @summary performs a function after a waiting time
-       * @param {number} time - waiting time in milliseconds
-       * @param {function} callback - performed function after waiting time
-       * @example ccm.helper.wait( 1000, function () { console.log( 'I was called after 1 second' ) } );
-       */
-      wait: function ( time, callback ) {  // TODO: not a framework relevant helper function
-
-        window.setTimeout( callback, time );
-
       }
 
     }
@@ -3516,37 +3520,6 @@ var ccm = function () {
   };
 
   /*---------------------------------------------- private ccm methods -----------------------------------------------*/
-
-  /**
-   * @summary get ccm component index by URL
-   * @private
-   * @param {string} url - ccm component URL
-   * @returns {ccm.types.index} ccm component index
-   */
-  function getIndex( url ) {
-
-    // url is already an ccm component index? => abort and return it
-    if ( url.indexOf( '.js' ) === -1 ) return url;
-
-    /**
-     * from given url extracted filename of the ccm component
-     * @type {string}
-     */
-    var filename = url.split( '/' ).pop();
-
-    // abort if extracted filename is not a valid filename for a ccm component
-    if ( !ccm.helper.regex( 'filename' ).test( filename ) ) return '';
-
-    // filter and return the component index out of the extracted filename
-    var split = filename.split( '.' );
-    if ( split[ 0 ] === 'ccm' )
-      split.shift();
-    split.pop();
-    if ( split[ split.length - 1 ] === 'min' )
-      split.pop();
-    return split.join( '.' );
-
-  }
 
   /**
    * @summary get ccm datastore source
