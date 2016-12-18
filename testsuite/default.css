@@ -39,6 +39,7 @@
 
 .ccm-testsuite > .table > div > div:nth-child(1) > div {
   margin-left: 0.3em;
+  display: inline-block;
 }
 
 .ccm-testsuite > .table > div > div:nth-child(2) {

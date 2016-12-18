@@ -179,6 +179,14 @@ ccm.component( {
     };
 
     /**
+     * finishes current test with a positive result
+     */
+    this.passed = function () {
+      addResult( true );
+      finishTest();
+    };
+
+    /**
      * finishes current test with a negative result
      * @param {string} [message] - message that explains why the test has failed
      */
