@@ -23,8 +23,15 @@ ccm.component( {
 
     this.init = function ( callback ) {
 
-      // support using tests from own global namespace
-      if ( typeof self.data === 'string' ) {
+      /* support using tests from own global namespace */
+
+      // run all test packages in own global namespace
+      if ( !self.data ) {
+        self.data = ccm.components.testsuite;
+        self.data.key = ''
+      }
+      // run specific test package in global namespace
+      else if ( typeof self.data === 'string' ) {
         var package = self.data;
         var key = package.split( '.' ).shift();
         self.data = ccm.components.testsuite[ key ];
@@ -177,7 +184,7 @@ ccm.component( {
      */
     this.failed = function ( message ) {
       addResult( false );
-      row.appendChild( ccm.helper.html( { class: 'message', inner: message } ) );
+      if ( message ) row.appendChild( ccm.helper.html( { class: 'message', inner: message } ) );
       finishTest();
     };
 
