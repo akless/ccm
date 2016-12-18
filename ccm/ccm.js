@@ -19,9 +19,12 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @version latest (8.0.0)
  * @changes
- * version 8.0.0 (??.??.201?):
+ * version 8.0.0 (31.12.2016):
  * - no more jQuery dependency
- * - ...
+ * - outsource not framework relevant helper functions for component developer
+ * - updates for every part of the framework
+ * - support of Shadow DOM for the website area of ccm instances
+ * - support of different versions of the ccm framework in the same website
  * version 7.4.0 (25.11.2016):
  * - ccm.helper.dataset gives information if resulting dataset is a new dataset
  * - ccm.helper.privatize privatizes all possible members as default
@@ -3330,26 +3333,11 @@ var ccm = function () {
       },
 
       /**
-       * returns an <i>ccm</i> loading icon
+       * @summary returns a <i>ccm</i> loading icon as HTML DOM Element Node
+       * @types {ccm.types.node}
        */
       loading: function () {
-
-        return ccm.helper.html( { style: 'display: inline-block; width: 0.5em; height: 0.5em; border: 0.15em solid #009ee0; border-right-color: transparent; border-radius: 50%; animation: ccm_loading 1s linear infinite;' } );
-
-        /*
-        ( element ? element : jQuery( 'body' ) ).html( jQuery( '<div>' ).css( {
-
-          display: 'inline-block',
-          width: '0.5em',
-          height: '0.5em',
-          border: '0.15em solid #009ee0',
-          'border-right-color': 'transparent',
-          'border-radius': '50%',
-          animation: 'ccm_loading 1s linear infinite'
-
-        } ) );
-        */
-
+        return ccm.helper.html( { class: 'ccm_loading', inner: { style: 'display: inline-block; width: 0.5em; height: 0.5em; border: 0.15em solid #009ee0; border-right-color: transparent; border-radius: 50%; animation: ccm_loading 1s linear infinite;' } } );
       },
 
       /**
