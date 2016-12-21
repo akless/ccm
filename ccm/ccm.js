@@ -3391,10 +3391,12 @@ var ccm = function () {
        *   <li><code>id</code></li>
        *   <li><code>index</code></li>
        *   <li><code>init</code></li>
+       *   <li><code>onFinish</code></li>
        *   <li><code>parent</code></li>
        *   <li><code>ready</code></li>
        *   <li><code>render</code></li>
        * </ul>
+       * In addition to this properties all depending <i>ccm</i> context relevant <i>ccm</i> instances will also not be privatized.
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
        * @param {...string} [properties] - properties that have to privatized, default: privatizes all not <i>ccm</i> relevant properties
        * @returns {object} object that contains the privatized properties and there values
@@ -3420,11 +3422,13 @@ var ccm = function () {
             case 'id':
             case 'index':
             case 'init':
+            case 'onFinish':
             case 'parent':
             case 'ready':
             case 'render':
               break;
             default:
+              if ( ccm.helper.isInstance( instance[ key ] ) && instance[ key ].parent && instance[ key ].parent.index === instance.index ) return;
               if ( instance[ key ] !== undefined ) obj[ key ] = instance[ key ];
               delete instance[ key ];
           }

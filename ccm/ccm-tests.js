@@ -356,8 +356,8 @@ ccm.components.testsuite.ccm = {
               };
             }
           } );
-          var instance = component.instance();
-          suite.assertEquals( [ 'id', 'index', 'component' ], Object.keys( instance ) );
+          var instance = component.instance( { baz: [ ccm.instance, 'dummy2' ] } );
+          suite.assertEquals( [ 'baz', 'id', 'index', 'component' ], Object.keys( instance ) );
         }
       }
     },
