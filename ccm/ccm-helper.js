@@ -7,6 +7,47 @@
 ccm.helper.integrate( {
 
   /**
+   * @summary converts dot notations in object keys to deeper properties
+   * @param {object} obj - contains object keys in dot notation
+   * @returns {object} object with converted object keys
+   * @example
+   * var obj = { test: 123, foo.bar: 'abc', foo.baz: 'xyz' };
+   * var result = ccm.helper.convertObjectKeys( obj );
+   * console.log( result );  // => { test: 123, foo: { bar: 'abc', baz: 'xyz' } }
+   */
+  convertObjectKeys: function ( obj ) {
+
+    var keys = Object.keys( obj );
+    keys.map( function ( key ) {
+      if ( key.indexOf( '.' ) !== -1 ) {
+        ccm.helper.deepValue( obj, key, obj[ key ] );
+        delete obj[ key ];
+      }
+    } );
+    return obj;
+
+  },
+
+  /**
+   * @summary gets the input data of a HTML form
+   * @param {ccm.types.element} form - HTML DOM Element of the HTML form
+   * @returns {object} input data
+   * @example
+   * var result = ccm.helper.formData( document.getElementsById( 'form_id' ) );
+   * console.log( result );  // { username: 'JohnDoe', password: '1aA' }
+   */
+  formData: function ( form ) {
+
+    var data = {};
+    var iterator = new FormData( form ).entries();
+    var pair;
+    while ( pair = iterator.next().value )
+      data[ pair[ 0 ] ] = pair[ 1 ];
+    return data;
+
+  },
+
+  /**
    * @summary performs a function after a waiting time
    * @param {number} time - waiting time in milliseconds
    * @param {function} callback - performed function after waiting time
