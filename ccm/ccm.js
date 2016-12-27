@@ -1143,6 +1143,7 @@ var ccm = function () {
               type = 'text/html';
               break;
             case 'js':
+            case 'json':
               type = 'application/javascript';
               break;
           }
@@ -1170,7 +1171,7 @@ var ccm = function () {
           // prevent loading resource twice
           if ( caching() ) return;
 
-          // not cross domain request? => load HTML file without JSONP
+          // not cross domain request? => load content without JSONP
           if ( url.indexOf( 'http' ) !== 0 )
             return ajax( url, 'html', true, undefined, undefined, successData );
 
@@ -1231,16 +1232,18 @@ var ccm = function () {
         }
 
         /**
-         * load json file
+         * loads the content of a JSON file
          */
         function loadJSON() {
 
           // prevent loading resource twice
           if ( caching() ) return;
 
-          // not cross domain request? => load without jsonp
+          // not cross domain request? => load content without JSONP
           if ( url.indexOf( 'http' ) !== 0 )
-            return jQuery.getJSON( url, successData ).fail( onFail ); // TODO: jQuery.getJSON
+            return ajax( url, 'json', true, undefined, undefined, function ( result ) {
+              successData( JSON.parse( result ) );
+            } );
 
           /**
            * name of json file
@@ -2750,63 +2753,6 @@ var ccm = function () {
 
       },
 
-      /**
-       * @summary get html form data
-       * @param {ccm.types.element} form - HTML DOM Element of the HTML form tag
-       * @returns {Object.<string, string>} result data
-       */
-      formData: function ( form ) {  // TODO: not a framework relevant helper function
-
-        // Checkboxen selektieren
-        ccm.helper.makeIterable( form.querySelectorAll( 'input[type=checkbox]' ) ).map( function ( checkbox ) {
-
-          // Checkbox nicht gesetzt?
-          if ( !checkbox.checked ) {
-
-            // Alten Ergebniswert merken
-            checkbox.setAttribute( 'data-input', checkbox.getAttribute( 'value' ) );
-
-            // Leerer String als Ergebniswert setzen
-            checkbox.setAttribute( 'value', '' );
-
-          }
-
-          // Checkbox in jedem Fall Ergebniswert liefern lassen
-          checkbox.checked = true;
-
-        } );
-
-        /**
-         * Ergebnisdaten
-         * @type {Array}
-         */
-        var data = form.serializeArray();  // TODO: jQuery.serializeArray
-
-        // Nicht gesetzte Checkboxen selektieren
-        ccm.helper.makeIterable( form.querySelectorAll( 'input[type=checkbox][value=""]' ) ).map( function ( checkbox ) {
-
-          // Checkbox zurücksetzen
-          checkbox.checked = false;
-          checkbox.setAttribute( 'value', checkbox.getAttribute( 'data-input' ) );
-          checkbox.removeAttribute( 'data-input' );
-
-        } );
-
-        /**
-         * Umgewandelte Ergebnisdaten
-         * @type {Object.<string, string>}
-         */
-        var result = {};
-
-        // Ergebnisdaten umwandeln
-        for ( var i = 0; i < data.length; i++ )
-          result[ data[ i ][ 'name' ] ] = data[ i ][ 'value' ];
-
-        // Ergebnisdaten zurückgeben
-        return result;
-
-      },
-
       /*
        * @summary Schaltet Inhalt eines Containers auf Vollbildmodus
        * TODO: Vollbildmodus
@@ -2839,8 +2785,17 @@ var ccm = function () {
                 ( node.tagName.indexOf( 'CCM-COMPONENT' ) !== 0
                 && node.tagName.indexOf( 'CCM-INSTANCE'  ) !== 0
                 && node.tagName.indexOf( 'CCM-PROXY'     ) !== 0 ) )
-              try { obj[ attr.name ] = attr.value.charAt( 0 ) === '{' || attr.value.charAt( 0 ) === '[' ? JSON.parse( attr.value ) : attr.value; } catch ( err ) {}
+              try { obj[ attr.name ] = attr.value.charAt( 0 ) === '{' || attr.value.charAt( 0 ) === '[' ? JSON.parse( attr.value ) : prepareValue( attr.value ); } catch ( err ) {}
           } );
+
+          function prepareValue( value ) {
+            if ( value === 'true'      ) return true;
+            if ( value === 'false'     ) return false;
+            if ( value === 'null'      ) return null;
+            if ( value === 'undefined' ) return undefined;
+            if ( !isNaN( value )       ) return parseInt( value );
+            return value;
+          }
 
         }
 
@@ -3052,17 +3007,21 @@ var ccm = function () {
           // interpret ccm html data property
           switch ( key ) {
 
-            // HTML tag attribute flags
+            // HTML boolean attributes
             case 'async':
+            case 'autofocus':
             case 'checked':
+            case 'defer':
             case 'disabled':
+            case 'ismap':
+            case 'multiple':
             case 'readonly':
             case 'required':
             case 'selected':
-              if ( value && value !== 'undefined' && value !== 'false' ) element.setAttribute( key, true );
+              if ( value ) element.setAttribute( key, true );
               break;
 
-            // HTML tag content
+            // inner HTML
             case 'inner':
               var children = this.html( value );  // recursive call
               if ( !Array.isArray( children ) )
@@ -3071,19 +3030,12 @@ var ccm = function () {
                 element.appendChild( children[ i ] );
               break;
 
-            // HTML tag events
-            case 'onblur':       element.blur       ( value ); break;
-            case 'onchange':     element.change     ( value ); break;
-            case 'onclick':      element.click      ( value ); break;
-            case 'ondblclick':   element.dblclick   ( value ); break;
-            case 'oninput':      element.on( 'input', value ); break;
-            case 'onmouseenter': element.mouseenter ( value ); break;
-            case 'onsubmit':     element.submit     ( value ); break;
-
-            // HTML value attributes
+            // HTML value attributes and events
             default:
-              element.setAttribute( key, ccm.helper.htmlEncode( value ) );
-
+              if ( key.indexOf( 'on' ) === 0 && typeof value === 'function' )  // is HTML event
+                element.addEventListener( key.substr( 2 ), value );
+              else                                                             // is HTML value attribute
+                element.setAttribute( key, ccm.helper.htmlEncode( value ) );
           }
 
         }
@@ -3333,7 +3285,7 @@ var ccm = function () {
       },
 
       /**
-       * @summary returns a <i>ccm</i> loading icon as HTML DOM Element Node
+       * @summary returns a <i>ccm</i> loading icon as HTML DOM Element
        * @types {ccm.types.node}
        */
       loading: function () {
@@ -3401,7 +3353,41 @@ var ccm = function () {
        * @param {...string} [properties] - properties that have to privatized, default: privatizes all not <i>ccm</i> relevant properties
        * @returns {object} object that contains the privatized properties and there values
        * @example
-       *
+       * // privatize two public instance members
+       * ccm.component( {
+       *   name: 'dummy1',
+       *   config: { foo: 'abc', bar: 'xyz', baz: 4711 },
+       *   Instance: function () {
+       *     var self = this;
+       *     var my;
+       *     this.ready = function ( callback ) {
+       *       my = ccm.helper.privatize( self, 'foo', 'bar' );
+       *       console.log( my );                // => { foo: 'abc', bar: 'xyz' }
+       *       console.log( my.foo, self.foo );  // => 'abc' undefined
+       *       console.log( my.bar, self.bar );  // => 'xyz' undefined
+       *       console.log( my.baz, self.baz );  // => undefined 4711
+       *       callback();
+       *     };
+       *   }
+       * } );
+       * @example
+       * // privatize all possible public instance members
+       * ccm.component( {
+       *   name: 'dummy2',
+       *   config: { foo: 'abc', bar: 'xyz', baz: 4711 },
+       *   Instance: function () {
+       *     var self = this;
+       *     var my;
+       *     this.ready = function ( callback ) {
+       *       my = ccm.helper.privatize();
+       *       console.log( my );                // => { foo: 'abc', bar: 'xyz', baz: 4711 }
+       *       console.log( my.foo, self.foo );  // => 'abc' undefined
+       *       console.log( my.bar, self.bar );  // => 'xyz' undefined
+       *       console.log( my.baz, self.baz );  // => 4711 undefined
+       *       callback();
+       *     };
+       *   }
+       * } );
        */
       privatize: function ( instance, properties ) {
 
