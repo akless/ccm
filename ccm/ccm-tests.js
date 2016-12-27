@@ -325,11 +325,10 @@ ccm.components.testsuite.ccm = {
         'someProperties': function ( suite ) {
           var component = ccm.component( {
             name: 'dummy1',
+            config: { foo: 'abc', bar: 'xyz' },
             Instance: function () {
               var self = this;
               var my;
-              this.foo = 'abc';
-              this.bar = 'xyz';
               this.ready = function ( callback ) {
                 my = ccm.helper.privatize( self, 'childNodes', 'component', 'element', 'bar', 'baz', 'id', 'index', 'init', 'ready', 'render' );
                 if ( Object.keys( my ).length !== 1 || my.bar !== 'xyz' ) suite.failed( 'wrong privatized properties: ' + JSON.stringify( my ) );
@@ -344,11 +343,10 @@ ccm.components.testsuite.ccm = {
         'allProperties': function ( suite ) {
           var component = ccm.component( {
             name: 'dummy2',
+            config: { foo: 'abc', bar: 'xyz' },
             Instance: function () {
               var self = this;
               var my;
-              this.foo = 'abc';
-              this.bar = 'xyz';
               this.ready = function ( callback ) {
                 my = ccm.helper.privatize( self );
                 if ( Object.keys( my ).length !== 2 || my.foo !== 'abc' || my.bar !== 'xyz' ) suite.failed( 'wrong privatized properties: ' + JSON.stringify( my ) );
