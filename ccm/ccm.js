@@ -2550,7 +2550,7 @@ var ccm = function () {
           var exists = dataset !== null;
 
           // dataset not exists? => perform callback with new dataset (not created in datastore)
-          if ( !exists ) callback( { key: obj.key || ccm.helper.generateConfig() }, true );
+          if ( !exists ) callback( { key: obj.key || ccm.helper.generateKey() }, true );
 
           // dataset exists => perform callback with dataset
           else callback( dataset );
