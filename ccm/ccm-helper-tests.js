@@ -6,6 +6,25 @@
 
 if ( !ccm.components.testsuite ) ccm.components.testsuite = {};
 ccm.components.testsuite.ccm_helper = {
+  cleanObject: {
+    tests: {
+      'withReturn': function ( suite ) {
+        suite.assertEquals( { abc: 'xyz' }, ccm.helper.cleanObject( { foo: '', bar: false, baz: null, test: undefined, i: 0, abc: 'xyz' } ) );
+      },
+      'withoutReturn': function ( suite ) {
+        var obj = { foo: '', bar: false, baz: null, test: undefined, i: 0, abc: 'xyz' };
+        ccm.helper.cleanObject( obj );
+        suite.assertEquals( { abc: 'xyz' }, obj );
+      }
+    }
+  },
+  convertObjectKeys: {
+    tests: {
+      'example': function ( suite ) {
+        suite.assertEquals( { test: 123, foo: { bar: 'abc', baz: 'xyz' } }, ccm.helper.convertObjectKeys( { test: 123, 'foo.bar': 'abc', 'foo.baz': 'xyz' } ) );
+      }
+    }
+  },
   wait: {
     tests: {
       'oneSecond': function ( suite ) {

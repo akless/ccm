@@ -10,6 +10,15 @@ ccm.helper.integrate( {
    * @summary removes all keys in an object that have falsy values
    * @param {object} obj - object
    * @returns {object} cleaned object (not cloned)
+   * @example
+   * // example with using return value
+   * var obj = ccm.helper.cleanObject( { foo: '', bar: false, baz: null, test: undefined, i: 0, abc: 'xyz' } );
+   * console.log( obj );  // => { abc: 'xyz' }
+   * @example
+   * // example without using return value
+   * var obj = { foo: '', bar: false, baz: null, test: undefined, i: 0, abc: 'xyz' }
+   * ccm.helper.cleanObject( obj );
+   * console.log( obj );  // => { abc: 'xyz' }
    */
   cleanObject: function ( obj ) {
 
@@ -25,7 +34,7 @@ ccm.helper.integrate( {
    * @param {object} obj - contains object keys in dot notation
    * @returns {object} object with converted object keys
    * @example
-   * var obj = { test: 123, foo.bar: 'abc', foo.baz: 'xyz' };
+   * var obj = { test: 123, 'foo.bar': 'abc', 'foo.baz': 'xyz' };
    * var result = ccm.helper.convertObjectKeys( obj );
    * console.log( result );  // => { test: 123, foo: { bar: 'abc', baz: 'xyz' } }
    */
