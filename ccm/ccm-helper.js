@@ -7,6 +7,20 @@
 ccm.helper.integrate( {
 
   /**
+   * @summary removes all keys in an object that have falsy values
+   * @param {object} obj - object
+   * @returns {object} cleaned object (not cloned)
+   */
+  cleanObject: function ( obj ) {
+
+    for ( var key in obj )
+      if ( !obj[ key ] )
+        delete obj[ key ];
+    return obj;
+
+  },
+
+  /**
    * @summary converts dot notations in object keys to deeper properties
    * @param {object} obj - contains object keys in dot notation
    * @returns {object} object with converted object keys
