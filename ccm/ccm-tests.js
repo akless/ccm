@@ -232,9 +232,11 @@ ccm.components.testsuite.ccm = {
               this.render = function () {}
             }
           } );
-          suite.root = component.instance( suite.root );
-          suite.node = component.instance( suite.node );
-          suite.assertTrue( ccm.helper.isInDOM( suite.node, suite.root ) );
+          var root = component.instance( suite.root );
+          var node = component.instance( suite.node );
+          root.element = suite.root;
+          root.element = suite.node;
+          suite.assertTrue( ccm.helper.isInDOM( node, root ) );
         }
       }
     },
@@ -338,7 +340,7 @@ ccm.components.testsuite.ccm = {
           } );
           var instance = component.instance();
           if ( instance.foo !== 'abc' ) suite.failed( 'no public property "foo" with value "abc"' );
-          suite.assertEquals( [ 'foo', 'id', 'index', 'component' ], Object.keys( instance ) );
+          suite.assertEquals( [ 'foo', 'id', 'index', 'component', 'element' ], Object.keys( instance ) );
         },
         'allProperties': function ( suite ) {
           var component = ccm.component( {
@@ -355,7 +357,7 @@ ccm.components.testsuite.ccm = {
             }
           } );
           var instance = component.instance( { baz: [ ccm.instance, 'dummy2' ] } );
-          suite.assertEquals( [ 'baz', 'id', 'index', 'component' ], Object.keys( instance ) );
+          suite.assertEquals( [ 'baz', 'id', 'index', 'component', 'element' ], Object.keys( instance ) );
         }
       }
     },

@@ -51,7 +51,7 @@
  * - update of ccm.component
  * - new implementation of ccm custom elements (incompatible change)
  * - add helper method 'ccm.helper.isNode'
- * - prevent deeper recursion for HTML DOM nodes
+ * - prevent deeper recursion for HTML nodes
  * (for older version changes see ccm-6.14.2.js)
  */
 
@@ -1569,8 +1569,7 @@ var ccm = function () {
         component.render   = function ( config, callback ) { return ccm.render  ( component.index, config, callback ); };
 
         // set default of default ccm instance configuration
-        if ( !component.config )         component.config         = {};
-        //if ( !component.config.element ) component.config.element = document.body;
+        if ( !component.config ) component.config = {};
 
         // create HTML tag for ccm component
         createCustomElement();
@@ -1725,24 +1724,33 @@ var ccm = function () {
             instance.id = components[ index ].instances;        // set ccm instance id
             instance.index = index + '-' + instance.id;         // set ccm instance index
             instance.component = components[ index ];           // set ccm component reference
-
-            switch ( instance.element ) {
-              case 'name': instance.element = ccm.helper.find( parent, '.' + instance.component.name ); break;
-              case 'parent': instance.element = parent.element; break;
-              /*
-              default:
-                if ( instance.element.selector ) // TODO: element.selector
-                  instance.element.selector = instance.element.selector.replace( /-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)/g, function ( match ) {
-                    return match.replace( /\./g, '\\.' );
-                  } )
-              */
-            }
+            setElement();                                       // set website area
 
             // solve dependencies of created ccm instance
             solveDependencies( instance );
 
             // check if all dependencies are solved
             return check();
+
+            /** set the website area for the created instance */
+            function setElement() {
+
+              // keyword 'parent'? => use parent website area (and abort)
+              if ( instance.element === 'parent' ) return instance.element = parent.element;
+
+              // keyword 'name'? => use inner website area of the parent where HTML class is equal to component name of created instance
+              if ( instance.element === 'name' ) instance.element = ccm.helper.find( parent, '.' + instance.component.name )[ 0 ];
+
+              // prepare website area for ccm instance (contains only loading icon)
+              var element = ccm.helper.html( { id: ccm.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name + ' layout-' + ( instance.layout ? instance.layout : 'default' ), inner: ccm.helper.loading() } );
+
+              // has given HTML element node? => append prepared website area to given HTML element node
+              if ( instance.element ) instance.element.appendChild( element );
+
+              // prepared website area is website area for created instance
+              instance.element = element;
+
+            }
 
             /**
              * solve dependencies of created ccm instance (recursive)
@@ -2608,34 +2616,6 @@ var ccm = function () {
       },
 
       /**
-       * @summary reselect the content area of an <i>ccm</i> instance and add html div tag inside for embedded content with <i>ccm</i> loading icon inside
-       * @param {ccm.types.instance} instance - <i>ccm</i> instance
-       * @returns {ccm.types.element} added html div tag
-       */
-      element: function ( instance ) {  // TODO: not a framework relevant helper function
-
-        // TODO: ccm.helper.element call could be automatically done via framework
-
-        if ( !instance.element ) instance.element = document.body;
-
-        // reselect content area of the ccm instance
-        //ccm.helper.reselect( instance );
-
-        // CSS classes given as array? => join it to string
-        if ( Array.isArray( instance.classes ) ) instance.classes = instance.classes.join( ' ' );
-
-        // prepare website area for own content of ccm instance
-        var element = ccm.helper.html( { tag: 'div', id: ccm.helper.getElementID( instance ), class: 'ccm ' + ( instance.classes ? instance.classes : 'ccm-' + instance.component.name ), inner: ccm.helper.loading() } );
-
-        // add prepared website area ccm instance website area
-        instance.element.appendChild( element );
-
-        // ...
-        instance.element = element;
-
-      },
-
-      /**
        * @summary perform function by function name
        * @param {string} functionName - function name
        * @param {Array} args - function arguments
@@ -2681,9 +2661,9 @@ var ccm = function () {
       },
 
       /**
-       * @summary find HTML tags of an <i>ccm</i> instance inside a HTML DOM Element with a CSS selector
+       * @summary find HTML tags of an <i>ccm</i> instance inside a HTML element node with a CSS selector
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
-       * @param {ccm.types.element} [element] - HTML DOM Element (default: website area of <i>ccm</i> instance)
+       * @param {ccm.types.element} [element] - HTML element node (default: website area of <i>ccm</i> instance)
        * @param {string} selector - CSS selector
        */
       find: function ( instance, element, selector ) {
@@ -2701,7 +2681,7 @@ var ccm = function () {
 
       /**
        * @summary focus input field and set cursor to a specific position
-       * @param {ccm.types.element} input - HTML DOM Element of the input field
+       * @param {ccm.types.element} input - HTML element node of the input field
        * @param {number} [position] - cursor position (default: behind last character)
        */
       focusInput: function( input, position ) {  // TODO: not a framework relevant helper function
@@ -3232,7 +3212,7 @@ var ccm = function () {
       },
 
       /**
-       * @summary check value for HTML DOM Node
+       * @summary check value for HTML node
        * @param {*} value - value to check
        * @returns {boolean}
        */
@@ -3285,7 +3265,7 @@ var ccm = function () {
       },
 
       /**
-       * @summary returns a <i>ccm</i> loading icon as HTML DOM Element
+       * @summary returns a <i>ccm</i> loading icon as HTML node element
        * @types {ccm.types.node}
        */
       loading: function () {
@@ -3300,10 +3280,10 @@ var ccm = function () {
        * // makes arguments of a function iterable
        * ccm.helper.makeIterable( arguments ).map( function ( arg ) { ... } );
        * @example
-       * // makes the children of a HTML DOM Node Element iterable
+       * // makes the children of a HTML element node iterable
        * ccm.helper.makeIterable( document.getElementById( "dummy" ).children ).map( function ( child ) { ... } );
        * @example
-       * // makes the attributes of a HTML DOM Node Element iterable
+       * // makes the attributes of a HTML element node iterable
        * ccm.helper.makeIterable( document.getElementById( "dummy" ).attributes ).map( function ( attr ) { ... } );
        */
       makeIterable: function ( array_like ) {
@@ -3733,7 +3713,7 @@ var ccm = function () {
 
   /**
    * @typedef {object} ccm.types.node
-   * @summary HTML DOM Node
+   * @summary HTML node
    * @description For more informations see ({@link http://www.w3schools.com/jsref/dom_obj_all.asp}).
    */
 
