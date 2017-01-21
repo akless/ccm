@@ -53,7 +53,7 @@ ccm.helper.integrate( {
 
   /**
    * @summary gets the input data of a HTML form
-   * @param {ccm.types.element} form - HTML DOM Element of the HTML form
+   * @param {ccm.types.element} form - HTML element of the HTML form
    * @returns {object} input data
    * @example
    * var result = ccm.helper.formData( document.getElementsById( 'form_id' ) );
@@ -67,6 +67,33 @@ ccm.helper.integrate( {
     while ( pair = iterator.next().value )
       data[ pair[ 0 ] ] = pair[ 1 ];
     return data;
+
+  },
+
+  /**
+   * @summary returns a <i>ccm</i> loading icon as HTML node element
+   * @types {ccm.types.node}
+   * @example document.body.appendChild( ccm.helper.loading() );
+   */
+  loading: function () {
+    return ccm.helper.html( { class: 'ccm_loading', inner: { style: 'display: inline-block; width: 0.5em; height: 0.5em; border: 0.15em solid #009ee0; border-right-color: transparent; border-radius: 50%; animation: ccm_loading 1s linear infinite;' } } );
+  },
+
+  /**
+   * @summary set the content of an HTML element
+   * @param {ccm.types.element} element - HTML element
+   * @param {string|ccm.types.element|ccm.types.element[]} content - HTML element or HTML string for content
+   */
+  setContent: function ( element, content ) {
+
+    if ( typeof content === 'object' ) {
+      element.innerHTML = '';
+      if ( Array.isArray( content ) )
+        content.map( function ( node ) { element.appendChild( node ); } );
+      else
+        element.appendChild( content );
+    }
+    else element.innerHTML = content;
 
   },
 

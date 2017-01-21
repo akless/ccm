@@ -1741,8 +1741,8 @@ var ccm = function () {
               // keyword 'name'? => use inner website area of the parent where HTML class is equal to component name of created instance
               if ( instance.element === 'name' ) instance.element = ccm.helper.find( parent, '.' + instance.component.name )[ 0 ];
 
-              // prepare website area for ccm instance (contains only loading icon)
-              var element = ccm.helper.html( { id: ccm.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name + ' layout-' + ( instance.layout ? instance.layout : 'default' ), inner: ccm.helper.loading() } );
+              // prepare website area for ccm instance
+              var element = ccm.helper.html( { id: ccm.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name + ' layout-' + ( instance.layout ? instance.layout : 'default' ) } );
 
               // has given HTML element node? => append prepared website area to given HTML element node
               if ( instance.element ) instance.element.appendChild( element );
@@ -3259,17 +3259,8 @@ var ccm = function () {
           }
           else if ( obj[ i ] !== other[ i ] )
             return false;
-
         return true;
 
-      },
-
-      /**
-       * @summary returns a <i>ccm</i> loading icon as HTML node element
-       * @types {ccm.types.node}
-       */
-      loading: function () {
-        return ccm.helper.html( { class: 'ccm_loading', inner: { style: 'display: inline-block; width: 0.5em; height: 0.5em; border: 0.15em solid #009ee0; border-right-color: transparent; border-radius: 50%; animation: ccm_loading 1s linear infinite;' } } );
       },
 
       /**
