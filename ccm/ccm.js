@@ -3441,7 +3441,7 @@ var ccm = function () {
        * @param {object} obj - object that contains the <i>ccm</i> dependency
        * @param {number|string} key - object key that contains the <i>ccm</i> dependency
        * @param {function} [callback] - callback (first parameter is the result of the solved dependency)
-       * @returns {*} result of the solved dependency (only of synchron)
+       * @returns {*} result of the solved dependency (only ff synchron)
        * @example
        * var obj = { layout: [ ccm.load, 'style.css' ] };
        * ccm.helper.solveDependency( obj, 'layout', function ( result ) {
