@@ -1,10 +1,10 @@
 /**
  * @overview Framework of the Client-side Component Model (<i>ccm</i>)
- * @author André Kless <andre.kless@web.de> 2014-2016
- * @copyright Copyright (c) 2014-2016 André Kless
+ * @author André Kless <andre.kless@web.de> 2014-2017
+ * @copyright Copyright (c) 2014-2017 André Kless
  * @license
  * The MIT License (MIT)
- * Copyright (c) 2014-2016 André Kless
+ * Copyright (c) 2014-2017 André Kless
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
