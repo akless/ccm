@@ -3249,6 +3249,22 @@ var ccm = function () {
        * @param {object} obj - object
        * @param {object} other - another object
        * @returns {boolean}
+       * @example
+       * var obj = {
+       *   name: 'John Doe',
+       *   counter: 3,
+       *   isValid: true
+       * };
+       * var other = {
+       *   name: 'John Doe',
+       *   counter: 3,
+       *   isValid: true,
+       *   values: [ 'abc', 123, false ],
+       *   settings: { title: 'Welcome!', year: 2017, greedy: true },
+       *   onLoad: function () { console.log( 'Loading..' ); }
+       * };
+       * var result = ccm.helper.isSubset( obj, other );
+       * console.log( result );  // => true
        */
       isSubset: function ( obj, other ) {
 

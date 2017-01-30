@@ -1,6 +1,6 @@
 /**
  * @overview tests for <i>ccm</i> framework
- * @author André Kless <andre.kless@web.de> 2016
+ * @author André Kless <andre.kless@web.de> 2016-2017
  * @license The MIT License (MIT)
  */
 
@@ -237,6 +237,65 @@ ccm.components.testsuite.ccm = {
           root.element = suite.root;
           root.element = suite.node;
           suite.assertTrue( ccm.helper.isInDOM( node, root ) );
+        }
+      }
+    },
+    isSubset: {
+      setup: function ( suite, callback ) {
+        suite.other = {
+          name: 'John Doe',
+          counter: 3,
+          isValid: true,
+          values: [ 'abc', 123, false ],
+          settings: { title: 'Welcome!', year: 2017, greedy: true },
+          onLoad: function () { console.log( 'Loading..' ); }
+        };
+        callback();
+      },
+      tests: {
+        'upperSubset': function ( suite ) {
+          suite.assertTrue( ccm.helper.isSubset( {
+            name: 'John Doe',
+            counter: 3,
+            isValid: true
+          }, suite.other ) );
+        },
+        'lowerSubset': function ( suite ) {
+          suite.assertTrue( ccm.helper.isSubset( {
+            values: [ 'abc', 123, false ],
+            settings: { title: 'Welcome!', year: 2017, greedy: true },
+            onLoad: suite.other.onLoad
+          }, suite.other ) );
+        },
+        'incorrectString': function ( suite ) {
+          suite.assertFalse( ccm.helper.isSubset( {
+            name: 'Doe, John'
+          }, suite.other ) );
+        },
+        'incorrectNumber': function ( suite ) {
+          suite.assertFalse( ccm.helper.isSubset( {
+            counter: 2
+          }, suite.other ) );
+        },
+        'incorrectBoolean': function ( suite ) {
+          suite.assertFalse( ccm.helper.isSubset( {
+            isValid: false
+          }, suite.other ) );
+        },
+        'incorrectArray': function ( suite ) {
+          suite.assertFalse( ccm.helper.isSubset( {
+            values: [ 'xyz', 123, false ]
+          }, suite.other ) );
+        },
+        'incorrectObject': function ( suite ) {
+          suite.assertFalse( ccm.helper.isSubset( {
+            settings: { title: 'Hello, world.', year: 2017, greedy: true }
+          }, suite.other ) );
+        },
+        'incorrectFunction': function ( suite ) {
+          suite.assertFalse( ccm.helper.isSubset( {
+            onLoad: function () { console.log( 'Loading..' ); }
+          }, suite.other ) );
         }
       }
     },
