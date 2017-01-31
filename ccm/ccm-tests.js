@@ -240,6 +240,42 @@ ccm.components.testsuite.ccm = {
         }
       }
     },
+    isProxy: {
+      tests: {
+        'pseudoProxy': function ( suite ) {
+          var value = { component: 'ccm.blank.js' };
+          suite.assertTrue( ccm.helper.isProxy( value ) );
+        },
+        /*
+        'realProxy': function ( suite ) {
+          ccm.instance( '../blank_chat/ccm.blank_chat.js', {
+            //instance_a: [ 'ccm.proxy', '../blank/ccm.blank.js' ],
+            //instance_b: [ 'ccm.instance', '../chat/ccm.chat.js' ]
+          }, function ( instance ) {
+            console.log( instance );
+            return suite.failed();
+            if ( !ccm.helper.isProxy( instance.instance_a ) ) return suite.failed( 'instance a must be a proxy' );
+            if (  ccm.helper.isProxy( instance.instance_b ) ) return suite.failed( 'instance b should not be a proxy' );
+            suite.passed();
+          } );
+        },
+        */
+        'noProxy': function ( suite ) {
+          if ( ccm.helper.isProxy( true      ) ) return suite.failed(      "boolean can't be a ccm proxy instance." );
+          if ( ccm.helper.isProxy( 1         ) ) return suite.failed(       "number can't be a ccm proxy instance." );
+          if ( ccm.helper.isProxy( false     ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
+          if ( ccm.helper.isProxy( null      ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
+          if ( ccm.helper.isProxy( undefined ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
+          if ( ccm.helper.isProxy( 0         ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
+          if ( ccm.helper.isProxy( ''        ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
+          if ( ccm.helper.isProxy( []        ) ) return suite.failed(        "array can't be a ccm proxy instance." );
+          if ( ccm.helper.isProxy( {}        ) ) return suite.failed( "empty object can't be a ccm proxy instance." );
+          if ( ccm.helper.isProxy( { component: {} } ) ) return suite.failed( "object with object in component property can't be a ccm proxy instance." );
+          if ( ccm.helper.isProxy( { component: '' } ) ) return suite.failed( "object with empty string in component property can't be a ccm proxy instance." );
+          suite.passed();
+        }
+      }
+    },
     isSubset: {
       setup: function ( suite, callback ) {
         suite.other = {
@@ -253,49 +289,37 @@ ccm.components.testsuite.ccm = {
         callback();
       },
       tests: {
-        'upperSubset': function ( suite ) {
+        'correctUpperSubset': function ( suite ) {
           suite.assertTrue( ccm.helper.isSubset( {
             name: 'John Doe',
             counter: 3,
             isValid: true
           }, suite.other ) );
         },
-        'lowerSubset': function ( suite ) {
+        'correctLowerSubset': function ( suite ) {
           suite.assertTrue( ccm.helper.isSubset( {
             values: [ 'abc', 123, false ],
             settings: { title: 'Welcome!', year: 2017, greedy: true },
             onLoad: suite.other.onLoad
           }, suite.other ) );
         },
-        'incorrectString': function ( suite ) {
-          suite.assertFalse( ccm.helper.isSubset( {
-            name: 'Doe, John'
-          }, suite.other ) );
+        'correctSingleProperties': function ( suite ) {
+          if ( !ccm.helper.isSubset( { name: 'John Doe' }, suite.other ) ) return suite.failed( 'correct string property must be match'  );
+          if ( !ccm.helper.isSubset( { counter: 3       }, suite.other ) ) return suite.failed( 'correct number property must be match'  );
+          if ( !ccm.helper.isSubset( { isValid: true    }, suite.other ) ) return suite.failed( 'correct boolean property must be match' );
+          if ( !ccm.helper.isSubset( { values:   [ 'abc', 123, false ] },                           suite.other ) ) return suite.failed( 'correct array property must be match' );
+          if ( !ccm.helper.isSubset( { settings: { title: 'Welcome!', year: 2017, greedy: true } }, suite.other ) ) return suite.failed( 'correct object property must be match' );
+          if ( !ccm.helper.isSubset( { onLoad:   suite.other.onLoad },                              suite.other ) ) return suite.failed( 'correct function property must be match' );
+          suite.passed();
         },
-        'incorrectNumber': function ( suite ) {
-          suite.assertFalse( ccm.helper.isSubset( {
-            counter: 2
-          }, suite.other ) );
-        },
-        'incorrectBoolean': function ( suite ) {
-          suite.assertFalse( ccm.helper.isSubset( {
-            isValid: false
-          }, suite.other ) );
-        },
-        'incorrectArray': function ( suite ) {
-          suite.assertFalse( ccm.helper.isSubset( {
-            values: [ 'xyz', 123, false ]
-          }, suite.other ) );
-        },
-        'incorrectObject': function ( suite ) {
-          suite.assertFalse( ccm.helper.isSubset( {
-            settings: { title: 'Hello, world.', year: 2017, greedy: true }
-          }, suite.other ) );
-        },
-        'incorrectFunction': function ( suite ) {
-          suite.assertFalse( ccm.helper.isSubset( {
-            onLoad: function () { console.log( 'Loading..' ); }
-          }, suite.other ) );
+        'incorrectSingleProperties': function ( suite ) {
+          if ( ccm.helper.isSubset( { name: 'Doe, John' }, suite.other ) ) return suite.failed( 'incorrect string property should not match'  );
+          if ( ccm.helper.isSubset( { counter: 2        }, suite.other ) ) return suite.failed( 'incorrect number property should not match'  );
+          if ( ccm.helper.isSubset( { isValid: false    }, suite.other ) ) return suite.failed( 'incorrect boolean property should not match' );
+          if ( ccm.helper.isSubset( { values:   [ 'xyz', 123, false ] },                                suite.other ) ) return suite.failed( 'incorrect array property should not match' );
+          if ( ccm.helper.isSubset( { settings: { title: 'Hello, world.', year: 2017, greedy: true } }, suite.other ) ) return suite.failed( 'incorrect object property should not match' );
+          if ( ccm.helper.isSubset( { onLoad:   function () { console.log( 'Loading..' ); } },          suite.other ) ) return suite.failed( 'incorrect function property should not match' );
+          suite.passed();
         }
       }
     },

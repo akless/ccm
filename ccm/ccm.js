@@ -3234,9 +3234,11 @@ var ccm = function () {
       },
 
       /**
-       * check value if it is a ccm proxy instance
+       * @summary checks if a value is an ccm proxy instance
        * @param {*} value - value to check
        * @returns {boolean}
+       * @example
+       *
        */
       isProxy: function ( value ) {
 
