@@ -211,7 +211,7 @@ var ccm = function () {
      * See [table of supported operations]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#supported-operations} to check this.
      * If the wanted data is completely local cached via <i>ccm</i> and is not containing data dependencies to external sources, than the data could be received as return value.
      * Data dependencies inside the requested data will be automatically resolved via <i>ccm</i> (see last example).
-     * For more informations about [data dependencies]{@link ccm.dataset} see the given link.
+     * For more informations about [data dependencies]{@link ccm.get} see the given link.
      * @param {ccm.types.key|object} [key_or_query] - unique key of the dataset or alternative a query
      * @param {ccm.types.getResult} [callback] - when data operation is finished
      * @returns {ccm.types.dataset|ccm.types.dataset[]} requested dataset(s) (only if no inner operation is asynchron)
@@ -246,7 +246,7 @@ var ccm = function () {
      * // get single dataset that contains a data dependency
      * store.set( {                                                   // Store a dataset
      *   key:   'test',                                               // that contains a
-     *   other: [ 'ccm.dataset', { url: ..., store: ... }, 'test2' ]  // data dependency
+     *   other: [ 'ccm.get', { url: ..., store: ... }, 'test2' ]  // data dependency
      * } );                                                           // and than request it.
      * var result = store.get( 'test' );
      * console.log( result );             // { key: 'test', other: { key: 'test2', ... } }
@@ -447,7 +447,14 @@ var ccm = function () {
       if ( !priodata.key ) priodata.key = ccm.helper.generateKey();
 
       // priority data does not contains a valid ccm dataset key? => abort and perform callback without a result
-      if ( !ccm.helper.regex( 'key' ).test( priodata.key ) ) {
+      if ( Array.isArray( priodata.key ) ) {
+        for ( var i = 0; i < priodata.key.length; i++ )
+          if ( !ccm.helper.regex( 'key' ).test( priodata.key[ i ] ) ) {
+            if ( callback ) callback( null );
+            return null;
+          }
+      }
+      else if ( !ccm.helper.regex( 'key' ).test( priodata.key ) ) {
         if ( callback ) callback( null );
         return null;
       }
@@ -1699,7 +1706,8 @@ var ccm = function () {
         function proceed( index ) {
 
           // load instance configuration if necessary (asynchron)
-          return ccm.helper.isDependency( cfg ) ? ccm.dataset( cfg[ 1 ], cfg[ 2 ], proceed ) : proceed( cfg );
+          if ( ccm.helper.isDependency( cfg ) ) cfg = { key: cfg };
+          return cfg && cfg.key ? ccm.get( cfg.key[ 1 ], cfg.key[ 2 ], function ( dataset ) { ccm.helper.integrate( cfg, dataset ); delete dataset.key; proceed( dataset ); } ) : proceed( cfg );
 
           function proceed( cfg ) {
 
@@ -1742,7 +1750,7 @@ var ccm = function () {
               if ( instance.element === 'name' ) instance.element = ccm.helper.find( parent, '.' + instance.component.name )[ 0 ];
 
               // prepare website area for ccm instance
-              var element = ccm.helper.html( { id: ccm.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name + ' layout-' + ( instance.layout ? instance.layout : 'default' ) } );
+              var element = ccm.helper.html( { id: ccm.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name } );
 
               // has given HTML element node? => append prepared website area to given HTML element node
               if ( instance.element ) instance.element.appendChild( element );
@@ -1834,12 +1842,23 @@ var ccm = function () {
                     ccm.store( action[ 1 ], setResult );
                     break;
 
-                  case ccm.dataset:
-                  case "ccm.dataset":
+                  case ccm.get:
+                  case "ccm.get":
                     counter++;
-                    ccm.dataset( action[ 1 ], action[ 2 ], setResult );
+                    ccm.get( action[ 1 ], action[ 2 ], setResult );
                     break;
 
+                  case ccm.set:
+                  case "ccm.set":
+                    counter++;
+                    ccm.set( action[ 1 ], action[ 2 ], setResult );
+                    break;
+
+                  case ccm.del:
+                  case "ccm.del":
+                    counter++;
+                    ccm.del( action[ 1 ], action[ 2 ], setResult );
+                    break;
                 }
 
                 /**
@@ -1867,7 +1886,7 @@ var ccm = function () {
                 function proxy( component, config, instance_or_array, key, parent ) {
 
                   // load instance configuration if necessary (asynchron)
-                  ccm.helper.isDependency( config ) ? ccm.dataset( config[ 1 ], config[ 2 ], proceed ) : proceed( config );
+                  ccm.helper.isDependency( config ) ? ccm.get( config[ 1 ], config[ 2 ], proceed ) : proceed( config );
 
                   function proceed( config ) {
 
@@ -2316,7 +2335,7 @@ var ccm = function () {
      * @param {function} [callback] - callback (first parameter is the requested <i>ccm</i> datastore)
      * @returns {ccm.types.dataset} requested <i>ccm</i> dataset (only if synchron)
      */
-    dataset: function ( settings, key_or_query, callback ) {
+    get: function ( settings, key_or_query, callback ) {
 
       var store = ccm.store( settings, function ( store ) {
 
@@ -2325,6 +2344,30 @@ var ccm = function () {
       } );
 
       if ( store ) return store.get( key_or_query );
+
+    },
+
+    set: function ( settings, priodata, callback ) {
+
+      var store = ccm.store( settings, function ( store ) {
+
+        store.set( priodata, callback );
+
+      } );
+
+      if ( store ) return store.set( priodata );
+
+    },
+
+    del: function ( settings, key, callback ) {
+
+      var store = ccm.store( settings, function ( store ) {
+
+        store.del( key, callback );
+
+      } );
+
+      if ( store ) return store.del( key );
 
     },
 
@@ -2796,7 +2839,7 @@ var ccm = function () {
                   ccm.helper.deepValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], child.getAttribute( 'src' ) || split[ 2 ], ccm.helper.generateConfig( child ) ] );
                   break;
                 case 'store':
-                case 'dataset':
+                case 'get':
                   var settings = {};
                   catchAttributes( child, settings );
                   var key = settings.key;
@@ -2827,6 +2870,10 @@ var ccm = function () {
               config.childNodes.push( child );
               node.removeChild( child );
             }
+          } );
+          config.node = ccm.helper.html( {} );
+          config.childNodes.map( function ( child ) {
+            config.node.appendChild( child );
           } );
 
           function interpretLoadTag( node ) {
@@ -3144,7 +3191,9 @@ var ccm = function () {
        * @example [ ccm.proxy, ... ]
        * @example [ ccm.render, ... ]
        * @example [ ccm.store, ... ]
-       * @example [ ccm.dataset, ... ]
+       * @example [ ccm.get, ... ]
+       * @example [ ccm.set, ... ]
+       * @example [ ccm.del, ... ]
        */
       isDependency: function ( value ) {
 
@@ -3163,8 +3212,12 @@ var ccm = function () {
               case "ccm.render":
               case ccm.store:
               case "ccm.store":
-              case ccm.dataset:
-              case "ccm.dataset":
+              case ccm.get:
+              case "ccm.get":
+              case ccm.set:
+              case "ccm.set":
+              case ccm.del:
+              case "ccm.del":
                 return true;
             }
 
@@ -3398,9 +3451,11 @@ var ccm = function () {
             case 'index':
             case 'init':
             case 'onFinish':
+            case 'node':
             case 'parent':
             case 'ready':
             case 'render':
+            case 'user':
               break;
             default:
               if ( ccm.helper.isInstance( instance[ key ] ) && instance[ key ].parent && instance[ key ].parent.index === instance.index ) return;
@@ -3449,7 +3504,7 @@ var ccm = function () {
 
         switch ( index ) {
           case 'filename': return /^ccm\.([^.-]+)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/;
-          case 'key':      return /^[a-z_0-9][a-zA-Z_0-9]*$/;
+          case 'key':      return /^[a-zA-Z_0-9]+$/;
         }
 
       },
@@ -3646,7 +3701,9 @@ var ccm = function () {
    * @example [ ccm.render, 'ccm.chat.js' ]
    * @example [ ccm.load, 'style.css' ]
    * @example [ ccm.store, { local: 'datastore.json' } ]
-   * @example [ ccm.dataset, { local: 'datastore.json' }, 'test' ]
+   * @example [ ccm.get, { local: 'datastore.json' }, 'test' ]
+   * @example [ ccm.set, { local: 'datastore.json' }, { key: 'test', foo: 'bar' } ]
+   * @example [ ccm.del, { local: 'datastore.json' }, 'test' ]
    */
 
   /**

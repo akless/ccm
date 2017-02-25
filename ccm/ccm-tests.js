@@ -135,8 +135,8 @@ ccm.components.testsuite.ccm = {
         }
       }
     },
-    local: {
-      get: {
+    get: {
+      local: {
         setup: function ( suite, callback ) {
           suite.store = ccm.store();
           callback();
@@ -173,6 +173,77 @@ ccm.components.testsuite.ccm = {
           }
         }
       }
+      /*,
+      remote: {
+        ccm_inf_h_brs: {
+          redis: {
+            setup: function ( suite, callback ) {
+              suite.store = ccm.store( { url: 'https://ccm.inf.h-brs.de', db: 'redis', store: 'test' } );
+              callback();
+            },
+            tests: {
+              'exists': function ( suite ) {
+                var dataset = { key: 'existing_key' };
+                suite.store.set( dataset );
+                suite.store.get( 'existing_key', function ( result ) {
+                  delete result.updated_at;
+                  suite.assertEquals( dataset, result );
+                } );
+              },
+              'notExists': function ( suite ) {
+                suite.store.get( 'not_existing_key', function ( result ) {
+                  suite.assertEquals( null, result );
+                } );
+              }
+            }
+          },
+          mongo: {
+            setup: function ( suite, callback ) {
+              suite.store = ccm.store( { url: 'https://ccm.inf.h-brs.de', db: 'mongodb', store: 'test' } );
+              callback();
+            },
+            tests: {
+              'exists': function ( suite ) {
+                var dataset = { key: 'existing_key' };
+                suite.store.set( dataset );
+                suite.store.get( 'existing_key', function ( result ) {
+                  delete result.updated_at;
+                  suite.assertEquals( dataset, result );
+                } );
+              },
+              'notExists': function ( suite ) {
+                suite.store.get( 'not_existing_key', function ( result ) {
+                  suite.assertEquals( null, result );
+                } );
+              },
+              'query': function ( suite ) {
+                var foo = { key: 'foo', value:  127, exists: false };
+                var bar = { key: 'bar', value: 4711, exists:  true };  // match
+                var baz = { key: 'baz', value:  127, exists:  true };
+                var abc = { key: 'abc', value: 4711, exists: false };
+                var xyz = { key: 'xyz', value: 4711, exists:  true };  // match
+                suite.store.set( foo );
+                suite.store.set( bar );
+                suite.store.set( baz );
+                suite.store.set( abc );
+                suite.store.set( xyz );
+                suite.store.get( { value: 4711, exists: true }, function ( result ) {
+                  suite.assertEquals( [ bar, xyz ], result );
+                } );
+              },
+              'all': function ( suite ) {
+                var datasets = [ { key: 'foo' }, { key: 'bar' }, { key: 'baz' } ];
+                suite.store.set( datasets[ 0 ] ); suite.store.set( datasets[ 1 ] ); suite.store.set( datasets[ 2 ] );
+                suite.assertEquals( datasets, suite.store.get() );
+              },
+              'allEmpty': function ( suite ) {
+                suite.assertEquals( [], suite.store.get() );
+              }
+            }
+          }
+        }
+      }
+      */
     }
   },
   helper: {

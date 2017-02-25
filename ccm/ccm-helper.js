@@ -79,6 +79,27 @@ ccm.helper.integrate( {
     return ccm.helper.html( { class: 'ccm_loading', inner: { style: 'display: inline-block; width: 0.5em; height: 0.5em; border: 0.15em solid #009ee0; border-right-color: transparent; border-radius: 50%; animation: ccm_loading 1s linear infinite;' } } );
   },
 
+  protect: function ( value ) {
+    if ( ccm.helper.isElementNode( value ) ) {
+      ccm.helper.makeIterable( value.getElementsByTagName( 'script' ) ).map( function ( script ) {
+        script.parentNode.removeChild( script );
+      } );
+      return value;
+    }
+    if ( typeof value === 'string' ) {
+      var tag = document.createElement( 'div' );
+      tag.innerHTML = value;
+      ccm.helper.makeIterable( tag.getElementsByTagName( 'script' ) ).map( function ( script ) {
+        script.parentNode.removeChild( script );
+      } );
+      return tag.innerHTML;
+    }
+  },
+
+  removeElement: function ( element ) {
+    if ( element.parentNode ) element.parentNode.removeChild( element );
+  },
+
   /**
    * @summary set the content of an HTML element
    * @param {ccm.types.element} element - HTML element
@@ -94,6 +115,15 @@ ccm.helper.integrate( {
         element.appendChild( content );
     }
     else element.innerHTML = content;
+
+  },
+
+  setDataset: function ( result, destination, user, callback ) {
+
+    result.key = destination.key || ccm.helper.generateKey();
+    delete destination.key;
+    if ( user && user.isLoggedIn() ) result.key = [ result.key, user.data().key ];
+    ccm.set( destination, result, callback );
 
   },
 
