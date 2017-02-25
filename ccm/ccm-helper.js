@@ -122,8 +122,14 @@ ccm.helper.integrate( {
 
     result.key = destination.key || ccm.helper.generateKey();
     delete destination.key;
-    if ( user && user.isLoggedIn() ) result.key = [ result.key, user.data().key ];
-    ccm.set( destination, result, callback );
+    if ( user )
+      user.login( function () { result.key = [ result.key, user.data().key ]; proceed(); } );
+    else
+      proceed();
+
+    function proceed() {
+      ccm.set( destination, result, callback );
+    }
 
   },
 
