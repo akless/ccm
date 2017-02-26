@@ -3458,12 +3458,11 @@ var ccm = function () {
             case 'onFinish':
             case 'node':
             case 'parent':
-            case 'ready':
-            case 'render':
             case 'user':
               break;
             default:
               if ( ccm.helper.isInstance( instance[ key ] ) && instance[ key ].parent && instance[ key ].parent.index === instance.index ) return;
+              if ( typeof instance[ key ] === 'function' ) return;
               if ( instance[ key ] !== undefined ) obj[ key ] = instance[ key ];
               delete instance[ key ];
           }
