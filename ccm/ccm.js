@@ -755,7 +755,7 @@ var ccm = function () {
             var value = array_or_object[ key ];
 
             // value is a ccm dependency? => solve dependency
-            if ( ccm.helper.isDependency( value ) ) solveDependency( array_or_object, key ) ;
+            if ( ccm.helper.isDependency( value ) && value[ 0 ] === 'ccm.get' ) solveDependency( array_or_object, key ) ;
 
             // value is an array? => search array elements for data dependencies
             else if ( Array.isArray( value ) || ccm.helper.isObject( value ) ) search( value );  // recursive call
@@ -976,7 +976,7 @@ var ccm = function () {
     /**
      * @summary contains global namespaces for <i>ccm</i> components
      * @memberOf ccm
-     * @type {Object.<ccm.types.index, objects>}
+     * @type {Object.<ccm.types.index, object>}
      */
     components: {},
 
@@ -1000,6 +1000,7 @@ var ccm = function () {
      * @memberOf ccm
      * @param {...string|Array} resources - resource(s) URLs
      * @param {function} [callback] - callback when all resources are loaded (first parameter are the results)
+     * @param {ccm.element} [head]
      * @returns {*} results (only if all resources already loaded)
      * @example
      * // load ccm component with callback (local path)
@@ -1066,6 +1067,9 @@ var ccm = function () {
        * @type {function}
        */
       var callback;
+
+      if ( !args[ args.length - 1 ] ) args.pop();
+      var head = ccm.helper.isElementNode( args[ args.length - 1 ] ) ? args.pop().parentNode : document.head;
 
       // last argument is callback? => seperate arguments and callback
       if ( typeof args[ args.length - 1 ] === 'function' || args[ args.length - 1 ] === undefined )
@@ -1192,7 +1196,7 @@ var ccm = function () {
           ccm.callback[ filename ] = successData;
 
           // load (and execute) content of html file
-          document.head.appendChild( ccm.helper.html( { tag: 'script', src: url } ) );
+          head.appendChild( ccm.helper.html( { tag: 'script', src: url } ) );
 
         }
 
@@ -1205,7 +1209,7 @@ var ccm = function () {
           if ( caching() ) return;
 
           var tag = ccm.helper.html( { tag: 'link', rel: 'stylesheet', type: 'text/css', href: url } );
-          document.head.appendChild( tag );
+          head.appendChild( tag );
           tag.onload = success;
 
         }
@@ -1233,7 +1237,7 @@ var ccm = function () {
           if ( caching() ) return;
 
           var tag = ccm.helper.html( { tag: 'script', src: url } );
-          document.head.appendChild( tag );
+          head.appendChild( tag );
           tag.onload = success;
 
         }
@@ -1262,7 +1266,7 @@ var ccm = function () {
           ccm.callback[ filename ] = successData;
 
           // load (and execute) content of json file
-          document.head.appendChild( ccm.helper.html( { tag: 'script', src: url } ) );
+          head.appendChild( ccm.helper.html( { tag: 'script', src: url } ) );
 
         }
 
@@ -1732,7 +1736,7 @@ var ccm = function () {
             instance.id = components[ index ].instances;        // set ccm instance id
             instance.index = index + '-' + instance.id;         // set ccm instance index
             instance.component = components[ index ];           // set ccm component reference
-            setElement();                                       // set website area
+            if ( instance.element ) setElement();               // set website area
 
             // solve dependencies of created ccm instance
             solveDependencies( instance );
@@ -1752,8 +1756,9 @@ var ccm = function () {
               // prepare website area for ccm instance
               var element = ccm.helper.html( { id: ccm.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name } );
 
-              // has given HTML element node? => append prepared website area to given HTML element node
-              if ( instance.element ) instance.element.appendChild( element );
+              // create shadow DOM
+              var shadow = instance.element.attachShadow( { mode: 'open' } );
+              shadow.appendChild( element );
 
               // prepared website area is website area for created instance
               instance.element = element;
@@ -1811,10 +1816,10 @@ var ccm = function () {
                   case "ccm.load":
                     counter++;
                     if ( action.length === 2 )
-                      ccm.load( action[ 1 ], setResult );
+                      ccm.load( action[ 1 ], setResult, instance && instance.element );
                     else {
                       action.shift();
-                      ccm.load( action, setResult );
+                      ccm.load( action, setResult, instance && instance.element );
                     }
                     break;
 
