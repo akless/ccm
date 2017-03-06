@@ -72,10 +72,20 @@ ccm.helper.integrate( {
 
   /**
    * @summary returns a <i>ccm</i> loading icon as HTML node element
+   * @param {ccm.instance} instance - <i>ccm instance</i> (for determining Shadow DOM)
    * @types {ccm.types.node}
    * @example document.body.appendChild( ccm.helper.loading() );
    */
-  loading: function () {
+  loading: function ( instance ) {
+
+    // set keyframe for ccm loading icon animation
+    if ( !instance.element.parentNode.querySelector( '#ccm_keyframe' ) ) {
+      var style = document.createElement( 'style' );
+      style.id = 'ccm_keyframe';
+      style.appendChild( document.createTextNode( '@keyframes ccm_loading { to { transform: rotate(360deg); } }' ) );
+      instance.element.parentNode.appendChild( style );
+    }
+
     return ccm.helper.html( { class: 'ccm_loading', inner: { style: 'display: inline-block; width: 0.5em; height: 0.5em; border: 0.15em solid #009ee0; border-right-color: transparent; border-radius: 50%; animation: ccm_loading 1s linear infinite;' } } );
   },
 

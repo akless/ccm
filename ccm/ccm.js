@@ -61,14 +61,6 @@ if ( !( 'registerElement' in document ) ) {
   document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"><\/script>' );
 }
 
-// set keyframe for ccm loading icon animation
-if ( document.body ) {
-  window.ccm = document.createElement( 'style' );
-  window.ccm.appendChild( document.createTextNode( '@keyframes ccm_loading { to { transform: rotate(360deg); } }' ) );
-  document.head.appendChild( window.ccm );
-}
-else document.write( '<style>@keyframes ccm_loading { to { transform: rotate(360deg); } }</style>' );
-
 /**
  * <i>ccm</i> namespace
  * @global
@@ -2821,6 +2813,7 @@ var ccm = function () {
             if ( value === 'false'     ) return false;
             if ( value === 'null'      ) return null;
             if ( value === 'undefined' ) return undefined;
+            if ( value === ''          ) return '';
             if ( !isNaN( value )       ) return parseInt( value );
             return value;
           }
