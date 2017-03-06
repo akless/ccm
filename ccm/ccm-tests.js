@@ -296,18 +296,16 @@ ccm.components.testsuite.ccm = {
           suite.assertTrue( ccm.helper.isInDOM( root ) );
           document.body.removeChild( root );
         },
-        'bothInstances': function ( suite ) {
+        'instanceRoot': function ( suite ) {
           var component = ccm.component( {
             name: 'dummy',
             Instance: function () {
               this.render = function () {}
             }
           } );
-          var root = component.instance( suite.root );
-          var node = component.instance( suite.node );
-          root.element = suite.root;
-          root.element = suite.node;
-          suite.assertTrue( ccm.helper.isInDOM( node, root ) );
+          suite.root = component.instance( suite.root );
+          ccm.helper.setContent( suite.root.element, suite.node );
+          suite.assertTrue( ccm.helper.isInDOM( suite.node, suite.root ) );
         }
       }
     },
@@ -472,7 +470,7 @@ ccm.components.testsuite.ccm = {
               var self = this;
               var my;
               this.ready = function ( callback ) {
-                my = ccm.helper.privatize( self, 'childNodes', 'component', 'element', 'bar', 'baz', 'id', 'index', 'init', 'ready', 'render' );
+                my = ccm.helper.privatize( self, 'childNodes', 'component', 'bar', 'baz', 'id', 'index', 'init', 'ready', 'render' );
                 if ( Object.keys( my ).length !== 1 || my.bar !== 'xyz' ) suite.failed( 'wrong privatized properties: ' + JSON.stringify( my ) );
                 callback();
               };
@@ -480,7 +478,7 @@ ccm.components.testsuite.ccm = {
           } );
           var instance = component.instance();
           if ( instance.foo !== 'abc' ) suite.failed( 'no public property "foo" with value "abc"' );
-          suite.assertEquals( [ 'foo', 'id', 'index', 'component', 'element' ], Object.keys( instance ) );
+          suite.assertEquals( [ 'foo', 'id', 'index', 'component' ], Object.keys( instance ) );
         },
         'allProperties': function ( suite ) {
           var component = ccm.component( {
@@ -497,7 +495,7 @@ ccm.components.testsuite.ccm = {
             }
           } );
           var instance = component.instance( { baz: [ ccm.instance, 'dummy2' ] } );
-          suite.assertEquals( [ 'baz', 'id', 'index', 'component', 'element' ], Object.keys( instance ) );
+          suite.assertEquals( [ 'baz', 'id', 'index', 'component' ], Object.keys( instance ) );
         }
       }
     },
@@ -510,10 +508,10 @@ ccm.components.testsuite.ccm = {
           suite.assertFalse( ccm.helper.regex( 'filename' ).test( 'dummy.js' ) );
         },
         'validKey': function ( suite ) {
-          suite.assertTrue( ccm.helper.regex( 'key' ).test( 'dummy12_Foo3' ) );
+          suite.assertTrue( ccm.helper.regex( 'key' ).test( 'Dummy12_Foo3' ) );
         },
         'invalidKey': function ( suite ) {
-          suite.assertFalse( ccm.helper.regex( 'key' ).test( 'Dummy' ) );
+          suite.assertFalse( ccm.helper.regex( 'key' ).test( '' ) || ccm.helper.regex( 'key' ).test( '$' ) );
         }
       }
     },

@@ -3239,13 +3239,12 @@ var ccm = function () {
        * @description
        * If <code>node</code> or <code>root</code> is an <i>ccm</i> instance, than the website area of this instance is used.
        * Returns <code>true</code> if <code>node</code> or <code>root</code> are equal.
-       * @param {ccm.types.node|ccm.types.instance} node - HTML element node
+       * @param {ccm.types.node} node - HTML element node
        * @param {ccm.types.node|ccm.types.instance} [root] - root of the DOM structure that has to be checked, default is <code>document.body</code>
        * @returns {boolean}
        */
       isInDOM: function ( node, root ) {
 
-        if ( ccm.helper.isInstance( node ) ) node = node.element;
         if ( ccm.helper.isInstance( root ) ) root = root.element;
         return ( root ? root : document.body ).contains( node );
 
