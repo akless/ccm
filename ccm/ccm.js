@@ -2118,7 +2118,7 @@ var ccm = function () {
       if ( !settings.local ) settings.local = {};
 
       // local cache is an URL? => load initial datasets for local cache (could be asynchron)
-      return typeof settings.local === 'string' ? ccm.load( settings.local, proceed ) : proceed( settings.local );
+      if ( typeof settings.local === 'string' ) ccm.load( settings.local, proceed ); else return proceed( settings.local );
 
       /**
        * proceed with creating ccm datastore
@@ -2282,6 +2282,7 @@ var ccm = function () {
             // perform callback with created ccm datastore
             if ( callback ) callback( store );
 
+            console.log( ccm.helper.clone( store ), ccm.helper.clone( resources ) );
             // return created ccm datastore (only synchron)
             return store;
 
@@ -2308,6 +2309,7 @@ var ccm = function () {
         store.get( key_or_query, callback );
 
       } );
+      console.log( ccm.helper.clone( store ), ccm.helper.clone( resources ) );
 
       if ( store ) return store.get( key_or_query );
 
