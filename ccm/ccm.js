@@ -1536,9 +1536,9 @@ var ccm = function () {
         // add ccm instance counter
         component.instances = 0;
 
-        // add function for creating and rendering ccm instances
+        // add function for creating and starting ccm instances
         component.instance = function ( config, callback ) { return ccm.instance( component.index, config, callback ); };
-        component.render   = function ( config, callback ) { return ccm.render  ( component.index, config, callback ); };
+        component.start    = function ( config, callback ) { return ccm.start   ( component.index, config, callback ); };
 
         // set default of default ccm instance configuration
         if ( !component.config ) component.config = {};
@@ -1556,7 +1556,7 @@ var ccm = function () {
             if ( !document.body.contains( this ) ) return;
             var config = ccm.helper.generateConfig( this );
             config.element = this;
-            component.render( config );
+            component.start( config );
           };
           document.registerElement( 'ccm-' + component.index, { prototype: tag } );
 
@@ -1595,10 +1595,10 @@ var ccm = function () {
 
         function closure( component ) {
 
-          // has given default for default instance configuration? => consider this in later instance() and render() calls
+          // has given default for default instance configuration? => consider this in later instance() and start() calls
           if ( component.config ) {
             component.instance = function ( config, callback ) { if ( ccm.helper.isElementNode( config ) ) config = { element: config }; config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.instance( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
-            component.render   = function ( config, callback ) { if ( ccm.helper.isElementNode( config ) ) config = { element: config }; config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.render  ( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
+            component.start    = function ( config, callback ) { if ( ccm.helper.isElementNode( config ) ) config = { element: config }; config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.start   ( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
           }
 
         }
@@ -1859,12 +1859,12 @@ var ccm = function () {
                     instance_or_array[ key ] = {
                       component: component,
                       parent: parent,
-                      render: function ( callback ) {
+                      start: function ( callback ) {
                         delete this.component;
-                        delete this.render;
+                        delete this.start;
                         if ( !config ) config = {};
                         ccm.helper.integrate( this, config );
-                        ccm.render( component, config, function ( instance ) {
+                        ccm.start( component, config, function ( instance ) {
                           instance_or_array[ key ] = instance;
                           if ( callback ) callback();
                         } );
@@ -2023,15 +2023,15 @@ var ccm = function () {
     },
 
     /**
-     * @summary render <i>ccm</i> instance in website area
+     * @summary starts <i>ccm</i> instance
      * @memberOf ccm
      * @param {ccm.types.index|ccm.types.url} component - index or URL of a <i>ccm</i> component
      * @param {ccm.types.config} [config] - <i>ccm</i> instance configuration (check documentation of associated <i>ccm</i> component to see which properties could be set)
-     * @param {function} [callback] - callback when <i>ccm</i> instance is rendered (first parameter is the rendered <i>ccm</i> instance)
-     * @returns {ccm.types.instance} rendered <i>ccm</i> instance (only if synchron)
-     * @example ccm.render( 'ccm.blank.js', { element: jQuery( '#container' ) } );
+     * @param {function} [callback] - callback when <i>ccm</i> instance is started (first parameter is the started <i>ccm</i> instance)
+     * @returns {ccm.types.instance} started <i>ccm</i> instance (only if synchron)
+     * @example ccm.start( 'ccm.blank.js', { element: jQuery( '#container' ) } );
      */
-    render: function ( component, config, callback ) {
+    start: function ( component, config, callback ) {
 
       // ccm instance configuration is a function? => configuration is callback
       if ( typeof config === 'function' ) { callback = config; config = undefined; }
@@ -2039,8 +2039,8 @@ var ccm = function () {
       // create ccm instance out of ccm component
       ccm.instance( component, config, function ( instance ) {
 
-        // render ccm instance in her website area
-        instance.render( function () {
+        // start ccm instance
+        instance.start( function () {
 
           // perform callback with ccm instance
           if ( callback ) callback( instance );
@@ -3156,7 +3156,7 @@ var ccm = function () {
        * @example [ ccm.component, ... ]
        * @example [ ccm.instance, ... ]
        * @example [ ccm.proxy, ... ]
-       * @example [ ccm.render, ... ]
+       * @example [ ccm.start, ... ]
        * @example [ ccm.store, ... ]
        * @example [ ccm.get, ... ]
        * @example [ ccm.set, ... ]
@@ -3175,8 +3175,8 @@ var ccm = function () {
               case "ccm.instance":
               case ccm.proxy:
               case "ccm.proxy":
-              case ccm.render:
-              case "ccm.render":
+              case ccm.start:
+              case "ccm.start":
               case ccm.store:
               case "ccm.store":
               case ccm.get:
@@ -3350,13 +3350,11 @@ var ccm = function () {
        *   <li><code>element</code></li>
        *   <li><code>id</code></li>
        *   <li><code>index</code></li>
-       *   <li><code>init</code></li>
        *   <li><code>onFinish</code></li>
+       *   <li><code>node</code></li>
        *   <li><code>parent</code></li>
-       *   <li><code>ready</code></li>
-       *   <li><code>render</code></li>
        * </ul>
-       * In addition to this properties all depending <i>ccm</i> context relevant <i>ccm</i> instances will also not be privatized.
+       * In addition to this properties all functions and depending <i>ccm</i> context relevant <i>ccm</i> instances will also not be privatized.
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
        * @param {...string} [properties] - properties that have to privatized, default: privatizes all not <i>ccm</i> relevant properties
        * @returns {object} object that contains the privatized properties and there values
@@ -3415,11 +3413,9 @@ var ccm = function () {
             case 'element':
             case 'id':
             case 'index':
-            case 'init':
             case 'onFinish':
             case 'node':
             case 'parent':
-            case 'user':
               break;
             default:
               if ( ccm.helper.isInstance( instance[ key ] ) && instance[ key ].parent && instance[ key ].parent.index === instance.index ) return;
@@ -3556,7 +3552,7 @@ var ccm = function () {
    * @property {function} Instance - constructor for creating <i>ccm</i> instances out of this component
    * @property {function} init - callback when this component is registered
    * @property {function} instance - creates an <i>ccm</i> instance out of this component
-   * @property {function} render - creates and renders an <i>ccm</i> instance
+   * @property {function} start - creates and starts an <i>ccm</i> instance
    * @property {number} instances - number of own created <i>ccm</i> instances
    * @example {
    *   index:     'chat-2.1.3',
@@ -3566,7 +3562,7 @@ var ccm = function () {
    *   Instance:  function () {...},
    *   init:      function ( callback ) { ...; callback(); },
    *   instance:  function ( config, callback ) {...},
-   *   render:    function ( config, callback ) {...},
+   *   start:     function ( config, callback ) {...},
    *   instances: 0
    * }
    */
@@ -3663,7 +3659,7 @@ var ccm = function () {
    * @summary <i>ccm</i> dependency
    * @example [ ccm.component, 'ccm.chat.js' ]
    * @example [ ccm.instance, 'ccm.chat.js' ]
-   * @example [ ccm.render, 'ccm.chat.js' ]
+   * @example [ ccm.start, 'ccm.chat.js' ]
    * @example [ ccm.load, 'style.css' ]
    * @example [ ccm.store, { local: 'datastore.json' } ]
    * @example [ ccm.get, { local: 'datastore.json' }, 'test' ]
@@ -3711,7 +3707,7 @@ var ccm = function () {
    * @property {ccm.types.component} component - reference to associated <i>ccm</i> component
    * @property {function} init - callback when this <i>ccm</i> instance is created and before dependencies of dependent resources are solved
    * @property {function} ready - callback when all dependencies of dependent resources are solved
-   * @property {function} render - render content in own website area
+   * @property {function} start - start instance
    */
 
   /**
