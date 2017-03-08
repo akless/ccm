@@ -19,40 +19,13 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @version latest (8.0.0)
  * @changes
- * version 8.0.0 (31.12.2016):
+ * version 8.0.0 (??.03.2017):
  * - no more jQuery dependency
+ * - use of Shadow DOM for the website area of ccm instances (capsuled CSS)
  * - outsource not framework relevant helper functions for component developer
- * - updates for every part of the framework
- * - support of Shadow DOM for the website area of ccm instances
  * - support of different versions of the ccm framework in the same website
- * version 7.4.0 (25.11.2016):
- * - ccm.helper.dataset gives information if resulting dataset is a new dataset
- * - ccm.helper.privatize privatizes all possible members as default
- * version 7.3.0 (11.11.2016):
- * - ccm.helper.dataset accept ccm datastore directly
- * - ccm.helper.dataset return new dataset without creation in datastore if dataset not exists
- * version 7.2.1 (07.11.2016):
- * - instances keeps reference to their individual original component object
- * version 7.2.0 (06.11.2016):
- * - bugfix in polyfill url
- * - change way to detect if ccm custom element is in the DOM
- * - no changeable default instance configuration for a registered unique component object
- * - consider given default for default instance configuration when using ccm.component dependencies
- * - update helper method 'catchComponentTags'
- * - bugfix for catching inner tags of a ccm custom element
- * version 7.1.2 (03.11.2016):
- * - use of attachedCallback instead of createdCallback for ccm custom elements
- * version 7.1.1 (03.11.2016):
- * - bugfix for ccm.helper.catchComponentTags
- * version 7.1.0 (03.11.2016):
- * - no interpretation of a ccm custom element if its outside the DOM
- * - add helper method 'ccm.helper.catchComponentTags'
- * version 7.0.0 (02.11.2016):
- * - update of ccm.component
- * - new implementation of ccm custom elements (incompatible change)
- * - add helper method 'ccm.helper.isNode'
- * - prevent deeper recursion for HTML nodes
- * (for older version changes see ccm-6.14.2.js)
+ * - updates for every part of the framework
+ * (for older version changes see ccm-7.4.0.js)
  */
 
 // no custom elements support? => load polyfill  // TODO: update polyfill
@@ -958,19 +931,27 @@ var ccm = function () {
     /*---------------------------------------------- public ccm members ----------------------------------------------*/
 
     /**
-     * @summary callbacks when loading cross domain json files
+     * @summary callbacks for cross domain data exchanges
      * @memberOf ccm
      * @type {Object.<string, function>}
      * @ignore
      */
-    callback: {},
+    callbacks: {},
 
     /**
-     * @summary contains global namespaces for <i>ccm</i> components
+     * @summary global namespaces for <i>ccm</i> components
      * @memberOf ccm
      * @type {Object.<ccm.types.index, object>}
      */
     components: {},
+
+    /**
+     * @summary deposited data from loaded javascript files
+     * @memberOf ccm
+     * @type {object}
+     * @ignore
+     */
+    files: {},
 
     /**
      * @summary <i>ccm</i> version number
@@ -1060,10 +1041,13 @@ var ccm = function () {
        */
       var callback;
 
+      // last argument is 'undefined'? => remove it
       if ( !args[ args.length - 1 ] ) args.pop();
+
+      // determine header container for appending HTML tags for loading resources (Shadow DOM or <head>)
       var head = ccm.helper.isElementNode( args[ args.length - 1 ] ) ? args.pop().parentNode : document.head;
 
-      // last argument is callback? => seperate arguments and callback
+      // last argument is callback? => separate arguments and callback
       if ( typeof args[ args.length - 1 ] === 'function' || args[ args.length - 1 ] === undefined )
         callback = args.pop();
 
@@ -1099,7 +1083,7 @@ var ccm = function () {
 
         /**
          * already loaded value for this resource
-         * @type {string}
+         * @type {*}
          */
         var resource = resources[ url ];
 
@@ -1137,174 +1121,8 @@ var ccm = function () {
             exchangeData();
         }
 
-        function ajax( url, type, async, user, password, callback ) {
-
-          //var parameters = "first=barack&last=obama";
-
-          switch ( type ) {
-            case 'html':
-              type = 'text/html';
-              break;
-            case 'js':
-            case 'json':
-              type = 'application/javascript';
-              break;
-          }
-
-          var request = new XMLHttpRequest();
-          request.open( 'GET', url, async, user, password );
-          request.setRequestHeader( 'Content-type', type );
-
-          //xmlHttp.setRequestHeader("Content-length", parameters.length);
-          //xmlHttp.setRequestHeader("Connection", "close");
-
-          request.onreadystatechange = function () {
-            if( request.readyState == 4 && request.status == 200 )
-              callback( request.responseText );
-          };
-          request.send();
-
-        }
-
         /**
-         * loads the content of a HTML file
-         */
-        function loadHTML() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
-
-          // not cross domain request? => load content without JSONP
-          if ( url.indexOf( 'http' ) !== 0 )
-            return ajax( url, 'html', true, undefined, undefined, successData );
-
-          /**
-           * name of html file
-           * @type {string}
-           */
-          var filename = url.split( '/' ).pop();
-
-          // deposit success callback
-          ccm.callback[ filename ] = successData;
-
-          // load (and execute) content of html file
-          head.appendChild( ccm.helper.html( { tag: 'script', src: url } ) );
-
-        }
-
-        /**
-         * load css file
-         */
-        function loadCSS() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
-
-          var tag = ccm.helper.html( { tag: 'link', rel: 'stylesheet', type: 'text/css', href: url } );
-          head.appendChild( tag );
-          tag.onload = success;
-
-        }
-
-        /**
-         * (pre)load image file
-         */
-        function loadImage() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
-
-          var image = new Image();
-          image.src = url;
-          image.onload = success;
-
-        }
-
-        /**
-         * load (and execute) javascript file
-         */
-        function loadJS() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
-
-          var tag = ccm.helper.html( { tag: 'script', src: url } );
-          head.appendChild( tag );
-          tag.onload = success;
-
-        }
-
-        /**
-         * loads the content of a JSON file
-         */
-        function loadJSON() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
-
-          // not cross domain request? => load content without JSONP
-          if ( url.indexOf( 'http' ) !== 0 )
-            return ajax( url, 'json', true, undefined, undefined, function ( result ) {
-              successData( JSON.parse( result ) );
-            } );
-
-          /**
-           * name of json file
-           * @type {string}
-           */
-          var filename = url.split( '/' ).pop();
-
-          // deposit success callback
-          ccm.callback[ filename ] = successData;
-
-          // load (and execute) content of json file
-          head.appendChild( ccm.helper.html( { tag: 'script', src: url } ) );
-
-        }
-
-        /**
-         * exchange data with server
-         */
-        function exchangeData() {
-
-          // is this ccm.load call already waiting for currently loading resource(s)? => skip data exchange
-          if ( waiting ) return;
-
-          // is cross domain request? => use JSONP
-          if ( url.indexOf( 'http' ) === 0 ) {
-
-            jQuery.ajax( {  // TODO: jQuery.ajax
-
-              url: url,
-              data: data,
-              dataType: 'jsonp',
-              username: data && data.username ? data.username : undefined,
-              password: data && data.password ? data.password : undefined,
-              success: successData
-
-            } );
-
-          }
-
-          // inner domain request => normal HTTP GET request
-          else {
-
-            jQuery.ajax( {  // TODO: jQuery.ajax
-
-              url: url,
-              data: data,
-              username: data && data.username ? data.username : undefined,
-              password: data && data.password ? data.password : undefined,
-              success: successData
-
-            } ).fail( onFail );
-
-          }
-
-        }
-
-        /**
-         * load resources serial (recursive)
+         * load resources serial (recursive function)
          */
         function serial( result ) {
 
@@ -1323,7 +1141,7 @@ var ccm = function () {
             // next is array of resources? (and not GET parameter)
             if ( Array.isArray( next ) && !( next.length > 1 && ccm.helper.isObject( next[ 1 ] ) ) ) {
 
-              // push callback to array of resources
+              // push callback to next array of resources
               next.push( serial );
 
               // load resources parallel (recursive call)
@@ -1338,6 +1156,144 @@ var ccm = function () {
 
           // serial loading finished => check if all resources are loaded
           else check();
+
+        }
+
+        /**
+         * loads the content of a HTML file
+         */
+        function loadHTML() {
+
+          // prevent loading resource twice
+          if ( caching() ) return;
+
+          // load content via AJAX request
+          ajax( {
+            url: url,
+            type: 'html',
+            callback: successData
+          } );
+
+        }
+
+        /**
+         * loads (and executes) a CSS file
+         */
+        function loadCSS() {
+
+          // prevent loading resource twice
+          if ( caching() ) return;
+
+          // load css file via <link>
+          var tag = ccm.helper.html( { tag: 'link', rel: 'stylesheet', type: 'text/css', href: url } );
+          head.appendChild( tag );
+          tag.onload = success;
+
+        }
+
+        /**
+         * (pre)loads a image file
+         */
+        function loadImage() {
+
+          // prevent loading resource twice
+          if ( caching() ) return;
+
+          // load image via image object
+          var image = new Image();
+          image.src = url;
+          image.onload = success;
+
+        }
+
+        /**
+         * loads (and executes) a javascript file
+         */
+        function loadJS() {
+
+          // prevent loading resource twice
+          if ( caching() ) return;
+
+          // load javascript file via <script>
+          var tag = ccm.helper.html( { tag: 'script', src: url } );
+          head.appendChild( tag );
+          tag.onload = function () {
+
+            // add deposited data of the loaded javascript file to results and already loaded resources
+            var filename = url.split( '/' ).pop();
+            results[ i ] = resources[ url ] = ccm.files[ filename ];
+            delete ccm.files[ filename ];
+
+            success();
+          };
+
+        }
+
+        /**
+         * loads the content of a JSON file
+         */
+        function loadJSON() {
+
+          // prevent loading resource twice
+          if ( caching() ) return;
+
+          // load content via AJAX request
+          ajax( {
+            url: url,
+            type: 'json',
+            callback: function ( result ) { successData( JSON.parse( result ) ); }
+          } );
+
+        }
+
+        /**
+         * exchanges data with a server
+         */
+        function exchangeData() {
+
+          // is this ccm.load call already waiting for currently loading resource(s)? => skip data exchange for the moment
+          if ( waiting ) return;
+
+          // cross-domain request? => use JSONP
+          if ( url.indexOf( 'http' ) === 0 ) return jsonp();
+
+          // prepare AJAX settings
+          var settings = {
+            url: url,
+            data: data,
+            callback: successData
+          };
+          if ( url.indexOf( 'http' ) === 0 ) settings.jsonp = true;
+          if ( data ) {
+            if ( data.username ) settings.username = data.username;
+            if ( data.password ) settings.password = data.password;
+            delete data.username;
+            delete data.password;
+          }
+
+          // exchange data with server via AJAX request
+          ajax( settings );
+
+          /**
+           * exchange data with server via JSONP
+           */
+          function jsonp() {
+
+            // prepare callback function
+            var callback = 'callback' + ccm.helper.generateKey();
+            if ( !data ) data = {};
+            data.callback = 'ccm.callbacks.' + callback;
+            ccm.callbacks[ callback ] = function ( data ) {
+              head.removeChild( tag );
+              delete ccm.callbacks[ callback ];
+              successData( data );
+            };
+
+            // exchange data via <script>
+            var tag = ccm.helper.html( { tag: 'script', src: url + params( data ) } );
+            tag.src = tag.src.replace( '&amp;', '&' );
+            head.appendChild( tag );
+          }
 
         }
 
@@ -1381,6 +1337,37 @@ var ccm = function () {
         }
 
         /**
+         * sends a AJAX request
+         * @param {object} settings - settings for AJAX request
+         */
+        function ajax( settings ) {
+
+          switch ( settings.type ) {
+            case 'html':
+              settings.type = 'text/html';
+              break;
+            case 'json':
+              settings.type = 'application/javascript';
+              break;
+          }
+
+          var request = new XMLHttpRequest();
+          request.open( 'GET', settings.url + params( settings.data ), !!settings.async, settings.username, settings.password );
+          if ( settings.type ) request.setRequestHeader( 'Content-type', settings.type );
+          //request.setRequestHeader( 'Authorization', 'Basic ' + btoa( settings.username + ':' + settings.password ) );
+          request.onreadystatechange = function () {
+            if( request.readyState == 4 && request.status == 200 )
+              settings.callback( request.responseText );
+          };
+          request.send();
+
+        }
+
+        function params( data ) {
+          return data ? '?' + Object.keys( data ).map( function ( key ) { return key + '=' + data[ key ] } ).join( '&' ) : '';
+        }
+
+        /**
          * callback when a data exchange is successful
          * @param {*} data - received data
          */
@@ -1411,22 +1398,6 @@ var ccm = function () {
 
         }
 
-        /**
-         * @summary callback when a server request fails
-         * @param {ccm.types.JqXHR} jqxhr
-         * @param {string} textStatus
-         * @param {string} error
-         */
-        function onFail( jqxhr, textStatus, error ) {
-
-          // print error object in console
-          console.log( jqxhr, this.url );
-
-          // show error report in website
-          alert( jqxhr.responseText + '\n\nRequest Failed: ' + textStatus + ', ' + error );
-
-        }
-
       }
 
       /**
@@ -1444,10 +1415,8 @@ var ccm = function () {
           // only one result? => use no array
           if ( results.length <= 1 ) results = results[ 0 ];
 
-          // perform callback with results
+          // finish ccm.load call
           if ( callback ) callback( results );
-
-          // return results
           return results;
 
         }
@@ -2658,7 +2627,7 @@ var ccm = function () {
       /**
        * @summary perform function by function name
        * @param {string} functionName - function name
-       * @param {Array} args - function arguments
+       * @param {Array} [args] - function arguments
        * @param {object} [context] - context for this
        * @returns {*} return value of performed function
        * @ignore

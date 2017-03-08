@@ -23,13 +23,13 @@ ccm.components.testsuite.ccm = {
           } );
         },
         'remote': function ( suite ) {
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy.html', function ( result ) {
+          ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js', function ( result ) {
             suite.assertSame( suite.expected_html_result, result );
           } );
         },
         'cached': function ( suite ) {
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy.html', function () {
-            var local_cached_return_value = ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy.html' );
+          ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js', function () {
+            var local_cached_return_value = ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js' );
             suite.assertSame( suite.expected_html_result, local_cached_return_value );
           } );
         }
