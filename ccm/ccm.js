@@ -1264,7 +1264,7 @@ var ccm = function () {
             callback: successData
           };
           if ( url.indexOf( 'http' ) === 0 ) settings.jsonp = true;
-          if ( data ) {
+          if ( data && data.username && data.password ) {
             if ( data.username ) settings.username = data.username;
             if ( data.password ) settings.password = data.password;
             delete data.username;
