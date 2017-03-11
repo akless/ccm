@@ -3012,7 +3012,7 @@ var ccm = function () {
             case 'readonly':
             case 'required':
             case 'selected':
-              if ( value ) element.setAttribute( key, true );
+              if ( value ) element[ key ] = true;
               break;
 
             // inner HTML
