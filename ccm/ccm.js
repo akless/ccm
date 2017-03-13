@@ -1672,7 +1672,18 @@ var ccm = function () {
 
           // load instance configuration if necessary (asynchron)
           if ( ccm.helper.isDependency( cfg ) ) cfg = { key: cfg };
-          return cfg && cfg.key ? ccm.get( cfg.key[ 1 ], cfg.key[ 2 ], function ( dataset ) { ccm.helper.integrate( cfg, dataset ); delete dataset.key; proceed( dataset ); } ) : proceed( cfg );
+          if ( cfg && cfg.key ) {
+            if ( ccm.helper.isObject( cfg.key ) )
+              return integrate( cfg.key );
+            else
+              return ccm.get( cfg.key[ 1 ], cfg.key[ 2 ], integrate );
+          }
+          else return proceed( cfg );
+          function integrate( dataset ) {
+            ccm.helper.integrate( cfg, dataset );
+            delete dataset.key;
+            return proceed( dataset );
+          }
 
           function proceed( cfg ) {
 
