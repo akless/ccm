@@ -1182,7 +1182,7 @@ var ccm = function () {
         function loadCSS() {
 
           // prevent loading resource twice
-          if ( caching() ) return;
+          if ( caching() && head === document.head ) return;
 
           // load css file via <link>
           var tag = ccm.helper.html( { tag: 'link', rel: 'stylesheet', type: 'text/css', href: url } );
