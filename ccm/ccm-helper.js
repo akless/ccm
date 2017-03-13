@@ -95,6 +95,7 @@ ccm.helper.integrate( {
   /**
    * @summary performs minor finish actions
    * @param {ccm.types.instance} instance - finished <i>ccm</i> instance
+   * @param {object} results - result data
    * @param {function|object} action
    * @param {ccm.types.instance} [action.user] - <i>ccm</i> user instance
    * @param {ccm.types.key} [action.key] - dataset key for result data
