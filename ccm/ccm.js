@@ -1711,8 +1711,8 @@ var ccm = function () {
               // keyword 'parent'? => use parent website area (and abort)
               if ( instance.element === 'parent' ) return instance.element = parent.element;
 
-              // keyword 'name'? => use inner website area of the parent where HTML class is equal to component name of created instance
-              if ( instance.element === 'name' ) instance.element = ccm.helper.find( parent, '.' + instance.component.name )[ 0 ];
+              // keyword 'name'? => use inner website area of the parent where HTML ID is equal to component name of created instance
+              if ( instance.element === 'name' ) instance.element = parent.element.querySelector( '#' + instance.component.name );
 
               // prepare website area for ccm instance
               var element = ccm.helper.html( { id: ccm.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name } );
@@ -1787,7 +1787,10 @@ var ccm = function () {
                   case ccm.component:
                   case "ccm.component":
                     counter++;
-                    ccm.component( action[ 1 ], action[ 2 ], setResult );
+                    ccm.component( action[ 1 ], action[ 2 ], function ( result ) {
+                      result.config.parent = instance;
+                      setResult( result );
+                    } );
                     break;
 
                   case ccm.instance:
