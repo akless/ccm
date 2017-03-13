@@ -2951,13 +2951,17 @@ var ccm = function () {
 
       /**
        * @summary generate HTML with JSON (recursive)
-       * @param {ccm.types.html|ccm.types.html[]} html - <i>ccm</i> html data
+       * @param {ccm.types.html|ccm.types.html[]} html - <i>ccm</i> HTML data
        * @param {...string} [values] - values to replace placeholder
-       * @returns {ccm.types.element|ccm.types.element[]} generated HTML
+       * @returns {Element|Element[]} generated HTML
        */
       html: function( html, values ) {
 
+        // HTML element instead of HTML data? => abort (result is given HTML element)
         if ( ccm.helper.isNode( html ) ) return html;
+
+        // clone HTML data
+        html = ccm.helper.clone( html );
 
         // replace placeholder
         if ( arguments.length > 1 ) html = ccm.helper.format.apply( this, arguments );
