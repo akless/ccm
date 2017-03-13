@@ -67,6 +67,8 @@ ccm.helper.integrate( {
     while ( pair = iterator.next().value ) {
       var checkbox = form.querySelector( 'input[type=checkbox][name="' + pair[ 0 ] + '"]' );
       if ( checkbox && !checkbox.getAttribute( 'value' ) ) pair[ 1 ] = true;
+      var number = form.querySelector( 'input[type=number][name="' + pair[ 0 ] + '"]' );
+      if ( number ) pair[ 1 ] = parseInt( pair[ 1 ] );
       data[ pair[ 0 ] ] = pair[ 1 ];
     }
     return data;
