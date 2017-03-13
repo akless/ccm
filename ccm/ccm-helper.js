@@ -95,31 +95,31 @@ ccm.helper.integrate( {
   /**
    * @summary performs minor finish actions
    * @param {ccm.types.instance} instance - finished <i>ccm</i> instance
+   * @param {function|object} instance.onFinish - finish callback or settings for minor finish actions
+   * @param {ccm.types.instance} [instance.onFinish.user] - <i>ccm</i> user instance
+   * @param {ccm.types.key} [instance.onFinish.key] - dataset key for result data
+   * @param {ccm.types.settings} [instance.onFinish.store_settings] - settings for a <i>ccm</i> datastore (result data will be set in this datastore)
+   * @param {object} [instance.onFinish.permissions] - permission settings for set operation
+   * @param {boolean} [instance.onFinishn.user_specific] - do the set operation with a user-specific dataset key
+   * @param {boolean} [instance.onFinish.restart] - restart finished <i>ccm</i> instance
+   * @param {callback} [instance.onFinish.callback] - additional individual finish callback (will be called after the performed minor actions)
    * @param {object} results - result data
-   * @param {function|object} action
-   * @param {ccm.types.instance} [action.user] - <i>ccm</i> user instance
-   * @param {ccm.types.key} [action.key] - dataset key for result data
-   * @param {ccm.types.settings} [action.store_settings] - settings for a <i>ccm</i> datastore (result data will be set in this datastore)
-   * @param {object} [action.permissions] - permission settings for set operation
-   * @param {boolean} [action.user_specific] - do the set operation with a user-specific dataset key
-   * @param {boolean} [action.restart] - restart finished <i>ccm</i> instance
-   * @param {callback} [action.callback] - additional individual finish callback (will be called after the performed minor actions)
    */
-  onFinish: function ( instance, results, action ) {
+  onFinish: function ( instance, results ) {
 
     // has only function? => abort and call it as finish callback
-    if ( typeof action === 'function' ) return action( instance, results );
+    if ( typeof instance.onFinish === 'function' ) return instance.onFinish( instance, results );
 
     // has user instance? => login user
-    if ( action.user ) action.user.login( proceed ); else proceed();
+    if ( instance.onFinish.user ) instance.onFinish.user.login( proceed ); else proceed();
 
     function proceed() {
 
       // has to add a dataset key to result data? => do it (if not already exists)
-      if ( action.key && !results.key ) results.key = action.key;
+      if ( instance.onFinish.key && !results.key ) results.key = instance.onFinish.key;
 
       // has to store result data in a ccm datastore?
-      if ( action.store_settings ) {
+      if ( instance.onFinish.store_settings ) {
 
         /**
          * dataset which contains resulting data
@@ -128,25 +128,25 @@ ccm.helper.integrate( {
         var dataset = ccm.helper.clone( results );
 
         // has to add permission settings? => do it
-        if ( action.permissions ) dataset._ = action.permissions;
+        if ( instance.onFinish.permissions ) dataset._ = instance.onFinish.permissions;
 
         // need user-specific dataset? => make dataset key user-specific
-        if ( action.user && action.user_specific ) dataset.key = [ dataset.key || ccm.helper.generateKey(), action.user.data().key ];
+        if ( instance.onFinish.user && instance.onFinish.user_specific ) dataset.key = [ dataset.key || ccm.helper.generateKey(), instance.onFinish.user.data().key ];
 
         // set dataset in ccm datastore
-        ccm.set( action.store_settings, dataset, proceed );
+        ccm.set( instance.onFinish.store_settings, dataset, proceed );
 
       } else proceed();
 
       function proceed() {
 
         // has to restart the ccm instance? => do it
-        if ( action.restart ) instance.start( proceed ); else proceed();
+        if ( instance.onFinish.restart ) instance.start( proceed ); else proceed();
 
         function proceed() {
 
           // has to a perform a callback? => do it
-          if ( action.callback ) action.callback( instance, results );
+          if ( instance.onFinish.callback ) instance.onFinish.callback( instance, results );
 
         }
 
