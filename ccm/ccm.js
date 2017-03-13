@@ -1712,7 +1712,7 @@ var ccm = function () {
               if ( instance.element === 'parent' ) return instance.element = parent.element;
 
               // keyword 'name'? => use inner website area of the parent where HTML ID is equal to component name of created instance
-              if ( instance.element === 'name' ) instance.element = parent.element.querySelector( '#' + instance.component.name );
+              if ( instance.element === 'name' ) instance.element = ( parent || instance.parent ).element.querySelector( '#' + instance.component.name );
 
               // prepare website area for ccm instance
               var element = ccm.helper.html( { id: ccm.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name } );
