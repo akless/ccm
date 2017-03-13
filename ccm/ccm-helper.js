@@ -92,6 +92,69 @@ ccm.helper.integrate( {
     return ccm.helper.html( { class: 'ccm_loading', inner: { style: 'display: inline-block; width: 0.5em; height: 0.5em; border: 0.15em solid #009ee0; border-right-color: transparent; border-radius: 50%; animation: ccm_loading 1s linear infinite;' } } );
   },
 
+  /**
+   * @summary performs minor finish actions
+   * @param {ccm.types.instance} instance - finished <i>ccm</i> instance
+   * @param {function|object} action
+   * @param {ccm.types.instance} [action.user] - <i>ccm</i> user instance
+   * @param {ccm.types.key} [action.key] - dataset key for result data
+   * @param {ccm.types.settings} [action.store_settings] - settings for a <i>ccm</i> datastore (result data will be set in this datastore)
+   * @param {object} [action.permissions] - permission settings for set operation
+   * @param {boolean} [action.user_specific] - do the set operation with a user-specific dataset key
+   * @param {boolean} [action.restart] - restart finished <i>ccm</i> instance
+   * @param {callback} [action.callback] - additional individual finish callback (will be called after the performed minor actions)
+   */
+  onFinish: function ( instance, results, action ) {
+
+    // has only function? => abort and call it as finish callback
+    if ( typeof action === 'function' ) return action( instance, results );
+
+    // has user instance? => login user
+    if ( action.user ) action.user.login( proceed ); else proceed();
+
+    function proceed() {
+
+      // has to add a dataset key to result data? => do it (if not already exists)
+      if ( action.key && !results.key ) results.key = action.key;
+
+      // has to store result data in a ccm datastore?
+      if ( action.store_settings ) {
+
+        /**
+         * dataset which contains resulting data
+         * @type {ccm.types.dataset}
+         */
+        var dataset = ccm.helper.clone( results );
+
+        // has to add permission settings? => do it
+        if ( action.permissions ) dataset._ = action.permissions;
+
+        // need user-specific dataset? => make dataset key user-specific
+        if ( action.user && action.user_specific ) dataset.key = [ dataset.key || ccm.helper.generateKey(), action.user.data().key ];
+
+        // set dataset in ccm datastore
+        ccm.set( action.store_settings, dataset, proceed );
+
+      } else proceed();
+
+      function proceed() {
+
+        // has to restart the ccm instance? => do it
+        if ( action.restart ) instance.start( proceed ); else proceed();
+
+        function proceed() {
+
+          // has to a perform a callback? => do it
+          if ( action.callback ) action.callback( instance, results );
+
+        }
+
+      }
+
+    }
+
+  },
+
   protect: function ( value ) {
     if ( ccm.helper.isElementNode( value ) ) {
       ccm.helper.makeIterable( value.getElementsByTagName( 'script' ) ).map( function ( script ) {
@@ -128,21 +191,6 @@ ccm.helper.integrate( {
         element.appendChild( content );
     }
     else element.innerHTML = content;
-
-  },
-
-  setDataset: function ( result, destination, user, callback ) {
-
-    result.key = destination.key || ccm.helper.generateKey();
-    delete destination.key;
-    if ( user )
-      user.login( function () { result.key = [ result.key, user.data().key ]; proceed(); } );
-    else
-      proceed();
-
-    function proceed() {
-      ccm.set( destination, result, callback );
-    }
 
   },
 
