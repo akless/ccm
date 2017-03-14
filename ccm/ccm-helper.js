@@ -51,6 +51,22 @@ ccm.helper.integrate( {
 
   },
 
+  decodeDependencies: function ( obj ) {
+
+    for ( var key in obj )
+      if ( typeof obj[ key ] === 'string' && /^\[\W*ccm\.\w+.*\]$/.test( obj[ key ] ) )
+        obj[ key ] = JSON.parse( obj[ key ].replace( /'/g, '"' ) );
+
+  },
+
+  encodeDependencies: function ( obj ) {
+
+    for ( var key in obj )
+      if ( ccm.helper.isDependency( obj[ key ] ) )
+        obj[ key ] = JSON.stringify( obj[ key ] ).replace( /"/g, "'" );
+
+  },
+
   /**
    * @summary gets the input data of a HTML form
    * @param {ccm.types.element} form - HTML element of the HTML form
