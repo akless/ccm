@@ -33,6 +33,8 @@ if ( !( 'registerElement' in document ) ) {
   document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js"><\/script>' );
   document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"><\/script>' );
 }
+if ( !document.head.attachShadow )
+  document.write( '<script src="https://kaul.inf.h-brs.de/ccm/lib/shadydom.min.js"></script>' );
 
 /**
  * <i>ccm</i> namespace
