@@ -2781,7 +2781,6 @@ var ccm = function () {
         var config = {};
         catchAttributes( node, config );
         catchInnerTags( node );
-        console.log( config );
         return config;
 
         function catchAttributes( node, obj ) {
@@ -2834,6 +2833,8 @@ var ccm = function () {
                         ccm.helper.deepValue( list, split[ 2 ], value );
                     }
                   } );
+                  if ( !list ) list = {};
+                  catchAttributes( child, list );
                   if ( list ) ccm.helper.deepValue( config, split[ 2 ], list );
                   break;
                 default:
