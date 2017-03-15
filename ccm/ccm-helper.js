@@ -113,31 +113,52 @@ ccm.helper.integrate( {
   /**
    * @summary performs minor finish actions
    * @param {ccm.types.instance} instance - finished <i>ccm</i> instance
-   * @param {function|object} instance.onFinish - finish callback or settings for minor finish actions
-   * @param {ccm.types.instance} [instance.onFinish.user] - <i>ccm</i> user instance
-   * @param {ccm.types.key} [instance.onFinish.key] - dataset key for result data
-   * @param {ccm.types.settings} [instance.onFinish.store_settings] - settings for a <i>ccm</i> datastore (result data will be set in this datastore)
-   * @param {object} [instance.onFinish.permissions] - permission settings for set operation
-   * @param {boolean} [instance.onFinishn.user_specific] - do the set operation with a user-specific dataset key
-   * @param {boolean} [instance.onFinish.restart] - restart finished <i>ccm</i> instance
-   * @param {callback} [instance.onFinish.callback] - additional individual finish callback (will be called after the performed minor actions)
+   * @param {function|object} instance.onfinish - finish callback or settings for minor finish actions
+   * @param {ccm.types.instance} [instance.onfinish.user] - <i>ccm</i> user instance (user will be logged in if not already logged in)
+   * @param {ccm.types.key} [instance.onfinish.key] - dataset key for result data
+   * @param {ccm.types.settings} [instance.onfinish.store_settings] - settings for a <i>ccm</i> datastore (result data will be set in this datastore)
+   * @param {object} [instance.onfinish.permissions] - permission settings for set operation
+   * @param {boolean} [instance.onfinishn.user_specific] - do the set operation with a user-specific dataset key
+   * @param {boolean} [instance.onfinish.restart] - restart finished <i>ccm</i> instance
+   * @param {callback} [instance.onfinish.callback] - additional individual finish callback (will be called after the performed minor actions)
    * @param {object} results - result data
+   * @example
+   * instance.onfinish = {
+   *   user: instance.user,
+   *   key: 'example',
+   *   store_settings: { store: 'example', url: 'path/to/server/interface.php' },
+   *   permissions: {
+   *     creator: 'akless2m',
+   *     group: {
+   *       mkaul2m: true,
+   *       akless2s: true
+   *     },
+   *     access: {
+   *       get: 'all',
+   *       set: 'group',
+   *       del: 'creator'
+   *     }
+   *   },
+   *   user_specific: true,
+   *   restart: true,
+   *   callback: function ( instance, results ) { console.log( results ); }
+   * };
    */
   onFinish: function ( instance, results ) {
 
     // has only function? => abort and call it as finish callback
-    if ( typeof instance.onFinish === 'function' ) return instance.onFinish( instance, results );
+    if ( typeof instance.onfinish === 'function' ) return instance.onfinish( instance, results );
 
     // has user instance? => login user
-    if ( instance.onFinish.user ) instance.onFinish.user.login( proceed ); else proceed();
+    if ( instance.onfinish.user ) instance.onfinish.user.login( proceed ); else proceed();
 
     function proceed() {
 
       // has to add a dataset key to result data? => do it (if not already exists)
-      if ( instance.onFinish.key && !results.key ) results.key = instance.onFinish.key;
+      if ( instance.onfinish.key && !results.key ) results.key = instance.onfinish.key;
 
       // has to store result data in a ccm datastore?
-      if ( instance.onFinish.store_settings ) {
+      if ( instance.onfinish.store_settings ) {
 
         /**
          * dataset which contains resulting data
@@ -146,25 +167,25 @@ ccm.helper.integrate( {
         var dataset = ccm.helper.clone( results );
 
         // has to add permission settings? => do it
-        if ( instance.onFinish.permissions ) dataset._ = instance.onFinish.permissions;
+        if ( instance.onfinish.permissions ) dataset._ = instance.onfinish.permissions;
 
         // need user-specific dataset? => make dataset key user-specific
-        if ( instance.onFinish.user && instance.onFinish.user_specific ) dataset.key = [ dataset.key || ccm.helper.generateKey(), instance.onFinish.user.data().key ];
+        if ( instance.onfinish.user && instance.onfinish.user_specific ) dataset.key = [ dataset.key || ccm.helper.generateKey(), instance.onfinish.user.data().key ];
 
         // set dataset in ccm datastore
-        ccm.set( instance.onFinish.store_settings, dataset, proceed );
+        ccm.set( instance.onfinish.store_settings, dataset, proceed );
 
       } else proceed();
 
       function proceed() {
 
         // has to restart the ccm instance? => do it
-        if ( instance.onFinish.restart ) instance.start( proceed ); else proceed();
+        if ( instance.onfinish.restart ) instance.start( proceed ); else proceed();
 
         function proceed() {
 
           // has to a perform a callback? => do it
-          if ( instance.onFinish.callback ) instance.onFinish.callback( instance, results );
+          if ( instance.onfinish.callback ) instance.onfinish.callback( instance, results );
 
         }
 

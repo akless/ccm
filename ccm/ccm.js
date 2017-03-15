@@ -2781,6 +2781,7 @@ var ccm = function () {
         var config = {};
         catchAttributes( node, config );
         catchInnerTags( node );
+        console.log( config );
         return config;
 
         function catchAttributes( node, obj ) {
@@ -2792,16 +2793,6 @@ var ccm = function () {
                 && node.tagName.indexOf( 'CCM-PROXY'     ) !== 0 ) )
               try { obj[ attr.name ] = attr.value.charAt( 0 ) === '{' || attr.value.charAt( 0 ) === '[' ? JSON.parse( attr.value ) : prepareValue( attr.value ); } catch ( err ) {}
           } );
-
-          function prepareValue( value ) {
-            if ( value === 'true'      ) return true;
-            if ( value === 'false'     ) return false;
-            if ( value === 'null'      ) return null;
-            if ( value === 'undefined' ) return undefined;
-            if ( value === ''          ) return '';
-            if ( !isNaN( value )       ) return parseInt( value );
-            return value;
-          }
 
         }
 
@@ -2833,13 +2824,14 @@ var ccm = function () {
                   var list = null;
                   ccm.helper.makeIterable( child.children ).map( function ( entry ) {
                     if ( entry.tagName && entry.tagName.indexOf( 'CCM-ENTRY' ) === 0 ) {
+                      var value = prepareValue( entry.getAttribute( 'value' ) );
                       var split = entry.tagName.toLowerCase().split( '-' );
                       if ( !list )
                         list = split.length < 3 ? [] : {};
                       if ( split.length < 3 )
-                        list.push( entry.getAttribute( 'value' ) );
+                        list.push( value );
                       else
-                        ccm.helper.deepValue( list, split[ 2 ], entry.getAttribute( 'value' ) );
+                        ccm.helper.deepValue( list, split[ 2 ], value );
                     }
                   } );
                   if ( list ) ccm.helper.deepValue( config, split[ 2 ], list );
@@ -2890,6 +2882,16 @@ var ccm = function () {
 
           }
 
+        }
+
+        function prepareValue( value ) {
+          if ( value === 'true'      ) return true;
+          if ( value === 'false'     ) return false;
+          if ( value === 'null'      ) return null;
+          if ( value === 'undefined' ) return undefined;
+          if ( value === ''          ) return '';
+          if ( !isNaN( value )       ) return parseInt( value );
+          return value;
         }
 
       },
@@ -3370,7 +3372,7 @@ var ccm = function () {
        *   <li><code>element</code></li>
        *   <li><code>id</code></li>
        *   <li><code>index</code></li>
-       *   <li><code>onFinish</code></li>
+       *   <li><code>onfinish</code></li>
        *   <li><code>node</code></li>
        *   <li><code>parent</code></li>
        * </ul>
@@ -3433,7 +3435,7 @@ var ccm = function () {
             case 'element':
             case 'id':
             case 'index':
-            case 'onFinish':
+            case 'onfinish':
             case 'node':
             case 'parent':
               break;
