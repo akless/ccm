@@ -873,6 +873,7 @@ var ccm = function () {
     function prepareData( data ) {
 
       data = ccm.helper.integrate( data, { db: my.db, store: my.store } );
+      if ( !my.db ) delete data.db;
       if ( my.user && my.user.isLoggedIn() )
         data = ccm.helper.integrate( data, { user: my.user.data().key, token: my.user.data().token } );
       return data;
@@ -1292,8 +1293,8 @@ var ccm = function () {
             };
 
             // exchange data via <script>
-            var tag = ccm.helper.html( { tag: 'script', src: url + params( data ) } );
-            tag.src = tag.src.replace( '&amp;', '&' );
+            var tag = ccm.helper.html( { tag: 'script', src: buildURL( url, data ) } );
+            tag.src = tag.src.replace( /&amp;/g, '&' );
             head.appendChild( tag );
           }
 
@@ -1354,7 +1355,7 @@ var ccm = function () {
           }
 
           var request = new XMLHttpRequest();
-          request.open( 'GET', settings.url + params( settings.data ), !!settings.async, settings.username, settings.password );
+          request.open( 'GET', buildURL( settings.url, settings.data ), !!settings.async, settings.username, settings.password );
           if ( settings.type ) request.setRequestHeader( 'Content-type', settings.type );
           //request.setRequestHeader( 'Authorization', 'Basic ' + btoa( settings.username + ':' + settings.password ) );
           request.onreadystatechange = function () {
@@ -1365,8 +1366,23 @@ var ccm = function () {
 
         }
 
-        function params( data ) {
-          return data ? '?' + Object.keys( data ).map( function ( key ) { return key + '=' + data[ key ] } ).join( '&' ) : '';
+        function buildURL( url, data ) {
+
+          return data ? url + '?' + params( data ).slice( 0, -1 ) : url;
+
+          function params( obj, prefix ) {
+            var result = '';
+            for ( var i in obj ) {
+              var key = prefix ? prefix + '[' + encodeURIComponent( i ) + ']' : encodeURIComponent( i );
+              if ( typeof( obj[ i ] ) === 'object' )
+                result += params( obj[ i ], key );
+              else
+                result += key + '=' + encodeURIComponent( obj[ i ].toString() ) + '&';
+            }
+            return result;
+
+          }
+
         }
 
         /**
@@ -1676,7 +1692,7 @@ var ccm = function () {
           if ( ccm.helper.isDependency( cfg ) ) cfg = { key: cfg };
           if ( cfg && cfg.key ) {
             if ( ccm.helper.isObject( cfg.key ) )
-              return integrate( cfg.key );
+              return integrate( ccm.helper.clone( cfg.key ) );
             else
               return ccm.get( cfg.key[ 1 ], cfg.key[ 2 ], integrate );
           }
