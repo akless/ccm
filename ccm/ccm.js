@@ -2335,37 +2335,34 @@ var ccm = function () {
      */
     get: function ( settings, key_or_query, callback ) {
 
+      var async = false;
       var store = ccm.store( settings, function ( store ) {
-
-        store.get( key_or_query, callback );
-
+        if ( async ) store.get( key_or_query, callback );
       } );
-
-      if ( store ) return store.get( key_or_query );
+      if ( store ) return store.get( key_or_query, callback );
+      async = true;
 
     },
 
     set: function ( settings, priodata, callback ) {
 
+      var async = false;
       var store = ccm.store( settings, function ( store ) {
-
-        store.set( priodata, callback );
-
+        if ( async ) store.set( priodata, callback );
       } );
-
-      if ( store ) return store.set( priodata );
+      if ( store ) return store.set( priodata, callback );
+      async = true;
 
     },
 
     del: function ( settings, key, callback ) {
 
+      var async = false;
       var store = ccm.store( settings, function ( store ) {
-
-        store.del( key, callback );
-
+        if ( async ) store.del( key, callback );
       } );
-
-      if ( store ) return store.del( key );
+      if ( store ) return store.del( key, callback );
+      async = true;
 
     },
 
