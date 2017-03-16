@@ -79,9 +79,10 @@ ccm.helper.integrate( {
 
     var data = {};
     ccm.helper.makeIterable( form.querySelectorAll( '*[name]' ) ).map( function ( input ) {
-      if ( input.value === '' ) return;
-      if ( input.getAttribute( 'type' ) === 'checkbox' && input.value === 'on' )
-        data[ input.getAttribute( 'name' ) ] = true;
+      if ( input.getAttribute( 'type' ) === 'checkbox' )
+        data[ input.getAttribute( 'name' ) ] = input.checked ? ( input.value === 'on' ? true : input.value ) : false;
+      else if ( !input.value )
+        data[ input.getAttribute( 'name' ) ] = undefined;
       else if ( input.getAttribute( 'type' ) === 'number' )
         data[ input.getAttribute( 'name' ) ] = parseInt( input.value );
       else

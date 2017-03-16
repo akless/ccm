@@ -1377,7 +1377,7 @@ var ccm = function () {
               if ( typeof( obj[ i ] ) === 'object' )
                 result += params( obj[ i ], key );
               else
-                result += key + '=' + encodeURIComponent( obj[ i ].toString() ) + '&';
+                result += key + '=' + encodeURIComponent( obj[ i ] ) + '&';
             }
             return result;
 
