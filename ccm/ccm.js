@@ -2331,38 +2331,34 @@ var ccm = function () {
      * @param {ccm.types.settings} [settings] - <i>ccm</i> datastore settings
      * @param {ccm.types.key|object} [key_or_query] - unique key of the dataset or alternative a query
      * @param {function} [callback] - callback (first parameter is the requested <i>ccm</i> datastore)
-     * @returns {ccm.types.dataset} requested <i>ccm</i> dataset (only if synchron)
      */
     get: function ( settings, key_or_query, callback ) {
 
-      var async = false;
-      var store = ccm.store( settings, function ( store ) {
-        if ( async ) store.get( key_or_query, callback );
+      ccm.store( settings, function ( store ) {
+
+        store.get( key_or_query, callback );
+
       } );
-      if ( store ) return store.get( key_or_query, callback );
-      async = true;
 
     },
 
     set: function ( settings, priodata, callback ) {
 
-      var async = false;
-      var store = ccm.store( settings, function ( store ) {
-        if ( async ) store.set( priodata, callback );
+      ccm.store( settings, function ( store ) {
+
+        store.set( priodata, callback );
+
       } );
-      if ( store ) return store.set( priodata, callback );
-      async = true;
 
     },
 
     del: function ( settings, key, callback ) {
 
-      var async = false;
-      var store = ccm.store( settings, function ( store ) {
-        if ( async ) store.del( key, callback );
+      ccm.store( settings, function ( store ) {
+
+        store.del( key, callback );
+
       } );
-      if ( store ) return store.del( key, callback );
-      async = true;
 
     },
 
