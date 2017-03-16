@@ -69,7 +69,7 @@ ccm.helper.integrate( {
 
   /**
    * @summary gets the input data of a HTML form
-   * @param {ccm.types.element} form - HTML element of the HTML form
+   * @param {Element} form - HTML element of the HTML form
    * @returns {object} input data
    * @example
    * var result = ccm.helper.formData( document.getElementsById( 'form_id' ) );
@@ -78,15 +78,15 @@ ccm.helper.integrate( {
   formData: function ( form ) {
 
     var data = {};
-    var iterator = new FormData( form ).entries();
-    var pair;
-    while ( pair = iterator.next().value ) {
-      var checkbox = form.querySelector( 'input[type=checkbox][name="' + pair[ 0 ] + '"]' );
-      if ( checkbox && !checkbox.getAttribute( 'value' ) ) pair[ 1 ] = true;
-      var number = form.querySelector( 'input[type=number][name="' + pair[ 0 ] + '"]' );
-      if ( number ) pair[ 1 ] = parseInt( pair[ 1 ] );
-      data[ pair[ 0 ] ] = pair[ 1 ];
-    }
+    ccm.helper.makeIterable( form.querySelectorAll( '*[name]' ) ).map( function ( input ) {
+      if ( input.value === '' ) return;
+      if ( input.getAttribute( 'type' ) === 'checkbox' && input.value === 'on' )
+        data[ input.getAttribute( 'name' ) ] = true;
+      else if ( input.getAttribute( 'type' ) === 'number' )
+        data[ input.getAttribute( 'name' ) ] = parseInt( input.value );
+      else
+        data[ input.getAttribute( 'name' ) ] = input.value;
+    } );
     return data;
 
   },
