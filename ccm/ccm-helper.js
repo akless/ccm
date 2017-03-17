@@ -121,6 +121,7 @@ ccm.helper.integrate( {
    * @param {object} [instance.onfinish.permissions] - permission settings for set operation
    * @param {boolean} [instance.onfinishn.user_specific] - do the set operation with a user-specific dataset key
    * @param {boolean} [instance.onfinish.restart] - restart finished <i>ccm</i> instance
+   * @param {string} [instance.onfinish.embed_code] - show embed code if results are a instance configuration (value is component name)
    * @param {callback} [instance.onfinish.callback] - additional individual finish callback (will be called after the performed minor actions)
    * @param {object} results - result data
    * @example
@@ -141,6 +142,7 @@ ccm.helper.integrate( {
    *     }
    *   },
    *   user_specific: true,
+   *   embed_code: 'component_name',
    *   restart: true,
    *   callback: function ( instance, results ) { console.log( results ); }
    * };
@@ -174,7 +176,13 @@ ccm.helper.integrate( {
         if ( instance.onfinish.user && instance.onfinish.user_specific ) dataset.key = [ dataset.key || ccm.helper.generateKey(), instance.onfinish.user.data().key ];
 
         // set dataset in ccm datastore
-        ccm.set( instance.onfinish.store_settings, dataset, proceed );
+        ccm.set( instance.onfinish.store_settings, dataset, function ( result ) {
+
+          // show embed code
+          if ( instance.onfinish.embed_code ) alert( '<ccm-' + instance.onfinish.embed_code + ' key=\'["ccm.get",' + JSON.stringify( instance.onfinish.store_settings ) + ',"' + result.key + '"]\'></ccm-' + instance.onfinish.embed_code + '>' );
+
+          proceed();
+        } );
 
       } else proceed();
 
