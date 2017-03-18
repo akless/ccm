@@ -95,6 +95,12 @@ ccm.helper.integrate( {
 
   },
 
+  isGoogleChrome: function () {
+
+    return /Chrome/.test( navigator.userAgent ) && /Google Inc/.test( navigator.vendor );
+
+  },
+
   /**
    * @summary returns a <i>ccm</i> loading icon as HTML node element
    * @param {ccm.instance} instance - <i>ccm instance</i> (for determining Shadow DOM)
