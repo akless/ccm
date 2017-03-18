@@ -410,9 +410,6 @@ ccm.components.testsuite.ccm = {
         }
       },
       children: {
-        setup: function ( suite, callback ) {
-          callback();
-        },
         tests: {
           'notIterableElements': function ( suite ) {
             if ( /Chrome/.test( navigator.userAgent ) && /Google Inc/.test( navigator.vendor ) )
