@@ -411,21 +411,23 @@ ccm.components.testsuite.ccm = {
       },
       children: {
         setup: function ( suite, callback ) {
-          suite.parent = document.createElement( 'div' );
-          suite.child1 = document.createElement( 'span' );
-          suite.child2 = document.createElement( 'p' );
-          suite.child3 = document.createElement( 'a' );
-          suite.parent.appendChild( suite.child1 );
-          suite.parent.appendChild( suite.child2 );
-          suite.parent.appendChild( suite.child3 );
           callback();
         },
         tests: {
-          'notIterable': function ( suite ) {
-            suite.assertNotEquals( [ suite.child1, suite.child2, suite.child3 ], suite.parent.children );
+          'notIterableElements': function ( suite ) {
+            if ( /Chrome/.test( navigator.userAgent ) && /Google Inc/.test( navigator.vendor ) )
+              suite.assertFalse( typeof document.head.children.map === 'function' );
+            else
+              suite.assertTrue( typeof document.head.children.map === 'function' );
           },
-          'iterable': function ( suite ) {
-            suite.assertEquals( [ suite.child1, suite.child2, suite.child3 ], ccm.helper.makeIterable( suite.parent.children ) );
+          'iterableElements': function ( suite ) {
+            suite.assertTrue( typeof ccm.helper.makeIterable( document.head.children ).map === 'function' );
+          },
+          'notIterableArguments': function ( suite ) {
+            suite.assertFalse( typeof arguments.map === 'function' );
+          },
+          'iterableArguments': function ( suite ) {
+            suite.assertTrue( typeof ccm.helper.makeIterable( arguments ).map === 'function' );
           }
         }
       },
