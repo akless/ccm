@@ -393,59 +393,27 @@ ccm.components.testsuite.ccm = {
       }
     },
     makeIterable: {
-      arguments: {
-        tests: {
-          'notIterable': function ( suite ) {
-            dummy( 'foo', 'bar', 'baz' );
-            function dummy() {
-              suite.assertNotEquals( [ 'foo', 'bar', 'baz' ], arguments );
-            }
-          },
-          'iterable': function ( suite ) {
-            dummy( 'foo', 'bar', 'baz' );
-            function dummy() {
-              suite.assertEquals( [ 'foo', 'bar', 'baz' ], ccm.helper.makeIterable( arguments ) );
-            }
-          }
-        }
-      },
-      children: {
-        tests: {
-          'notIterableElements': function ( suite ) {
-            if ( /Chrome/.test( navigator.userAgent ) && /Google Inc/.test( navigator.vendor ) )
-              suite.assertFalse( typeof document.head.children.map === 'function' );
-            else
-              suite.assertTrue( typeof document.head.children.map === 'function' );
-          },
-          'iterableElements': function ( suite ) {
-            suite.assertTrue( typeof ccm.helper.makeIterable( document.head.children ).map === 'function' );
-          },
-          'notIterableArguments': function ( suite ) {
-            suite.assertFalse( typeof arguments.map === 'function' );
-          },
-          'iterableArguments': function ( suite ) {
-            suite.assertTrue( typeof ccm.helper.makeIterable( arguments ).map === 'function' );
-          }
-        }
-      },
-      attributes: {
-        setup: function ( suite, callback ) {
-          suite.parent = document.createElement( 'div' );
-          suite.attr_1 = document.createAttribute( 'id' );
-          suite.attr_2 = document.createAttribute( 'class' );
-          suite.attr_3 = document.createAttribute( 'title' );
-          suite.parent.setAttributeNode( suite.attr_1 );
-          suite.parent.setAttributeNode( suite.attr_2 );
-          suite.parent.setAttributeNode( suite.attr_3 );
-          callback();
+      tests: {
+        'notIterableArguments': function ( suite ) {
+          suite.assertFalse( typeof arguments.map === 'function' );
         },
-        tests: {
-          'notIterable': function ( suite ) {
-            suite.assertNotEquals( [ suite.attr_1, suite.attr_2, suite.attr_3 ], suite.parent.attributes );
-          },
-          'iterable': function ( suite ) {
-            suite.assertEquals( [ suite.attr_1, suite.attr_2, suite.attr_3 ], ccm.helper.makeIterable( suite.parent.attributes ) );
-          }
+        'iterableArguments': function ( suite ) {
+          suite.assertTrue( typeof ccm.helper.makeIterable( arguments ).map === 'function' );
+        },
+        'notIterableElements': function ( suite ) {
+          if ( ccm.helper.isGoogleChrome() )
+            suite.assertFalse( typeof document.head.children.map === 'function' );
+          else
+            suite.assertTrue( typeof document.head.children.map === 'function' );
+        },
+        'iterableElements': function ( suite ) {
+          suite.assertTrue( typeof ccm.helper.makeIterable( document.head.children ).map === 'function' );
+        },
+        'notIterableAttributes': function ( suite ) {
+          suite.assertFalse( typeof document.head.attributes.map === 'function' );
+        },
+        'iterableAttributes': function ( suite ) {
+          suite.assertTrue( typeof ccm.helper.makeIterable( document.head.attributes ).map === 'function' );
         }
       }
     },
