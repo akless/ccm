@@ -95,6 +95,11 @@ ccm.helper.integrate( {
 
   },
 
+  hide: function ( instance ) {
+    instance.element.parentNode.appendChild( ccm.helper.loading( instance ) );
+    instance.element.style.display = 'none';
+  },
+
   isGoogleChrome: function () {
 
     return /Chrome/.test( navigator.userAgent ) && /Google Inc/.test( navigator.vendor );
@@ -250,6 +255,11 @@ ccm.helper.integrate( {
     }
     else element.innerHTML = content;
 
+  },
+
+  show: function ( instance ) {
+    instance.element.parentNode.removeChild( instance.element.parentNode.querySelector( '.ccm_loading' ) );
+    instance.element.style.display = 'block';
   },
 
   /**
