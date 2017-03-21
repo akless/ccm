@@ -2544,12 +2544,12 @@ var ccm = function () {
 
         function recursive( value ) {
 
-          if ( ccm.helper.isNode( value ) ) return value;
+          if ( ccm.helper.isNode( value ) || ccm.helper.isInstance( value ) ) return value;
 
           if ( Array.isArray( value ) || ccm.helper.isObject( value ) ) {
             var copy = Array.isArray( value ) ? [] : {};
             for ( var i in value )
-              copy[ i ] = ccm.helper.clone( value[ i ] );
+              copy[ i ] = recursive( value[ i ] );
             return copy;
           }
 
