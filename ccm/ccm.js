@@ -1693,8 +1693,12 @@ var ccm = function () {
           if ( cfg && cfg.key ) {
             if ( ccm.helper.isObject( cfg.key ) )
               return integrate( ccm.helper.clone( cfg.key ) );
-            else
+            else if ( ccm.helper.isDependency( cfg.key ) )
               return ccm.get( cfg.key[ 1 ], cfg.key[ 2 ], integrate );
+            else {
+              delete cfg.key;
+              proceed( cfg );
+            }
           }
           else return proceed( cfg );
           function integrate( dataset ) {
