@@ -2333,14 +2333,23 @@ var ccm = function () {
      * @summary get directly a <i>ccm</i> dataset out of a <i>ccm</i> datastore
      * @memberOf ccm
      * @param {ccm.types.settings} [settings] - <i>ccm</i> datastore settings
-     * @param {ccm.types.key|object} [key_or_query] - unique key of the dataset or alternative a query
+     * @param {string|object} [key_or_query] - unique key of the dataset or alternative a query (it's possible to use dot notation to get a specific inner property of single dataset)
      * @param {function} [callback] - callback (first parameter is the requested <i>ccm</i> datastore)
      */
     get: function ( settings, key_or_query, callback ) {
 
       ccm.store( settings, function ( store ) {
 
-        store.get( key_or_query, callback );
+        var property;
+        if ( typeof key_or_query === 'string' ) property = key_or_query.split( '.' );
+        key_or_query = property.shift();
+        property = property.join( '.' );
+
+        store.get( key_or_query, function ( result ) {
+
+          callback( property ? ccm.helper.deepValue( result, property ) : result );
+
+        } );
 
       } );
 
