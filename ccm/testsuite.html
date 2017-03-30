@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-
-<script src="ccm.js"></script>                <!-- ccm framework -->
-<script src="ccm-tests.js"></script>          <!-- contains test packages for ccm framework -->
-
-<script src="ccm-helper.js"></script>         <!-- not ccm framework relevant helper functions for ccm component developer -->
-<script src="ccm-helper-tests.js"></script>   <!-- contains test packages for not ccm framework relevant helper functions for ccm component developer -->
-
-<script src="../../ccm-components-no-jquery/testsuite/ccm.testsuite.js"></script>   <!-- ccm component for running tests -->
-
-<ccm-testsuite></ccm-testsuite>
+<script src="../../ccm-components-no-jquery/testsuite/ccm.testsuite.js"></script>
+<ccm-testsuite>
+  <ccm-load-tests src="ccm-tests.js"></ccm-load-tests>
+</ccm-testsuite>

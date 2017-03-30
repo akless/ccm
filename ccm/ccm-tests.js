@@ -4,10 +4,10 @@
  * @license The MIT License (MIT)
  */
 
-if ( !ccm.components.testsuite ) ccm.components.testsuite = {};
-ccm.components.testsuite.ccm = {
+ccm.files[ 'ccm-tests.js' ] = {
   setup: function ( suite, callback ) {
-    ccm.clear();
+    console.log( suite );
+    suite.ccm.clear();
     callback();
   },
   load: {
@@ -18,18 +18,18 @@ ccm.components.testsuite.ccm = {
       },
       tests: {
         'local': function ( suite ) {
-          ccm.load( 'dummy/dummy.html', function ( result ) {
+          suite.ccm.load( 'dummy/dummy.html', function ( result ) {
             suite.assertSame( suite.expected_html_result, result );
           } );
         },
         'remote': function ( suite ) {
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js', function ( result ) {
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js', function ( result ) {
             suite.assertSame( suite.expected_html_result, result );
           } );
         },
         'cached': function ( suite ) {
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js', function () {
-            var local_cached_return_value = ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js' );
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js', function () {
+            var local_cached_return_value = suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js' );
             suite.assertSame( suite.expected_html_result, local_cached_return_value );
           } );
         }
@@ -38,18 +38,18 @@ ccm.components.testsuite.ccm = {
     css: {
       tests: {
         'local': function ( suite ) {
-          ccm.load( 'dummy/dummy.css', function ( result ) {
+          suite.ccm.load( 'dummy/dummy.css', function ( result ) {
             suite.assertSame( 'dummy/dummy.css', result );
           } );
         },
         'remote': function ( suite ) {
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', function ( result ) {
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', function ( result ) {
             suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', result );
           } );
         },
         'cached': function ( suite ) {
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', function () {
-            var local_cached_return_value = ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css' );
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', function () {
+            var local_cached_return_value = suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css' );
             suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', local_cached_return_value );
           } );
         }
@@ -58,18 +58,18 @@ ccm.components.testsuite.ccm = {
     image: {
       tests: {
         'local': function ( suite ) {
-          ccm.load( 'dummy/dummy.png', function ( result ) {
+          suite.ccm.load( 'dummy/dummy.png', function ( result ) {
             suite.assertSame( 'dummy/dummy.png', result );
           } );
         },
         'remote': function ( suite ) {
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/img/config.png', function ( result ) {
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/img/config.png', function ( result ) {
             suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/img/config.png', result );
           } );
         },
         'cached': function ( suite ) {
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/img/config.png', function () {
-            var local_cached_return_value = ccm.load( 'https://kaul.inf.h-brs.de/ccm/img/config.png' );
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/img/config.png', function () {
+            var local_cached_return_value = suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/img/config.png' );
             suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/img/config.png', local_cached_return_value );
           } );
         }
@@ -78,24 +78,24 @@ ccm.components.testsuite.ccm = {
     js: {
       tests: {
         'local': function ( suite ) {
-          ccm.load( 'dummy/dummy.js', function ( result ) {
+          suite.ccm.load( 'dummy/dummy.js', function ( result ) {
             suite.assertSame( 'dummy/dummy.js', result );
           } );
         },
         'remote': function ( suite ) {
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', function ( result ) {
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', function ( result ) {
             suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', result );
           } );
         },
         'cached': function ( suite ) {
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', function () {
-            var local_cached_return_value = ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js' );
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', function () {
+            var local_cached_return_value = suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js' );
             suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', local_cached_return_value );
           } );
         },
         'executed': function ( suite ) {
           delete window.jQuery;
-          ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', function () {
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', function () {
             suite.assertTrue( window.jQuery );
             delete window.jQuery;
           } );
@@ -107,30 +107,30 @@ ccm.components.testsuite.ccm = {
     create: {
       tests: {
         'localReturn': function ( suite ) {
-          suite.assertTrue( ccm.helper.isDatastore( ccm.store() ) );
+          suite.assertTrue( suite.ccm.helper.isDatastore( suite.ccm.store() ) );
         },
         'localCallback': function ( suite ) {
-          ccm.store( function ( store ) {
-            suite.assertTrue( ccm.helper.isDatastore( store ) );
+          suite.ccm.store( function ( store ) {
+            suite.assertTrue( suite.ccm.helper.isDatastore( store ) );
           } );
         },
         'noClientReturn': function ( suite ) {
-          suite.assertFalse( ccm.helper.isDatastore( ccm.store( { store: 'test' } ) ) );
+          suite.assertFalse( suite.ccm.helper.isDatastore( suite.ccm.store( { store: 'test' } ) ) );
         },
         'clientCallback': function ( suite ) {
-          ccm.store( { store: 'test' }, function ( store ) {
-            suite.assertTrue( ccm.helper.isDatastore( store ) );
+          suite.ccm.store( { store: 'test' }, function ( store ) {
+            suite.assertTrue( suite.ccm.helper.isDatastore( store ) );
           } );
         },
         'serverReturn': function ( suite ) {
-          suite.assertTrue( ccm.helper.isDatastore( ccm.store( { url: 'https://ccm.inf.h-brs.de', store: 'test' } ) ) );
+          suite.assertTrue( suite.ccm.helper.isDatastore( suite.ccm.store( { url: 'https://ccm.inf.h-brs.de', store: 'test' } ) ) );
         },
         'noServerRealtimeReturn': function ( suite ) {
-          suite.assertFalse( ccm.helper.isDatastore( ccm.store( { url: 'wss://ccm.inf.h-brs.de', store: 'test' } ) ) );
+          suite.assertFalse( suite.ccm.helper.isDatastore( suite.ccm.store( { url: 'wss://ccm.inf.h-brs.de', store: 'test' } ) ) );
         },
         'serverCallback': function ( suite ) {
-          ccm.store( { url: 'https://ccm.inf.h-brs.de', store: 'test' }, function ( store ) {
-            suite.assertTrue( ccm.helper.isDatastore( store ) );
+          suite.ccm.store( { url: 'https://ccm.inf.h-brs.de', store: 'test' }, function ( store ) {
+            suite.assertTrue( suite.ccm.helper.isDatastore( store ) );
           } );
         }
       }
@@ -138,7 +138,7 @@ ccm.components.testsuite.ccm = {
     get: {
       local: {
         setup: function ( suite, callback ) {
-          suite.store = ccm.store();
+          suite.store = suite.ccm.store();
           callback();
         },
         tests: {
@@ -247,6 +247,13 @@ ccm.components.testsuite.ccm = {
     }
   },
   helper: {
+    convertObjectKeys: {
+      tests: {
+        'example': function ( suite ) {
+          suite.assertEquals( { test: 123, foo: { bar: 'abc', baz: 'xyz' } }, suite.ccm.helper.convertObjectKeys( { test: 123, 'foo.bar': 'abc', 'foo.baz': 'xyz' } ) );
+        }
+      }
+    },
     deepValue: {
       tests: {
         'get': function ( suite ) {
@@ -257,55 +264,16 @@ ccm.components.testsuite.ccm = {
               baz: 'xyz'
             }
           };
-          suite.assertSame( 'abc', ccm.helper.deepValue( obj, 'foo.bar' ) );
+          suite.assertSame( 'abc', suite.ccm.helper.deepValue( obj, 'foo.bar' ) );
         },
         'setObject': function ( suite ) {
           var obj = {};
-          ccm.helper.deepValue( obj, 'foo.bar', 'abc' );
+          suite.ccm.helper.deepValue( obj, 'foo.bar', 'abc' );
           suite.assertEquals( { foo: { bar: 'abc' } }, obj );
         },
         'setReturn': function ( suite ) {
           var obj = {};
-          suite.assertSame( 'abc', ccm.helper.deepValue( obj, 'foo.bar', 'abc' ) );
-        }
-      }
-    },
-    isInDOM: {
-      setup: function ( suite, callback ) {
-        suite.root = document.createElement( 'div' );
-        var p = document.createElement( 'p' );
-        suite.node = document.createElement( 'span' );
-        suite.root.appendChild( p );
-        p.appendChild( suite.node );
-        callback();
-      },
-      tests: {
-        'bothNodes': function ( suite ) {
-          suite.assertTrue( ccm.helper.isInDOM( suite.node, suite.root ) );
-        },
-        'bothNodesReversed': function ( suite ) {
-          suite.assertFalse( ccm.helper.isInDOM( suite.root, suite.node ) );
-        },
-        'bothNodesEqual': function ( suite ) {
-          suite.assertTrue( ccm.helper.isInDOM( suite.root, suite.root ) );
-        },
-        'noRoot': function ( suite ) {
-          suite.root.id = 'dummy';
-          var root = suite.root.cloneNode( true );
-          document.body.appendChild( root );
-          suite.assertTrue( ccm.helper.isInDOM( root ) );
-          document.body.removeChild( root );
-        },
-        'instanceRoot': function ( suite ) {
-          var component = ccm.component( {
-            name: 'dummy',
-            Instance: function () {
-              this.render = function () {}
-            }
-          } );
-          suite.root = component.instance( suite.root );
-          ccm.helper.setContent( suite.root.element, suite.node );
-          suite.assertTrue( ccm.helper.isInDOM( suite.node, suite.root ) );
+          suite.assertSame( 'abc', suite.ccm.helper.deepValue( obj, 'foo.bar', 'abc' ) );
         }
       }
     },
@@ -313,7 +281,7 @@ ccm.components.testsuite.ccm = {
       tests: {
         'pseudoProxy': function ( suite ) {
           var value = { component: 'ccm.blank.js' };
-          suite.assertTrue( ccm.helper.isProxy( value ) );
+          suite.assertTrue( suite.ccm.helper.isProxy( value ) );
         },
         /*
         'realProxy': function ( suite ) {
@@ -330,17 +298,17 @@ ccm.components.testsuite.ccm = {
         },
         */
         'noProxy': function ( suite ) {
-          if ( ccm.helper.isProxy( true      ) ) return suite.failed(      "boolean can't be a ccm proxy instance." );
-          if ( ccm.helper.isProxy( 1         ) ) return suite.failed(       "number can't be a ccm proxy instance." );
-          if ( ccm.helper.isProxy( false     ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
-          if ( ccm.helper.isProxy( null      ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
-          if ( ccm.helper.isProxy( undefined ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
-          if ( ccm.helper.isProxy( 0         ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
-          if ( ccm.helper.isProxy( ''        ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
-          if ( ccm.helper.isProxy( []        ) ) return suite.failed(        "array can't be a ccm proxy instance." );
-          if ( ccm.helper.isProxy( {}        ) ) return suite.failed( "empty object can't be a ccm proxy instance." );
-          if ( ccm.helper.isProxy( { component: {} } ) ) return suite.failed( "object with object in component property can't be a ccm proxy instance." );
-          if ( ccm.helper.isProxy( { component: '' } ) ) return suite.failed( "object with empty string in component property can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( true      ) ) return suite.failed(      "boolean can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( 1         ) ) return suite.failed(       "number can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( false     ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( null      ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( undefined ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( 0         ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( ''        ) ) return suite.failed(  "falsy value can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( []        ) ) return suite.failed(        "array can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( {}        ) ) return suite.failed( "empty object can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( { component: {} } ) ) return suite.failed( "object with object in component property can't be a ccm proxy instance." );
+          if ( suite.ccm.helper.isProxy( { component: '' } ) ) return suite.failed( "object with empty string in component property can't be a ccm proxy instance." );
           suite.passed();
         }
       }
@@ -359,36 +327,51 @@ ccm.components.testsuite.ccm = {
       },
       tests: {
         'correctUpperSubset': function ( suite ) {
-          suite.assertTrue( ccm.helper.isSubset( {
+          suite.assertTrue( suite.ccm.helper.isSubset( {
             name: 'John Doe',
             counter: 3,
             isValid: true
           }, suite.other ) );
         },
         'correctLowerSubset': function ( suite ) {
-          suite.assertTrue( ccm.helper.isSubset( {
+          suite.assertTrue( suite.ccm.helper.isSubset( {
             values: [ 'abc', 123, false ],
             settings: { title: 'Welcome!', year: 2017, greedy: true },
             onLoad: suite.other.onLoad
           }, suite.other ) );
         },
         'correctSingleProperties': function ( suite ) {
-          if ( !ccm.helper.isSubset( { name: 'John Doe' }, suite.other ) ) return suite.failed( 'correct string property must be match'  );
-          if ( !ccm.helper.isSubset( { counter: 3       }, suite.other ) ) return suite.failed( 'correct number property must be match'  );
-          if ( !ccm.helper.isSubset( { isValid: true    }, suite.other ) ) return suite.failed( 'correct boolean property must be match' );
-          if ( !ccm.helper.isSubset( { values:   [ 'abc', 123, false ] },                           suite.other ) ) return suite.failed( 'correct array property must be match' );
-          if ( !ccm.helper.isSubset( { settings: { title: 'Welcome!', year: 2017, greedy: true } }, suite.other ) ) return suite.failed( 'correct object property must be match' );
-          if ( !ccm.helper.isSubset( { onLoad:   suite.other.onLoad },                              suite.other ) ) return suite.failed( 'correct function property must be match' );
+          if ( !suite.ccm.helper.isSubset( { name: 'John Doe' }, suite.other ) ) return suite.failed( 'correct string property must be match'  );
+          if ( !suite.ccm.helper.isSubset( { counter: 3       }, suite.other ) ) return suite.failed( 'correct number property must be match'  );
+          if ( !suite.ccm.helper.isSubset( { isValid: true    }, suite.other ) ) return suite.failed( 'correct boolean property must be match' );
+          if ( !suite.ccm.helper.isSubset( { values:   [ 'abc', 123, false ] },                           suite.other ) ) return suite.failed( 'correct array property must be match' );
+          if ( !suite.ccm.helper.isSubset( { settings: { title: 'Welcome!', year: 2017, greedy: true } }, suite.other ) ) return suite.failed( 'correct object property must be match' );
+          if ( !suite.ccm.helper.isSubset( { onLoad:   suite.other.onLoad },                              suite.other ) ) return suite.failed( 'correct function property must be match' );
           suite.passed();
         },
         'incorrectSingleProperties': function ( suite ) {
-          if ( ccm.helper.isSubset( { name: 'Doe, John' }, suite.other ) ) return suite.failed( 'incorrect string property should not match'  );
-          if ( ccm.helper.isSubset( { counter: 2        }, suite.other ) ) return suite.failed( 'incorrect number property should not match'  );
-          if ( ccm.helper.isSubset( { isValid: false    }, suite.other ) ) return suite.failed( 'incorrect boolean property should not match' );
-          if ( ccm.helper.isSubset( { values:   [ 'xyz', 123, false ] },                                suite.other ) ) return suite.failed( 'incorrect array property should not match' );
-          if ( ccm.helper.isSubset( { settings: { title: 'Hello, world.', year: 2017, greedy: true } }, suite.other ) ) return suite.failed( 'incorrect object property should not match' );
-          if ( ccm.helper.isSubset( { onLoad:   function () { console.log( 'Loading..' ); } },          suite.other ) ) return suite.failed( 'incorrect function property should not match' );
+          if ( suite.ccm.helper.isSubset( { name: 'Doe, John' }, suite.other ) ) return suite.failed( 'incorrect string property should not match'  );
+          if ( suite.ccm.helper.isSubset( { counter: 2        }, suite.other ) ) return suite.failed( 'incorrect number property should not match'  );
+          if ( suite.ccm.helper.isSubset( { isValid: false    }, suite.other ) ) return suite.failed( 'incorrect boolean property should not match' );
+          if ( suite.ccm.helper.isSubset( { values:   [ 'xyz', 123, false ] },                                suite.other ) ) return suite.failed( 'incorrect array property should not match' );
+          if ( suite.ccm.helper.isSubset( { settings: { title: 'Hello, world.', year: 2017, greedy: true } }, suite.other ) ) return suite.failed( 'incorrect object property should not match' );
+          if ( suite.ccm.helper.isSubset( { onLoad:   function () { console.log( 'Loading..' ); } },          suite.other ) ) return suite.failed( 'incorrect function property should not match' );
           suite.passed();
+        }
+      }
+    },
+    loading: {
+      setup: function ( suite, callback ) {
+        suite.dummy = suite.ccm.instance( { name: 'dummy', Instance: function () { this.render = function () {} } }, suite.ccm.helper.html( {} ) );
+        callback();
+      },
+      tests: {
+        'keyframe': function ( suite ) {
+          suite.ccm.helper.loading( suite.dummy );
+          suite.assertSame( '@keyframes ccm_loading { to { transform: rotate(360deg); } }', suite.dummy.element.parentNode.querySelector( '#ccm_keyframe' ).innerHTML );
+        },
+        'icon': function ( suite ) {
+          suite.assertSame( '<div class="ccm_loading"><div style="display: inline-block; width: 0.5em; height: 0.5em; border: 0.15em solid #009ee0; border-right-color: transparent; border-radius: 50%; animation: ccm_loading 1s linear infinite;"></div></div>', suite.ccm.helper.loading( suite.dummy ).outerHTML );
         }
       }
     },
@@ -398,46 +381,36 @@ ccm.components.testsuite.ccm = {
           suite.assertFalse( typeof arguments.map === 'function' );
         },
         'iterableArguments': function ( suite ) {
-          suite.assertTrue( typeof ccm.helper.makeIterable( arguments ).map === 'function' );
+          suite.assertTrue( typeof suite.ccm.helper.makeIterable( arguments ).map === 'function' );
         },
         'notIterableElements': function ( suite ) {
-          if ( ccm.helper.isGoogleChrome() )
+          if ( suite.ccm.helper.isGoogleChrome() )
             suite.assertFalse( typeof document.head.children.map === 'function' );
           else
             suite.assertTrue( typeof document.head.children.map === 'function' );
         },
         'iterableElements': function ( suite ) {
-          suite.assertTrue( typeof ccm.helper.makeIterable( document.head.children ).map === 'function' );
+          suite.assertTrue( typeof suite.ccm.helper.makeIterable( document.head.children ).map === 'function' );
         },
         'notIterableAttributes': function ( suite ) {
           suite.assertFalse( typeof document.head.attributes.map === 'function' );
         },
         'iterableAttributes': function ( suite ) {
-          suite.assertTrue( typeof ccm.helper.makeIterable( document.head.attributes ).map === 'function' );
-        }
-      }
-    },
-    noScript: {
-      tests: {
-        'preventXSS': function ( suite ) {
-          suite.assertSame( 'Hello, world!', ccm.helper.noScript( 'Hello, world!<script type="text/javascript">alert("XSS");</script>' ) );
-        },
-        'preventDeeperXSS': function ( suite ) {
-          suite.assertSame( '<span>Hello, world!</span>', ccm.helper.noScript( '<span>Hello, world!<script type="text/javascript">alert("XSS");</script></span>' ) );
+          suite.assertTrue( typeof suite.ccm.helper.makeIterable( document.head.attributes ).map === 'function' );
         }
       }
     },
     privatize: {
       tests: {
         'someProperties': function ( suite ) {
-          var component = ccm.component( {
+          var component = suite.ccm.component( {
             name: 'dummy1',
             config: { foo: 'abc', bar: 'xyz' },
             Instance: function () {
               var self = this;
               var my;
               this.ready = function ( callback ) {
-                my = ccm.helper.privatize( self, 'childNodes', 'component', 'bar', 'baz', 'id', 'index', 'init', 'ready', 'render' );
+                my = suite.ccm.helper.privatize( self, 'childNodes', 'component', 'bar', 'baz', 'id', 'index', 'init', 'ready', 'render' );
                 if ( Object.keys( my ).length !== 1 || my.bar !== 'xyz' ) suite.failed( 'wrong privatized properties: ' + JSON.stringify( my ) );
                 callback();
               };
@@ -445,40 +418,40 @@ ccm.components.testsuite.ccm = {
           } );
           var instance = component.instance();
           if ( instance.foo !== 'abc' ) suite.failed( 'no public property "foo" with value "abc"' );
-          suite.assertEquals( [ 'foo', 'id', 'index', 'component' ], Object.keys( instance ) );
+          suite.assertEquals( [ 'foo', 'ccm', 'id', 'index', 'component' ], Object.keys( instance ) );
         },
         'allProperties': function ( suite ) {
-          var component = ccm.component( {
+          var component = suite.ccm.component( {
             name: 'dummy2',
             config: { foo: 'abc', bar: 'xyz' },
             Instance: function () {
               var self = this;
               var my;
               this.ready = function ( callback ) {
-                my = ccm.helper.privatize( self );
+                my = suite.ccm.helper.privatize( self );
                 if ( Object.keys( my ).length !== 2 || my.foo !== 'abc' || my.bar !== 'xyz' ) suite.failed( 'wrong privatized properties: ' + JSON.stringify( my ) );
                 callback();
               };
             }
           } );
-          var instance = component.instance( { baz: [ ccm.instance, 'dummy2' ] } );
-          suite.assertEquals( [ 'baz', 'id', 'index', 'component' ], Object.keys( instance ) );
+          var instance = component.instance( { baz: [ 'ccm.instance', 'dummy2' ] } );
+          suite.assertEquals( [ 'ccm', 'baz', 'id', 'index', 'component' ], Object.keys( instance ) );
         }
       }
     },
     regex: {
       tests: {
         'validFilename': function ( suite ) {
-          suite.assertTrue( ccm.helper.regex( 'filename' ).test( 'ccm.dummy-3.2.1.min.js' ) );
+          suite.assertTrue( suite.ccm.helper.regex( 'filename' ).test( 'ccm.dummy-3.2.1.min.js' ) );
         },
         'invalidFilename': function ( suite ) {
-          suite.assertFalse( ccm.helper.regex( 'filename' ).test( 'dummy.js' ) );
+          suite.assertFalse( suite.ccm.helper.regex( 'filename' ).test( 'dummy.js' ) );
         },
         'validKey': function ( suite ) {
-          suite.assertTrue( ccm.helper.regex( 'key' ).test( 'Dummy12_Foo3' ) );
+          suite.assertTrue( suite.ccm.helper.regex( 'key' ).test( 'Dummy12_Foo3' ) );
         },
         'invalidKey': function ( suite ) {
-          suite.assertFalse( ccm.helper.regex( 'key' ).test( '' ) || ccm.helper.regex( 'key' ).test( '$' ) );
+          suite.assertFalse( suite.ccm.helper.regex( 'key' ).test( '' ) || suite.ccm.helper.regex( 'key' ).test( '$' ) );
         }
       }
     },
@@ -490,21 +463,31 @@ ccm.components.testsuite.ccm = {
       },
       tests: {
         'callbackResult': function ( suite ) {
-          var obj = { dummy: [ ccm.load, suite.url ] };
-          ccm.helper.solveDependency( obj, suite.obj_key, function ( result ) {
+          var obj = { dummy: [ 'ccm.load', suite.url ] };
+          suite.ccm.helper.solveDependency( obj, suite.obj_key, function ( result ) {
             suite.assertSame( suite.url, result );
           } );
         },
         'noReturnResult': function ( suite ) {
-          var obj = { dummy: [ ccm.load, suite.url ] };
-          var result = ccm.helper.solveDependency( obj, suite.obj_key );
+          var obj = { dummy: [ 'ccm.load', suite.url ] };
+          var result = suite.ccm.helper.solveDependency( obj, suite.obj_key );
           suite.assertFalse( result );
         },
         'cachedReturnResult': function ( suite ) {
-          ccm.load( suite.url, function () {
-            var obj = { dummy: [ ccm.load, suite.url ] };
-            var result = ccm.helper.solveDependency( obj, suite.obj_key );
+          suite.ccm.load( suite.url, function () {
+            var obj = { dummy: [ 'ccm.load', suite.url ] };
+            var result = suite.ccm.helper.solveDependency( obj, suite.obj_key );
             suite.assertSame( suite.url, result );
+          } );
+        }
+      }
+    },
+    wait: {
+      tests: {
+        'oneSecond': function ( suite ) {
+          var time = new Date().getTime();
+          suite.ccm.helper.wait( 1000, function () {
+            suite.assertSame( 1000, Math.floor( ( new Date().getTime() - time ) / 10 ) * 10 );
           } );
         }
       }

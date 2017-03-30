@@ -28,20 +28,7 @@
  * (for older version changes see ccm-7.4.0.js)
  */
 
-// no custom elements support? => load polyfill  // TODO: update polyfill
-if ( !( 'registerElement' in document ) ) {
-  document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js"><\/script>' );
-  document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"><\/script>' );
-}
-if ( !document.head.attachShadow || !document.head.createShadowRoot )
-  document.write( '<script src="https://kaul.inf.h-brs.de/ccm/lib/shadydom.min.js"></script>' );
-
-/**
- * <i>ccm</i> namespace
- * @global
- * @namespace
- */
-var ccm = function () {
+( function () {
 
   /*---------------------------------------------- private ccm members -----------------------------------------------*/
 
@@ -133,7 +120,7 @@ var ccm = function () {
     this.init = function ( callback ) {
 
       // privatize security relevant members
-      my = ccm.helper.privatize( this, 'source', 'local', 'store', 'url', 'db', 'socket', 'onChange', 'user' );
+      my = self.helper.privatize( this, 'source', 'local', 'store', 'url', 'db', 'socket', 'onChange', 'user' );
 
       // set getter method for ccm datastore source
       this.source = function () { return my.source; };
@@ -151,7 +138,7 @@ var ccm = function () {
         else {
 
           // change data locally
-          var dataset = ccm.helper.isObject( message ) ? updateLocal( message ) : delLocal( message );
+          var dataset = self.helper.isObject( message ) ? updateLocal( message ) : delLocal( message );
 
           // perform change callback
           if ( my.onChange ) my.onChange( dataset );
@@ -280,7 +267,7 @@ var ccm = function () {
           var dataset = evt.target.result;
 
           // result is not a ccm dataset? => perform callback with null
-          if ( !ccm.helper.isDataset( dataset ) ) callback( null );
+          if ( !self.helper.isDataset( dataset ) ) callback( null );
 
           // set result dataset in local cache
           setLocal( dataset );
@@ -298,7 +285,7 @@ var ccm = function () {
       function serverDB() {
 
         // get dataset by key?
-        if ( !ccm.helper.isObject( key_or_query ) ) {
+        if ( !self.helper.isObject( key_or_query ) ) {
 
           /**
            * local cached dataset
@@ -327,7 +314,7 @@ var ccm = function () {
         function onResponse( response ) {
 
           // set result dataset(s) in local cache
-          if ( ccm.helper.isDataset( response ) )
+          if ( self.helper.isDataset( response ) )
             setLocal( response );
           else if ( Array.isArray( response ) )
             response.map( setLocal );
@@ -408,20 +395,20 @@ var ccm = function () {
     this.set = function ( priodata, callback ) {
 
       // clone priority data
-      priodata = ccm.helper.clone( priodata );
+      priodata = self.helper.clone( priodata );
 
       // priority data has no key? => generate unique key
-      if ( !priodata.key ) priodata.key = ccm.helper.generateKey();
+      if ( !priodata.key ) priodata.key = self.helper.generateKey();
 
       // priority data does not contains a valid ccm dataset key? => abort and perform callback without a result
       if ( Array.isArray( priodata.key ) ) {
         for ( var i = 0; i < priodata.key.length; i++ )
-          if ( !ccm.helper.regex( 'key' ).test( priodata.key[ i ] ) ) {
+          if ( !self.helper.regex( 'key' ).test( priodata.key[ i ] ) ) {
             if ( callback ) callback( null );
             return null;
           }
       }
-      else if ( !ccm.helper.regex( 'key' ).test( priodata.key ) ) {
+      else if ( !self.helper.regex( 'key' ).test( priodata.key ) ) {
         if ( callback ) callback( null );
         return null;
       }
@@ -603,13 +590,13 @@ var ccm = function () {
     function getLocal( key, callback ) {
 
       // dataset key is a query? => find dataset(s) by query
-      if ( key === undefined || ccm.helper.isObject( key ) ) return find();
+      if ( key === undefined || self.helper.isObject( key ) ) return find();
 
       /**
        * result dataset
        * @type {ccm.types.dataset}
        */
-      var dataset = ccm.helper.clone( my.local[ key ] ) || null;
+      var dataset = self.helper.clone( my.local[ key ] ) || null;
 
       // solve data dependencies
       solveDependencies( dataset, callback );
@@ -639,13 +626,13 @@ var ccm = function () {
         for ( var i in my.local ) {
 
           // query is subset of dataset?
-          if ( ccm.helper.isSubset( key, my.local[ i ] ) ) {
+          if ( self.helper.isSubset( key, my.local[ i ] ) ) {
 
             /**
              * founded dataset
              * @type {ccm.types.dataset}
              */
-            var dataset = ccm.helper.clone( my.local[ i ] );
+            var dataset = self.helper.clone( my.local[ i ] );
 
             // add founded dataset to result datasets
             results.push( dataset );
@@ -722,10 +709,10 @@ var ccm = function () {
             var value = array_or_object[ key ];
 
             // value is a ccm dependency? => solve dependency
-            if ( ccm.helper.isDependency( value ) && value[ 0 ] === 'ccm.get' ) solveDependency( array_or_object, key ) ;
+            if ( self.helper.isDependency( value ) && value[ 0 ] === 'ccm.get' ) solveDependency( array_or_object, key ) ;
 
             // value is an array? => search array elements for data dependencies
-            else if ( Array.isArray( value ) || ccm.helper.isObject( value ) ) search( value );  // recursive call
+            else if ( Array.isArray( value ) || self.helper.isObject( value ) ) search( value );  // recursive call
 
           }
 
@@ -746,7 +733,7 @@ var ccm = function () {
           counter++;
 
           // solve data dependency
-          ccm.helper.solveDependency( dataset, key, check );
+          self.helper.solveDependency( dataset, key, check );
 
         }
 
@@ -762,7 +749,7 @@ var ccm = function () {
           if ( counter !== 0 ) return;
 
           // waitlist not empty? => abort and solve a data dependency in waitlist
-          if ( waiter.length > 0 ) return ccm.helper.action( waiter.pop() );
+          if ( waiter.length > 0 ) return self.helper.action( waiter.pop() );
 
           // perform callback with result dataset
           if ( callback ) callback( dataset );
@@ -795,7 +782,7 @@ var ccm = function () {
 
       // is dataset local cached? => update local dataset
       if ( my.local[ priodata.key ] )
-        ccm.helper.integrate( priodata, my.local[ priodata.key ] );
+        self.helper.integrate( priodata, my.local[ priodata.key ] );
 
       // dataset not local cached => cache dataset locally
       else my.local[ priodata.key ] = priodata;
@@ -872,10 +859,10 @@ var ccm = function () {
      */
     function prepareData( data ) {
 
-      data = ccm.helper.integrate( data, { db: my.db, store: my.store } );
+      data = self.helper.integrate( data, { db: my.db, store: my.store } );
       if ( !my.db ) delete data.db;
       if ( my.user && my.user.isLoggedIn() )
-        data = ccm.helper.integrate( data, { user: my.user.data().key, token: my.user.data().token } );
+        data = self.helper.integrate( data, { user: my.user.data().key, token: my.user.data().token } );
       return data;
 
     }
@@ -902,7 +889,7 @@ var ccm = function () {
      */
     function useHttp( data, callback ) {
 
-      ccm.load( [ my.url, data ], callback );
+      self.load( [ my.url, data ], callback );
 
     }
 
@@ -929,9 +916,25 @@ var ccm = function () {
 
   };
 
-  return {
+  /*-------------------------------------- polyfills and public ccm namespaces ---------------------------------------*/
 
-    /*---------------------------------------------- public ccm members ----------------------------------------------*/
+  // no 'Custom Elements' support? => load polyfill  // TODO: update polyfill
+  if ( !( 'registerElement' in document ) ) {
+    document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js"></script>' );
+    document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"></script>' );
+  }
+  // no 'Shadow DOM v1' support? => load polyfill
+  if ( !document.head.attachShadow || !document.head.createShadowRoot )
+    document.write( '<script src="https://kaul.inf.h-brs.de/ccm/lib/shadydom.min.js"></script>' );
+
+  // set global ccm namespace
+  if ( !window.ccm ) ccm = {
+
+    /**
+     * @summary global namespaces for <i>ccm</i> components
+     * @type {Object.<ccm.types.index, object>}
+     */
+    components: {},
 
     /**
      * @summary callbacks for cross domain data exchanges
@@ -942,29 +945,29 @@ var ccm = function () {
     callbacks: {},
 
     /**
-     * @summary global namespaces for <i>ccm</i> components
-     * @memberOf ccm
-     * @type {Object.<ccm.types.index, object>}
-     */
-    components: {},
-
-    /**
      * @summary deposited data from loaded javascript files
      * @memberOf ccm
      * @type {object}
      * @ignore
      */
-    files: {},
+    files: {}
 
-    /**
-     * @summary <i>ccm</i> version number
-     * @memberOf ccm
-     * @type {ccm.types.version}
-     * @readonly
-     */
-    version: [ 8, 0, 0 ],
+  };
+
+  /**
+   * global <i>ccm</i> object of this framework version
+   * @type {object}
+   */
+  var self = {
 
     /*---------------------------------------------- public ccm methods ----------------------------------------------*/
+
+    /**
+     * @summary returns <i>ccm</i> version number
+     * @memberOf ccm
+     * @return {ccm.types.version}
+     */
+    version: function () { return '8.0.0'; },
 
     clear: function () {
       resources = {};
@@ -1024,13 +1027,13 @@ var ccm = function () {
        * convert arguments to real array
        * @type {Array}
        */
-      var args = ccm.helper.makeIterable( arguments );
+      var args = self.helper.makeIterable( arguments );
 
       /**
        * current ccm.load call
        * @type {ccm.types.action}
        */
-      var call = args.slice( 0 ); call.unshift( ccm.load );
+      var call = args.slice( 0 ); call.unshift( self.load );
 
       /**
        * is this ccm.load call already waiting for currently loading resource(s)?
@@ -1048,7 +1051,7 @@ var ccm = function () {
       if ( !args[ args.length - 1 ] ) args.pop();
 
       // determine header container for appending HTML tags for loading resources (Shadow DOM or <head>)
-      var head = ccm.helper.isElementNode( args[ args.length - 1 ] ) ? args.pop().parentNode : document.head;
+      var head = self.helper.isElementNode( args[ args.length - 1 ] ) ? args.pop().parentNode : document.head;
 
       // last argument is callback? => separate arguments and callback
       if ( typeof args[ args.length - 1 ] === 'function' || args[ args.length - 1 ] === undefined )
@@ -1077,7 +1080,7 @@ var ccm = function () {
         if ( Array.isArray( url ) ) {
 
           // second array element is an object? => get URL of server interface and GET parameter
-          if ( url.length > 1 && ccm.helper.isObject( url[ 1 ] ) ) { data = url[ 1 ]; url = url[ 0 ]; }
+          if ( url.length > 1 && self.helper.isObject( url[ 1 ] ) ) { data = url[ 1 ]; url = url[ 0 ]; }
 
           // load resources serial
           else { counter++; results[ i ] = []; return serial( null ); }
@@ -1142,18 +1145,18 @@ var ccm = function () {
             var next = url.shift();
 
             // next is array of resources? (and not GET parameter)
-            if ( Array.isArray( next ) && !( next.length > 1 && ccm.helper.isObject( next[ 1 ] ) ) ) {
+            if ( Array.isArray( next ) && !( next.length > 1 && self.helper.isObject( next[ 1 ] ) ) ) {
 
               // push callback to next array of resources
               next.push( serial );
 
               // load resources parallel (recursive call)
-              ccm.load.apply( null, next );
+              self.load.apply( null, next );
 
             }
 
             // one resource => load serial (recursive call)
-            else ccm.load( next, serial );
+            else self.load( next, serial );
 
           }
 
@@ -1188,7 +1191,7 @@ var ccm = function () {
           if ( caching() && head === document.head ) return;
 
           // load css file via <link>
-          var tag = ccm.helper.html( { tag: 'link', rel: 'stylesheet', type: 'text/css', href: url } );
+          var tag = self.helper.html( { tag: 'link', rel: 'stylesheet', type: 'text/css', href: url } );
           head.appendChild( tag );
           tag.onload = success;
 
@@ -1218,7 +1221,7 @@ var ccm = function () {
           if ( caching() ) return;
 
           // load javascript file via <script>
-          var tag = ccm.helper.html( { tag: 'script', src: url } );
+          var tag = self.helper.html( { tag: 'script', src: url } );
           head.appendChild( tag );
           tag.onload = function () {
 
@@ -1283,7 +1286,7 @@ var ccm = function () {
           function jsonp() {
 
             // prepare callback function
-            var callback = 'callback' + ccm.helper.generateKey();
+            var callback = 'callback' + self.helper.generateKey();
             if ( !data ) data = {};
             data.callback = 'ccm.callbacks.' + callback;
             ccm.callbacks[ callback ] = function ( data ) {
@@ -1293,7 +1296,7 @@ var ccm = function () {
             };
 
             // exchange data via <script>
-            var tag = ccm.helper.html( { tag: 'script', src: buildURL( url, data ) } );
+            var tag = self.helper.html( { tag: 'script', src: buildURL( url, data ) } );
             tag.src = tag.src.replace( /&amp;/g, '&' );
             head.appendChild( tag );
           }
@@ -1409,7 +1412,7 @@ var ccm = function () {
 
           // is resource on waitlist? => perform waiting actions
           while ( waiter[ url ] && waiter[ url ].length > 0 )
-            ccm.helper.action( waiter[ url ].pop() );
+            self.helper.action( waiter[ url ].pop() );
 
           // check if all resources are loaded
           check();
@@ -1444,7 +1447,7 @@ var ccm = function () {
     },
 
     /**
-     * @summary register <i>ccm</i> component in the <i>ccm</i> framework
+     * @summary registers a <i>ccm</i> component in the <i>ccm</i> framework
      * @memberOf ccm
      * @param {ccm.types.component|ccm.types.url|ccm.types.index} component - object, URL or index of a <i>ccm</i> component
      * @param {ccm.types.config} [config] - default <i>ccm</i> instance configuration (check documentation of associated <i>ccm</i> component to see which properties could be set)
@@ -1463,7 +1466,7 @@ var ccm = function () {
 
       // is URL of component? => load component and finish registration
       if ( typeof component === 'string' )
-        return components[ getIndex( component ) ] ? finish() : ccm.load( component, finish );
+        return components[ getIndex( component ) ] ? finish() : self.load( component, finish );
 
       // set component index
       setIndex();
@@ -1498,7 +1501,7 @@ var ccm = function () {
         var filename = url.split( '/' ).pop();
 
         // abort if extracted filename is not a valid filename for a ccm component
-        if ( !ccm.helper.regex( 'filename' ).test( filename ) ) return '';
+        if ( !self.helper.regex( 'filename' ).test( filename ) ) return '';
 
         // filter and return the component index out of the extracted filename
         var split = filename.split( '.' );
@@ -1529,11 +1532,8 @@ var ccm = function () {
           component.name = array[ 0 ];
 
           // add version number of ccm component
-          if ( array.length > 1 ) {
-            component.version = array[ 1 ].split( '.' );
-            for ( var i = 0; i < 3; i++ )
-              component.version[ i ] = parseInt( component.version[ i ] );
-          }
+          if ( array.length > 1 )
+            component.version = array[ 1 ];
 
         }
 
@@ -1542,7 +1542,7 @@ var ccm = function () {
 
         // has version? => append version number to component index
         if ( component.version )
-          component.index += '-' + component.version.join( '.' );
+          component.index += '-' + component.version;
 
       }
 
@@ -1555,11 +1555,14 @@ var ccm = function () {
         component.instances = 0;
 
         // add function for creating and starting ccm instances
-        component.instance = function ( config, callback ) { return ccm.instance( component.index, config, callback ); };
-        component.start    = function ( config, callback ) { return ccm.start   ( component.index, config, callback ); };
+        component.instance = function ( config, callback ) { return self.instance( component.index, config, callback ); };
+        component.start    = function ( config, callback ) { return self.start   ( component.index, config, callback ); };
 
         // set default of default ccm instance configuration
         if ( !component.config ) component.config = {};
+
+        // set specific framework version
+        component.config.ccm = self;
 
         // create HTML tag for ccm component
         createCustomElement();
@@ -1572,7 +1575,7 @@ var ccm = function () {
           var tag = Object.create( HTMLElement.prototype );
           tag.attachedCallback = function () {
             if ( !document.body.contains( this ) ) return;
-            var config = ccm.helper.generateConfig( this );
+            var config = self.helper.generateConfig( this );
             config.element = this;
             component.start( config );
           };
@@ -1589,16 +1592,16 @@ var ccm = function () {
       function finish() {
 
         // make deep copy of component
-        component = ccm.helper.clone( components[ typeof component === 'string' ? getIndex( component ) : component.index ] );
+        component = self.helper.clone( components[ typeof component === 'string' ? getIndex( component ) : component.index ] );
 
         // component has individual default for default instance configuration?
         if ( config ) {
 
           // default ccm instance configuration is a HTML element node? => configuration has only element property
-          if ( ccm.helper.isElementNode( config ) ) config = { element: config };
+          if ( self.helper.isElementNode( config ) ) config = { element: config };
 
           // set given default of default ccm instance configuration
-          component.config = ccm.helper.integrate( ccm.helper.clone( config ), component.config );
+          component.config = self.helper.integrate( self.helper.clone( config ), component.config );
 
           // open closure for correct later variable visibility
           closure( component );
@@ -1615,8 +1618,8 @@ var ccm = function () {
 
           // has given default for default instance configuration? => consider this in later instance() and start() calls
           if ( component.config ) {
-            component.instance = function ( config, callback ) { if ( ccm.helper.isElementNode( config ) ) config = { element: config }; config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.instance( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
-            component.start    = function ( config, callback ) { if ( ccm.helper.isElementNode( config ) ) config = { element: config }; config = ccm.helper.integrate( config, ccm.helper.clone( component.config ) ); return ccm.start   ( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
+            component.instance = function ( config, callback ) { if ( self.helper.isElementNode( config ) ) config = { element: config }; config = self.helper.integrate( config, self.helper.clone( component.config ) ); return self.instance( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
+            component.start    = function ( config, callback ) { if ( self.helper.isElementNode( config ) ) config = { element: config }; config = self.helper.integrate( config, self.helper.clone( component.config ) ); return self.start   ( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
           }
 
         }
@@ -1676,7 +1679,7 @@ var ccm = function () {
 
         // make sure that the component is registered and get it's component index
         var async = false;
-        var comp = ccm.component( comp, function ( comp ) {
+        var comp = self.component( comp, function ( comp ) {
           if ( async ) proceed( comp.index );
         } );
         if ( comp ) return proceed( comp.index );
@@ -1689,12 +1692,12 @@ var ccm = function () {
         function proceed( index ) {
 
           // load instance configuration if necessary (asynchron)
-          if ( ccm.helper.isDependency( cfg ) ) cfg = { key: cfg };
+          if ( self.helper.isDependency( cfg ) ) cfg = { key: cfg };
           if ( cfg && cfg.key ) {
-            if ( ccm.helper.isObject( cfg.key ) )
-              return integrate( ccm.helper.clone( cfg.key ) );
-            else if ( ccm.helper.isDependency( cfg.key ) )
-              return ccm.get( cfg.key[ 1 ], cfg.key[ 2 ], integrate );
+            if ( self.helper.isObject( cfg.key ) )
+              return integrate( self.helper.clone( cfg.key ) );
+            else if ( self.helper.isDependency( cfg.key ) )
+              return self.get( cfg.key[ 1 ], cfg.key[ 2 ], integrate );
             else {
               delete cfg.key;
               proceed( cfg );
@@ -1702,7 +1705,7 @@ var ccm = function () {
           }
           else return proceed( cfg );
           function integrate( dataset ) {
-            ccm.helper.integrate( cfg, dataset );
+            self.helper.integrate( cfg, dataset );
             delete dataset.key;
             return proceed( dataset );
           }
@@ -1710,7 +1713,7 @@ var ccm = function () {
           function proceed( cfg ) {
 
             // ccm instance configuration is a HTML element node? => configuration has only element property
-            if ( ccm.helper.isElementNode( cfg ) ) cfg = { element: cfg };
+            if ( self.helper.isElementNode( cfg ) ) cfg = { element: cfg };
 
             /**
              * created instance
@@ -1725,8 +1728,8 @@ var ccm = function () {
             if ( !result ) result = instance;                   // set result instance
 
             // configure created instance
-            ccm.helper.integrate( ccm.helper.clone( components[ index ].config ), instance );  // set default ccm instance configuration
-            if ( cfg ) ccm.helper.integrate( cfg, instance );   // integrate ccm instance configuration
+            self.helper.integrate( self.helper.clone( components[ index ].config ), instance );  // set default ccm instance configuration
+            if ( cfg ) self.helper.integrate( cfg, instance );   // integrate ccm instance configuration
             instance.id = components[ index ].instances;        // set ccm instance id
             instance.index = index + '-' + instance.id;         // set ccm instance index
             instance.component = components[ index ];           // set ccm component reference
@@ -1748,7 +1751,7 @@ var ccm = function () {
               if ( instance.element === 'name' ) instance.element = ( parent || instance.parent ).element.querySelector( '#' + instance.component.name );
 
               // prepare website area for ccm instance
-              var element = ccm.helper.html( { id: ccm.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name } );
+              var element = self.helper.html( { id: self.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name } );
 
               // create shadow DOM
               var shadow = instance.element.attachShadow( { mode: 'open' } );
@@ -1775,13 +1778,13 @@ var ccm = function () {
                 var value = instance_or_array[ key ];
 
                 // is dependency? => solve dependency
-                if ( ccm.helper.isDependency( value ) ) solveDependency( instance_or_array, key );
+                if ( self.helper.isDependency( value ) ) solveDependency( instance_or_array, key );
 
                 // value is an array or object?
                 else if ( typeof value === 'object' && value !== null ) {
 
                   // not relevant object type? => skip
-                  if ( ccm.helper.isNode( value ) || ccm.helper.isInstance( value ) || ccm.helper.isComponent( value ) ) continue;
+                  if ( self.helper.isNode( value ) || self.helper.isInstance( value ) || self.helper.isComponent( value ) ) continue;
 
                   // search it for dependencies (recursive call)
                   solveDependencies( value );
@@ -1806,60 +1809,52 @@ var ccm = function () {
                 // check type of dependency => solve dependency
                 switch ( action[ 0 ] ) {
 
-                  case ccm.load:
-                  case "ccm.load":
+                  case 'ccm.load':
                     counter++;
                     if ( action.length === 2 )
-                      ccm.load( action[ 1 ], setResult, instance && instance.element );
+                      self.load( action[ 1 ], setResult, instance && instance.element );
                     else {
                       action.shift();
-                      ccm.load( action, setResult, instance && instance.element );
+                      self.load( action, setResult, instance && instance.element );
                     }
                     break;
 
-                  case ccm.component:
-                  case "ccm.component":
+                  case 'ccm.component':
                     counter++;
-                    ccm.component( action[ 1 ], action[ 2 ], function ( result ) {
+                    self.component( action[ 1 ], action[ 2 ], function ( result ) {
                       result.config.parent = instance;
                       setResult( result );
                     } );
                     break;
 
-                  case ccm.instance:
-                  case "ccm.instance":
+                  case 'ccm.instance':
                     waiter.push( [ recursive, action[ 1 ], action[ 2 ], instance_or_array, key, instance ] );
                     break;
 
-                  case ccm.proxy:
-                  case "ccm.proxy":
+                  case 'ccm.proxy':
                     proxy( action[ 1 ], action[ 2 ], instance_or_array, key, instance );
                     break;
 
-                  case ccm.store:
-                  case "ccm.store":
+                  case 'ccm.store':
                     counter++;
                     if ( !action[ 1 ] ) action[ 1 ] = {};
                     action[ 1 ].delayed = true;
-                    ccm.store( action[ 1 ], setResult );
+                    self.store( action[ 1 ], setResult );
                     break;
 
-                  case ccm.get:
-                  case "ccm.get":
+                  case 'ccm.get':
                     counter++;
-                    ccm.get( action[ 1 ], action[ 2 ], setResult );
+                    self.get( action[ 1 ], action[ 2 ], setResult );
                     break;
 
-                  case ccm.set:
-                  case "ccm.set":
+                  case 'ccm.set':
                     counter++;
-                    ccm.set( action[ 1 ], action[ 2 ], setResult );
+                    self.set( action[ 1 ], action[ 2 ], setResult );
                     break;
 
-                  case ccm.del:
-                  case "ccm.del":
+                  case 'ccm.del':
                     counter++;
-                    ccm.del( action[ 1 ], action[ 2 ], setResult );
+                    self.del( action[ 1 ], action[ 2 ], setResult );
                     break;
                 }
 
@@ -1888,7 +1883,7 @@ var ccm = function () {
                 function proxy( component, config, instance_or_array, key, parent ) {
 
                   // load instance configuration if necessary (asynchron)
-                  ccm.helper.isDependency( config ) ? ccm.get( config[ 1 ], config[ 2 ], proceed ) : proceed( config );
+                  self.helper.isDependency( config ) ? self.get( config[ 1 ], config[ 2 ], proceed ) : proceed( config );
 
                   function proceed( config ) {
 
@@ -1899,8 +1894,8 @@ var ccm = function () {
                         delete this.component;
                         delete this.start;
                         if ( !config ) config = {};
-                        ccm.helper.integrate( this, config );
-                        ccm.start( component, config, function ( instance ) {
+                        self.helper.integrate( this, config );
+                        self.start( component, config, function ( instance ) {
                           instance_or_array[ key ] = instance;
                           if ( callback ) callback();
                         } );
@@ -1928,7 +1923,7 @@ var ccm = function () {
               if ( counter === 0 ) {
 
                 // waitlist not empty? => continue with waiting unsolved dependencies
-                if ( waiter.length > 0 ) return ccm.helper.action( waiter.shift() );    // recursive call
+                if ( waiter.length > 0 ) return self.helper.action( waiter.shift() );    // recursive call
 
                 // initialize created instances (start recursive with result instance)
                 initialize( result, function () {
@@ -1984,13 +1979,13 @@ var ccm = function () {
                   var value = obj[ key ];
 
                   // value is a ccm instance? (but not parent and not a ccm proxy instance) => add to founded relevant inner object and arrays
-                  if ( ccm.helper.isInstance( value ) && key !== 'parent' && !ccm.helper.isProxy( value) ) inner.push( value );
+                  if ( self.helper.isInstance( value ) && key !== 'parent' && !self.helper.isProxy( value) ) inner.push( value );
 
                   // value is an array or object?
-                  else if ( Array.isArray( value ) || ccm.helper.isObject( value ) ) {
+                  else if ( Array.isArray( value ) || self.helper.isObject( value ) ) {
 
                     // not relevant object type? => skip
-                    if ( ccm.helper.isNode( value ) || ccm.helper.isComponent( value ) || ccm.helper.isInstance( value ) ) continue;
+                    if ( self.helper.isNode( value ) || self.helper.isComponent( value ) || self.helper.isInstance( value ) ) continue;
 
                     // add to founded relevant inner object and arrays
                     inner.push( value );
@@ -2000,7 +1995,7 @@ var ccm = function () {
                 }
 
                 // add founded inner ccm instances and datastores to results
-                inner.map( function ( obj ) { if ( ccm.helper.isInstance( obj ) || ccm.helper.isDatastore( obj ) ) results.push( obj ); } );
+                inner.map( function ( obj ) { if ( self.helper.isInstance( obj ) || self.helper.isDatastore( obj ) ) results.push( obj ); } );
 
                 // go deeper (recursive calls)
                 inner.map( function ( obj ) { find( obj ); } );
@@ -2073,7 +2068,7 @@ var ccm = function () {
       if ( typeof config === 'function' ) { callback = config; config = undefined; }
 
       // create ccm instance out of ccm component
-      ccm.instance( component, config, function ( instance ) {
+      self.instance( component, config, function ( instance ) {
 
         // start ccm instance
         instance.start( function () {
@@ -2125,10 +2120,10 @@ var ccm = function () {
       if ( !settings ) settings = {};
 
       // given settings are an URL or a collection of ccm datasets? => wrap object
-      if ( typeof settings === 'string' || ( ccm.helper.isObject( settings ) && !settings.local && !settings.store && !settings.url && !settings.delayed && !settings.user ) ) settings = { local: settings };
+      if ( typeof settings === 'string' || ( self.helper.isObject( settings ) && !settings.local && !settings.store && !settings.url && !settings.delayed && !settings.user ) ) settings = { local: settings };
 
       // make deep copy of given settings
-      settings = ccm.helper.clone( settings );
+      settings = self.helper.clone( settings );
 
       /**
        * ccm datastore source
@@ -2154,7 +2149,7 @@ var ccm = function () {
       if ( !settings.local ) settings.local = {};
 
       // local cache is an URL? => load initial datasets for local cache (could be asynchron)
-      if ( typeof settings.local === 'string' ) ccm.load( settings.local, proceed ); else return proceed( settings.local );
+      if ( typeof settings.local === 'string' ) self.load( settings.local, proceed ); else return proceed( settings.local );
 
       /**
        * proceed with creating ccm datastore
@@ -2271,7 +2266,7 @@ var ccm = function () {
           var store = new Datastore();
 
           // integrate settings in ccm datastore
-          ccm.helper.integrate( settings, store );
+          self.helper.integrate( settings, store );
 
           // is ccm realtime datastore?
           if ( store.url && store.url.indexOf( 'ws' ) === 0 ) {
@@ -2338,7 +2333,7 @@ var ccm = function () {
      */
     get: function ( settings, key_or_query, callback ) {
 
-      ccm.store( settings, function ( store ) {
+      self.store( settings, function ( store ) {
 
         var property;
         if ( typeof key_or_query === 'string' ) property = key_or_query.split( '.' );
@@ -2347,7 +2342,7 @@ var ccm = function () {
 
         store.get( key_or_query, function ( result ) {
 
-          callback( property ? ccm.helper.deepValue( result, property ) : result );
+          callback( property ? self.helper.deepValue( result, property ) : result );
 
         } );
 
@@ -2357,7 +2352,7 @@ var ccm = function () {
 
     set: function ( settings, priodata, callback ) {
 
-      ccm.store( settings, function ( store ) {
+      self.store( settings, function ( store ) {
 
         store.set( priodata, callback );
 
@@ -2367,7 +2362,7 @@ var ccm = function () {
 
     del: function ( settings, key, callback ) {
 
-      ccm.store( settings, function ( store ) {
+      self.store( settings, function ( store ) {
 
         store.del( key, callback );
 
@@ -2434,116 +2429,16 @@ var ccm = function () {
         // is function without parameters? => perform function
         if ( typeof action === 'function' ) return action();
 
-        // Funktionsname und Parameter als String angegeben?
-        if ( typeof action !== 'object' ) {
-
-          // In Array verpacken
+        if ( typeof action !== 'object' )
           action = action.split( ' ' );
-        }
 
-        // Aktion ausführen
         if ( typeof action[ 0 ] === 'function' )
           return action[ 0 ].apply( window, action.slice( 1 ) );
         else
-          if ( action[ 0 ].indexOf( 'this.' ) === 0 )
-            return this.executeByName( action[ 0 ].substr( 5 ), action.slice( 1 ), context );
-          else
-            return this.executeByName( action[ 0 ], action.slice( 1 ) );
-      },
-
-      /**
-       * @summary convert inner <i>ccm</i> component HTML tags of an given <i>ccm</i> instance to accessible <i>ccm</i> instances
-       * @description
-       * This function does the following things:
-       * <ul>
-       *   <li>catches all HTML tags for embedding of <i>ccm</i> components inside the childNode property of an <i>ccm</i> instance</li>
-       *   <li>creates for each founded <i>ccm</i> component HTML tag an new ccm instance out of the corresponding <i>ccm</i> component</li>
-       *   <li>gives every created <i>ccm</i> instance a new empty website area</li>
-       *   <li>replaces every founded <i>ccm</i> component HTML tag with the website area of the corresponding created <i>ccm</i> instance</li>
-       *   <li>put each created <i>ccm</i> instance in the new object at the childInstances property of the given <i>ccm</i> instance</li>
-       * </ul>
-       * @param {ccm.types.instance} instance - given <i>ccm</i> instance
-       * @param {function} callback
-       */
-      convertComponentTags: function ( instance, callback ) {  // TODO: not a framework relevant helper function
-
-        // counter for unfinished asynchron tasks
-        var counter = 1;
-
-        // no childNodes property? => abort and perform callback
-        if ( !Array.isArray( instance.childNodes ) ) return callback();
-
-        instance.childInstances = {};  // TODO: instance.childInstances
-
-        // start recursive search for ccm custom elements
-        recursive( instance.childNodes );
-
-        check();
-
-        function recursive( children ) {
-
-          children.map( function ( child, i ) {
-
-            // child is no element node? => skip
-            if ( !ccm.helper.isElementNode( child ) ) return;
-
-            // child is no ccm specific HTML tag? => skip and search children of the child (recursive call)
-            if ( child.tagName.indexOf( 'CCM-' ) !== 0 ) return recursive( ccm.helper.makeIterable( child.childNodes ) );
-
-            var split = child.tagName.toLowerCase().split( '-' );
-
-            // child is a custom element of the ccm component? => skip
-            if ( split[ 1 ] === instance.component.name && split.length > 2 ) return;
-
-            // from here: child is a founded ccm custom element
-            // next step: replace child with website area for new ccm instance
-
-            counter++;
-
-            // missing part for config property in tag name? => use component name as default
-            if ( split.length < 3 ) split[ 2 ] = split[ 1 ];
-
-            // prepare website area
-            var div = document.createElement( 'div' );
-            div.setAttribute( 'id', ccm.helper.getElementID( instance ) + '-' + split[ 2 ] );
-
-            // prepare instance configuration
-            var config = ccm.helper.generateConfig( child );
-            config.parent = instance;
-            config.element = div;
-
-            // replace child with website area
-            if ( child.parentNode )
-              child.parentNode.replaceChild( div, child );
-            else
-              children[ i ] = div;
-
-            // create new ccm instance and add it to childInstances property of the given ccm instance
-            closure( instance, split[ 1 ], config, split[ 2 ] );
-
-            // do it in additional closure because of map iteration in recursive call in combination with asynchron operations (needed?)
-            function closure( instance, name, config, key ) {
-
-              // check if there is a individual ccm component object in current ccm context that could be used for instance creation
-              var component = ccm.context.find( instance, name );
-              if ( ccm.helper.isComponent( component ) && component.name === name )
-                component.instance( config, proceed );  // create ccm instance out of a individual ccm component object (with other default values for instance configuration)
-              else
-                ccm.instance( name, config, proceed );  // create ccm instance out of the unique registered ccm component object within the ccm framework
-
-              function proceed( result ) {
-                instance.childInstances[ key ] = result;
-                check();
-              }
-            }
-          } );
-        }
-
-        function check() {
-          counter--;
-          if ( counter == 0 ) callback();  // perform callback after all ccm custom HTML tags are converted
-        }
-
+        if ( action[ 0 ].indexOf( 'this.' ) === 0 )
+          return this.executeByName( action[ 0 ].substr( 5 ), action.slice( 1 ), context );
+        else
+          return this.executeByName( action[ 0 ], action.slice( 1 ) );
       },
 
       /**
@@ -2557,9 +2452,9 @@ var ccm = function () {
 
         function recursive( value ) {
 
-          if ( ccm.helper.isNode( value ) || ccm.helper.isInstance( value ) ) return value;
+          if ( self.helper.isNode( value ) || self.helper.isInstance( value ) ) return value;
 
-          if ( Array.isArray( value ) || ccm.helper.isObject( value ) ) {
+          if ( Array.isArray( value ) || self.helper.isObject( value ) ) {
             var copy = Array.isArray( value ) ? [] : {};
             for ( var i in value )
               copy[ i ] = recursive( value[ i ] );
@@ -2573,50 +2468,32 @@ var ccm = function () {
       },
 
       /**
-       * @summary get dataset via object informations
-       * @description
-       * If the object informations includes a <i>ccm</i> datastore and key and
-       * if dataset not exists, a new dataset with given key will be created.
-       * @param {ccm.Datastore|{store: ccm.Datastore, key: ccm.key}|ccm.dataset} obj - object with informations how to get the dataset
-       * @param {function} [callback] - callback (first parameter is result dataset)
-       * @returns {ccm.types.dataset} resulting dataset (only if synchron and dataset exists)
+       * @summary converts dot notations in object keys to deeper properties
+       * @param {object} obj - contains object keys in dot notation
+       * @returns {object} object with converted object keys
+       * @example
+       * var obj = { test: 123, 'foo.bar': 'abc', 'foo.baz': 'xyz' };
+       * var result = ccm.helper.convertObjectKeys( obj );
+       * console.log( result );  // => { test: 123, foo: { bar: 'abc', baz: 'xyz' } }
        */
-      dataset: function ( obj, callback ) {  // TODO: not a framework relevant helper function
+      convertObjectKeys: function ( obj ) {
 
-        // no object => abort
-        if ( !ccm.helper.isObject( obj ) ) { if ( callback ) callback(); return undefined; }
-
-        // object is datastore directly? => transform to object with datastore and without key
-        if ( ccm.helper.isDatastore( obj ) ) obj = { store: obj };
-
-        // object is dataset directly? => return dataset
-        if ( !ccm.helper.isDatastore( obj.store ) ) { obj = ccm.helper.clone( obj ); if ( callback ) callback( obj ); return obj; }
-
-        // get dataset from ccm datastore
-        return obj.store.get( obj.key || null, function ( dataset ) {
-
-          // no callback? => abort
-          if ( !callback ) return;
-
-          /**
-           * dataset exists?
-           * @type {boolean}
-           */
-          var exists = dataset !== null;
-
-          // dataset not exists? => perform callback with new dataset (not created in datastore)
-          if ( !exists ) callback( { key: obj.key || ccm.helper.generateKey() }, true );
-
-          // dataset exists => perform callback with dataset
-          else callback( dataset );
-
+        var keys = Object.keys( obj );
+        keys.map( function ( key ) {
+          if ( key.indexOf( '.' ) !== -1 ) {
+            self.helper.deepValue( obj, key, obj[ key ] );
+            delete obj[ key ];
+          }
         } );
+        return obj;
 
       },
 
-      dataSource: function ( data ) {  // TODO: not a framework relevant helper function
+      decodeDependencies: function ( obj ) {
 
-        return ccm.helper.isDatastore( data.store ) ? { key: data.key, store: data.store.source(), dataset: data.store.get( data.key ) } : data;
+        for ( var key in obj )
+          if ( typeof obj[ key ] === 'string' && /^\[\W*ccm\.\w+.*\]$/.test( obj[ key ] ) )
+            obj[ key ] = JSON.parse( obj[ key ].replace( /'/g, '"' ) );
 
       },
 
@@ -2662,6 +2539,14 @@ var ccm = function () {
 
       },
 
+      encodeDependencies: function ( obj ) {
+
+        for ( var key in obj )
+          if ( self.helper.isDependency( obj[ key ] ) )
+            obj[ key ] = JSON.stringify( obj[ key ] ).replace( /"/g, "'" );
+
+      },
+
       /**
        * @summary perform function by function name
        * @param {string} functionName - function name
@@ -2680,63 +2565,14 @@ var ccm = function () {
         return context[ functionName ].apply( context, args );
       },
 
-      /**
-       * @summary removes identical property values in priority data
-       * @param {object} priodata - priority dataset
-       * @param {object} dataset - dataset
-       * @returns {object} priority data with removed identical property values
-       */
-      filter: function ( priodata, dataset ) {  // TODO: not a framework relevant helper function
-
-        // Kopie von Prioritätsdaten verwenden
-        priodata = ccm.helper.clone( priodata );
-
-        // Identische Einträge entfernen
-        for ( var i in priodata )
-          if ( priodata[ i ] === dataset[ i ] )
-            delete priodata[ i ];
-      },
-
       filterProperties: function ( obj, properties ) {
         var result = {};
-        properties = ccm.helper.makeIterable( arguments );
+        properties = self.helper.makeIterable( arguments );
         properties.shift();
         properties.map( function ( property ) {
           result[ property ] = obj[ property ];
         } );
         return result;
-      },
-
-      /**
-       * @summary find HTML tags of an <i>ccm</i> instance inside a HTML element node with a CSS selector
-       * @param {ccm.types.instance} instance - <i>ccm</i> instance
-       * @param {ccm.types.element} [element] - HTML element node (default: website area of <i>ccm</i> instance)
-       * @param {string} selector - CSS selector
-       */
-      find: function ( instance, element, selector ) {
-
-        // element parameter is skippable
-        if ( typeof element === 'string' ) { selector = element; element = undefined; }
-
-        // no given element parameter? => use website area of ccm instance
-        if ( !element ) element = instance.element;
-
-        var id = ccm.helper.getElementID( instance );
-        return element.querySelectorAll( '#' + id + ' ' + selector + ':not(.ccm, #' + id + ' .ccm *)' );
-
-      },
-
-      /**
-       * @summary focus input field and set cursor to a specific position
-       * @param {ccm.types.element} input - HTML element node of the input field
-       * @param {number} [position] - cursor position (default: behind last character)
-       */
-      focusInput: function( input, position ) {  // TODO: not a framework relevant helper function
-
-        if ( position === undefined ) position = input.value.length;
-        input.selectionStart = input.selectionEnd = position;
-        input.focus();
-
       },
 
       /**
@@ -2780,18 +2616,33 @@ var ccm = function () {
 
       },
 
-      /*
-       * @summary Schaltet Inhalt eines Containers auf Vollbildmodus
-       * TODO: Vollbildmodus
-       *
-       fullscreen: function ( container ) {
-
-       //var html = jQuery( 'body' ).clone();
-       //jQuery( 'body' ).html( html );
-       //        jQuery( 'body' ).html( container );
-       //        container.click( function () { jQuery( 'body' ).html( html ); } );
-       },
+      /**
+       * @summary gets the input data of a HTML form
+       * @param {Element} form - HTML element of the HTML form
+       * @returns {object} input data
+       * @example
+       * var result = ccm.helper.formData( document.getElementsById( 'form_id' ) );
+       * console.log( result );  // { username: 'JohnDoe', password: '1aA' }
        */
+      formData: function ( form ) {
+
+        var data = {};
+        self.helper.makeIterable( form.querySelectorAll( '*[name]' ) ).map( function ( input ) {
+          if ( input.getAttribute( 'type' ) === 'radio' ) {
+            if ( input.checked ) data[ input.getAttribute( 'name' ) ] = input.value;
+          }
+          else if ( input.getAttribute( 'type' ) === 'checkbox' )
+            data[ input.getAttribute( 'name' ) ] = input.checked ? ( input.value === 'on' ? true : input.value ) : '';
+          else if ( input.getAttribute( 'type' ) === 'number' )
+            data[ input.getAttribute( 'name' ) ] = parseInt( input.value ) || '';
+          else if ( !input.value )
+            data[ input.getAttribute( 'name' ) ] = '';
+          else
+            data[ input.getAttribute( 'name' ) ] = input.value;
+        } );
+        return data;
+
+      },
 
       /**
        * @summary generate instance configuration out of a HTML tag
@@ -2807,7 +2658,7 @@ var ccm = function () {
 
         function catchAttributes( node, obj ) {
 
-          ccm.helper.makeIterable( node.attributes ).map( function ( attr ) {
+          self.helper.makeIterable( node.attributes ).map( function ( attr ) {
             if ( attr.name !== 'src' ||
                 ( node.tagName.indexOf( 'CCM-COMPONENT' ) !== 0
                 && node.tagName.indexOf( 'CCM-INSTANCE'  ) !== 0
@@ -2820,18 +2671,18 @@ var ccm = function () {
         function catchInnerTags( node ) {
 
           config.childNodes = [];
-          ccm.helper.makeIterable( node.childNodes ).map( function ( child ) {
+          self.helper.makeIterable( node.childNodes ).map( function ( child ) {
             if ( child.tagName && child.tagName.indexOf( 'CCM-' ) === 0 ) {
               var split = child.tagName.toLowerCase().split( '-' );
               if ( split.length < 3 ) split[ 2 ] = split[ 1 ];
               switch ( split[ 1 ] ) {
                 case 'load':
-                  ccm.helper.deepValue( config, split[ 2 ], interpretLoadTag( child, split[ 2 ] ) );
+                  self.helper.deepValue( config, split[ 2 ], interpretLoadTag( child, split[ 2 ] ) );
                   break;
                 case 'component':
                 case 'instance':
                 case 'proxy':
-                  ccm.helper.deepValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], child.getAttribute( 'src' ) || split[ 2 ], ccm.helper.generateConfig( child ) ] );
+                  self.helper.deepValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], child.getAttribute( 'src' ) || split[ 2 ], self.helper.generateConfig( child ) ] );
                   break;
                 case 'store':
                 case 'get':
@@ -2839,11 +2690,11 @@ var ccm = function () {
                   catchAttributes( child, settings );
                   var key = settings.key;
                   delete settings.key;
-                  ccm.helper.deepValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], settings, key ] );
+                  self.helper.deepValue( config, split[ 2 ], [ 'ccm.' + split[ 1 ], settings, key ] );
                   break;
                 case 'list':
                   var list = null;
-                  ccm.helper.makeIterable( child.children ).map( function ( entry ) {
+                  self.helper.makeIterable( child.children ).map( function ( entry ) {
                     if ( entry.tagName && entry.tagName.indexOf( 'CCM-ENTRY' ) === 0 ) {
                       var value = prepareValue( entry.getAttribute( 'value' ) );
                       var split = entry.tagName.toLowerCase().split( '-' );
@@ -2852,12 +2703,12 @@ var ccm = function () {
                       if ( split.length < 3 )
                         list.push( value );
                       else
-                        ccm.helper.deepValue( list, split[ 2 ], value );
+                        self.helper.deepValue( list, split[ 2 ], value );
                     }
                   } );
                   if ( !list ) list = {};
                   catchAttributes( child, list );
-                  if ( list ) ccm.helper.deepValue( config, split[ 2 ], list );
+                  if ( list ) self.helper.deepValue( config, split[ 2 ], list );
                   break;
                 default:
                   config.childNodes.push( child );
@@ -2869,7 +2720,7 @@ var ccm = function () {
               node.removeChild( child );
             }
           } );
-          config.node = ccm.helper.html( {} );
+          config.node = self.helper.html( {} );
           config.childNodes.map( function ( child ) {
             config.node.appendChild( child );
           } );
@@ -2887,16 +2738,16 @@ var ccm = function () {
                 if ( node.children.length === 0 )
                   return node.getAttribute( 'src' );
                 var data = {};
-                ccm.helper.makeIterable( node.children ).map( function ( child ) {
+                self.helper.makeIterable( node.children ).map( function ( child ) {
                   if ( child.tagName && child.tagName.indexOf( 'CCM-DATA-' ) === 0 )
                     data[ child.tagName.toLowerCase().split( '-' )[ 2 ] ] = child.getAttribute( 'value' );
                 } );
                 return [ node.getAttribute( 'src' ), data ];
               }
               var params = [];
-              ccm.helper.makeIterable( node.children ).map( function ( child ) {
+              self.helper.makeIterable( node.children ).map( function ( child ) {
                 if ( child.tagName === 'CCM-SERIAL' && ( node.tagName === 'CCM-PARALLEL' || node.tagName.indexOf( 'CCM-LOAD' ) === 0 )
-                  || child.tagName === 'CCM-PARALLEL' && node.tagName === 'CCM-SERIAL' )
+                    || child.tagName === 'CCM-PARALLEL' && node.tagName === 'CCM-SERIAL' )
                   params.push( generateParameters( child ) );
               } );
               return params;
@@ -2936,47 +2787,6 @@ var ccm = function () {
       },
 
       /**
-       * @summary get cursor position in a input field
-       * @param {ccm.types.element} input - input field
-       * @returns {number}
-       */
-      getCursor: function ( input ) {  // TODO: not a framework relevant helper function
-
-        return input.get( 0 ).selectionStart;
-
-      },
-
-      /*
-       * @summary ...
-       * @returns {object}
-       *
-       getDateTime: function getDateTime( date, lang ) {
-
-       if ( !date ) date = new Date();
-
-       var result = {
-
-       date: date,
-       d:    date.getDate(),
-       m:    date.getMonth() + 1,
-       yyyy: date.getFullYear(),
-       h:    date.getHours(),
-       min:  date.getMinutes()
-
-       };
-
-       result.dd     = ( result.d   < 10 ? '0' : '' ) + result.d;
-       result.mm     = ( result.m   < 10 ? '0' : '' ) + result.m;
-       result.yy     = ( result.yyyy % 100 ) + '';
-       result.hh     = ( result.h   < 10 ? '0' : '' ) + result.h;
-       result.minmin = ( result.min < 10 ? '0' : '' ) + result.min;
-
-       return result;
-
-       },
-       */
-
-      /**
        * @summary get HTML DOM ID of the website area for the content of an <i>ccm</i> instance
        * @param {ccm.types.instance} instance - <i>ccm</i> instance
        * @returns {string}
@@ -2985,6 +2795,11 @@ var ccm = function () {
 
         return 'ccm-' + instance.index;
 
+      },
+
+      hide: function ( instance ) {
+        instance.element.parentNode.appendChild( self.helper.loading( instance ) );
+        instance.element.style.display = 'none';
       },
 
       /**
@@ -2996,13 +2811,13 @@ var ccm = function () {
       html: function( html, values ) {
 
         // HTML element instead of HTML data? => abort (result is given HTML element)
-        if ( ccm.helper.isNode( html ) ) return html;
+        if ( self.helper.isNode( html ) ) return html;
 
         // clone HTML data
-        html = ccm.helper.clone( html );
+        html = self.helper.clone( html );
 
         // replace placeholder
-        if ( arguments.length > 1 ) html = ccm.helper.format.apply( this, arguments );
+        if ( arguments.length > 1 ) html = self.helper.format.apply( this, arguments );
 
         // get more than one HTML tag?
         if ( Array.isArray( html ) ) {
@@ -3010,26 +2825,22 @@ var ccm = function () {
           // generate each HTML tag
           var result = [];
           for ( var i = 0; i < html.length; i++ )
-            result.push( ccm.helper.html( html[ i ] ) );       // recursive call
+            result.push( self.helper.html( html[ i ] ) );       // recursive call
           return result;
 
         }
 
         // get string instead of ccm html data? => remove script tags
-        if ( typeof html === 'string' || typeof html === 'number' ) return document.createTextNode( ccm.helper.noScript( html ) );
+        if ( typeof html === 'string' || typeof html === 'number' ) return document.createTextNode( html );
 
         // get no ccm html data? => return parameter value
         if ( typeof html !== 'object' ) return html;
-
-        // has only key and inner property? => skip and continue with inner
-        if ( Object.keys( html ).toString() === 'key,inner' )
-          return ccm.helper.html( html.inner );                // recursive call
 
         /**
          * HTML tag
          * @type {ccm.types.element}
          */
-        var element = document.createElement( ccm.helper.htmlEncode( html.tag || 'div' ) );
+        var element = document.createElement( self.helper.htmlEncode( html.tag || 'div' ) );
 
         // remove 'tag' and 'key' property
         delete html.tag; delete html.key;
@@ -3046,7 +2857,7 @@ var ccm = function () {
           // interpret ccm html data property
           switch ( key ) {
 
-            // HTML boolean attributes
+              // HTML boolean attributes
             case 'async':
             case 'autofocus':
             case 'checked':
@@ -3060,7 +2871,7 @@ var ccm = function () {
               if ( value ) element[ key ] = true;
               break;
 
-            // inner HTML
+              // inner HTML
             case 'inner':
               var children = this.html( value );  // recursive call
               if ( !Array.isArray( children ) )
@@ -3069,18 +2880,18 @@ var ccm = function () {
                 element.appendChild( children[ i ] );
               break;
 
-            // HTML value attributes and events
+              // HTML value attributes and events
             default:
               if ( key.indexOf( 'on' ) === 0 && typeof value === 'function' )  // is HTML event
                 element.addEventListener( key.substr( 2 ), value );
               else                                                             // is HTML value attribute
-                element.setAttribute( key, ccm.helper.htmlEncode( value ) );
+                element.setAttribute( key, self.helper.htmlEncode( value ) );
           }
 
         }
 
         // return generated HTML
-        return element;
+        return self.helper.protect( element );
 
       },
 
@@ -3099,18 +2910,6 @@ var ccm = function () {
         value = document.createElement( 'a' ).appendChild( document.createTextNode( value ) ).parentNode.innerHTML;
         value = quot || quot === undefined ? value.replace( /"/g, '&quot;' ) : value;
         return value;
-
-      },
-
-      /**
-       * @summary HTML-decode a sting
-       * @see http://stackoverflow.com/questions/1219860/html-encoding-in-javascript-jquery
-       * @param {string} value - string
-       * @returns {string} HTML-decoded string
-       */
-      htmlDecode: function ( value ) {
-
-        return jQuery( '<div>' ).html( value ).text();
 
       },
 
@@ -3151,7 +2950,7 @@ var ccm = function () {
         for ( var key in priodata ) {
 
           // set value for the same property in the given dataset
-          ccm.helper.deepValue( dataset, key, priodata[ key ] );
+          self.helper.deepValue( dataset, key, priodata[ key ] );
 
         }
 
@@ -3167,7 +2966,7 @@ var ccm = function () {
        */
       isComponent: function ( value ) {
 
-        return ccm.helper.isObject( value ) && value.Instance && true;
+        return self.helper.isObject( value ) && value.Instance && true;
 
       },
 
@@ -3178,7 +2977,7 @@ var ccm = function () {
        */
       isDataset: function ( value ) {
 
-        return ccm.helper.isObject( value );
+        return self.helper.isObject( value );
 
       },
 
@@ -3189,7 +2988,7 @@ var ccm = function () {
        */
       isDatastore: function ( value ) {
 
-        return ccm.helper.isObject( value ) && value.get && value.set && value.del && true;
+        return self.helper.isObject( value ) && value.get && value.set && value.del && true;
 
       },
 
@@ -3212,24 +3011,15 @@ var ccm = function () {
         if ( Array.isArray( value ) )
           if ( value.length > 0 )
             switch ( value[ 0 ] ) {
-              case ccm.load:
-              case "ccm.load":
-              case ccm.component:
-              case "ccm.component":
-              case ccm.instance:
-              case "ccm.instance":
-              case ccm.proxy:
-              case "ccm.proxy":
-              case ccm.start:
-              case "ccm.start":
-              case ccm.store:
-              case "ccm.store":
-              case ccm.get:
-              case "ccm.get":
-              case ccm.set:
-              case "ccm.set":
-              case ccm.del:
-              case "ccm.del":
+              case 'ccm.load':
+              case 'ccm.component':
+              case 'ccm.instance':
+              case 'ccm.proxy':
+              case 'ccm.start':
+              case 'ccm.store':
+              case 'ccm.get':
+              case 'ccm.set':
+              case 'ccm.del':
                 return true;
             }
 
@@ -3244,23 +3034,14 @@ var ccm = function () {
        */
       isElementNode: function ( value ) {
 
-        return !!( ccm.helper.isNode( value ) && value.tagName );
+        return value instanceof Element;
+        //return self.helper.isNode( value ) && value.tagName && true;
 
       },
 
-      /**
-       * @summary checks if a HTML element node exists in a DOM structure
-       * @description
-       * If <code>node</code> or <code>root</code> is an <i>ccm</i> instance, than the website area of this instance is used.
-       * Returns <code>true</code> if <code>node</code> or <code>root</code> are equal.
-       * @param {ccm.types.node} node - HTML element node
-       * @param {ccm.types.node|ccm.types.instance} [root] - root of the DOM structure that has to be checked, default is <code>document.body</code>
-       * @returns {boolean}
-       */
-      isInDOM: function ( node, root ) {
+      isGoogleChrome: function () {
 
-        if ( ccm.helper.isInstance( root ) ) root = root.element;
-        return ( root ? root : document.body ).contains( node );
+        return /Chrome/.test( navigator.userAgent ) && /Google Inc/.test( navigator.vendor );
 
       },
 
@@ -3271,7 +3052,7 @@ var ccm = function () {
        */
       isInstance: function ( value ) {
 
-        return ccm.helper.isObject( value ) && value.component && true;
+        return self.helper.isObject( value ) && value.component && true;
 
       },
 
@@ -3302,11 +3083,10 @@ var ccm = function () {
        * @param {*} value - value to check
        * @returns {boolean}
        * @example
-       *
        */
       isProxy: function ( value ) {
 
-        return ccm.helper.isInstance( value ) && typeof value.component === 'string';
+        return self.helper.isInstance( value ) && typeof value.component === 'string';
 
       },
 
@@ -3346,6 +3126,25 @@ var ccm = function () {
       },
 
       /**
+       * @summary returns a <i>ccm</i> loading icon as HTML node element
+       * @param {ccm.instance} instance - <i>ccm instance</i> (for determining Shadow DOM)
+       * @types {ccm.types.node}
+       * @example document.body.appendChild( ccm.helper.loading() );
+       */
+      loading: function ( instance ) {
+
+        // set keyframe for ccm loading icon animation
+        if ( !instance.element.parentNode.querySelector( '#ccm_keyframe' ) ) {
+          var style = document.createElement( 'style' );
+          style.id = 'ccm_keyframe';
+          style.appendChild( document.createTextNode( '@keyframes ccm_loading { to { transform: rotate(360deg); } }' ) );
+          instance.element.parentNode.appendChild( style );
+        }
+
+        return self.helper.html( { class: 'ccm_loading', inner: { style: 'display: inline-block; width: 0.5em; height: 0.5em; border: 0.15em solid #009ee0; border-right-color: transparent; border-radius: 50%; animation: ccm_loading 1s linear infinite;' } } );
+      },
+
+      /**
        * @summary make something that's nearly array-like iterable (see examples)
        * @param array_like
        * @returns {Array}
@@ -3364,22 +3163,95 @@ var ccm = function () {
       },
 
       /**
-       * @summary remove script tags in a string to prevent XSS attacks (XSS = Cross-Site-Scripting)
-       * @param {string} string
-       * @returns {string} string without script tags
+       * @summary performs minor finish actions
+       * @param {ccm.types.instance} instance - finished <i>ccm</i> instance
+       * @param {function|object} instance.onfinish - finish callback or settings for minor finish actions
+       * @param {ccm.types.instance} [instance.onfinish.user] - <i>ccm</i> user instance (user will be logged in if not already logged in)
+       * @param {ccm.types.key} [instance.onfinish.key] - dataset key for result data
+       * @param {ccm.types.settings} [instance.onfinish.store_settings] - settings for a <i>ccm</i> datastore (result data will be set in this datastore)
+       * @param {object} [instance.onfinish.permissions] - permission settings for set operation
+       * @param {boolean} [instance.onfinishn.user_specific] - do the set operation with a user-specific dataset key
+       * @param {boolean} [instance.onfinish.restart] - restart finished <i>ccm</i> instance
+       * @param {string} [instance.onfinish.embed_code] - show embed code if results are a instance configuration (value is component name)
+       * @param {callback} [instance.onfinish.callback] - additional individual finish callback (will be called after the performed minor actions)
+       * @param {object} results - result data
        * @example
-       * var string = 'Hello, world!<script type="text/javascript">alert("XSS");</script>'
-       * var result = ccm.helper.noScript( string );
-       * console.log( result );  // => 'Hello, world!'
+       * instance.onfinish = {
+       *   user: instance.user,
+       *   key: 'example',
+       *   store_settings: { store: 'example', url: 'path/to/server/interface.php' },
+       *   permissions: {
+       *     creator: 'akless2m',
+       *     group: {
+       *       mkaul2m: true,
+       *       akless2s: true
+       *     },
+       *     access: {
+       *       get: 'all',
+       *       set: 'group',
+       *       del: 'creator'
+       *     }
+       *   },
+       *   user_specific: true,
+       *   embed_code: 'component_name',
+       *   restart: true,
+       *   callback: function ( instance, results ) { console.log( results ); }
+       * };
        */
-      noScript: function ( string ) {
+      onFinish: function ( instance, results ) {
 
-        var tag = document.createElement( 'div' );
-        tag.innerHTML = string;
-        ccm.helper.makeIterable( tag.getElementsByTagName( 'script' ) ).map( function ( child ) {
-          child.parentNode.removeChild( child );
-        } );
-        return tag.innerHTML;
+        // has only function? => abort and call it as finish callback
+        if ( typeof instance.onfinish === 'function' ) return instance.onfinish( instance, results );
+
+        // has user instance? => login user
+        if ( instance.onfinish.user ) instance.onfinish.user.login( proceed ); else proceed();
+
+        function proceed() {
+
+          // has to add a dataset key to result data? => do it (if not already exists)
+          if ( instance.onfinish.key && !results.key ) results.key = instance.onfinish.key;
+
+          // has to store result data in a ccm datastore?
+          if ( instance.onfinish.store_settings ) {
+
+            /**
+             * dataset which contains resulting data
+             * @type {ccm.types.dataset}
+             */
+            var dataset = self.helper.clone( results );
+
+            // has to add permission settings? => do it
+            if ( instance.onfinish.permissions ) dataset._ = instance.onfinish.permissions;
+
+            // need user-specific dataset? => make dataset key user-specific
+            if ( instance.onfinish.user && instance.onfinish.user_specific ) dataset.key = [ dataset.key || self.helper.generateKey(), instance.onfinish.user.data().key ];
+
+            // set dataset in ccm datastore
+            self.set( instance.onfinish.store_settings, dataset, function ( result ) {
+
+              // show embed code
+              if ( instance.onfinish.embed_code ) alert( '<ccm-' + instance.onfinish.embed_code + ' key=\'["ccm.get",' + JSON.stringify( instance.onfinish.store_settings ) + ',"' + result.key + '"]\'></ccm-' + instance.onfinish.embed_code + '>' );
+
+              proceed();
+            } );
+
+          } else proceed();
+
+          function proceed() {
+
+            // has to restart the ccm instance? => do it
+            if ( instance.onfinish.restart ) instance.start( proceed ); else proceed();
+
+            function proceed() {
+
+              // has to a perform a callback? => do it
+              if ( instance.onfinish.callback ) instance.onfinish.callback( instance, results );
+
+            }
+
+          }
+
+        }
 
       },
 
@@ -3453,6 +3325,7 @@ var ccm = function () {
 
         function privatizeProperty( key ) {
           switch ( key ) {
+            case 'ccm':
             case 'childNodes':
             case 'component':
             case 'element':
@@ -3463,13 +3336,30 @@ var ccm = function () {
             case 'parent':
               break;
             default:
-              if ( ccm.helper.isInstance( instance[ key ] ) && instance[ key ].parent && instance[ key ].parent.index === instance.index ) return;
+              if ( self.helper.isInstance( instance[ key ] ) && instance[ key ].parent && instance[ key ].parent.index === instance.index ) return;
               if ( typeof instance[ key ] === 'function' ) return;
               if ( instance[ key ] !== undefined ) obj[ key ] = instance[ key ];
               delete instance[ key ];
           }
         }
 
+      },
+
+      protect: function ( value ) {
+        if ( self.helper.isElementNode( value ) ) {
+          self.helper.makeIterable( value.getElementsByTagName( 'script' ) ).map( function ( script ) {
+            script.parentNode.removeChild( script );
+          } );
+          return value;
+        }
+        if ( typeof value === 'string' ) {
+          var tag = document.createElement( 'div' );
+          tag.innerHTML = value;
+          self.helper.makeIterable( tag.getElementsByTagName( 'script' ) ).map( function ( script ) {
+            script.parentNode.removeChild( script );
+          } );
+          return tag.innerHTML;
+        }
       },
 
       /**
@@ -3515,6 +3405,33 @@ var ccm = function () {
 
       },
 
+      removeElement: function ( element ) {
+        if ( element.parentNode ) element.parentNode.removeChild( element );
+      },
+
+      /**
+       * @summary set the content of an HTML element
+       * @param {ccm.types.element} element - HTML element
+       * @param {string|ccm.types.element|ccm.types.element[]} content - HTML element or HTML string for content
+       */
+      setContent: function ( element, content ) {
+
+        if ( typeof content === 'object' ) {
+          element.innerHTML = '';
+          if ( Array.isArray( content ) )
+            content.map( function ( node ) { element.appendChild( node ); } );
+          else
+            element.appendChild( content );
+        }
+        else element.innerHTML = content;
+
+      },
+
+      show: function ( instance ) {
+        instance.element.parentNode.removeChild( instance.element.parentNode.querySelector( '.ccm_loading' ) );
+        instance.element.style.display = 'block';
+      },
+
       /**
        * @summary solves a <i>ccm</i> dependency
        * @param {object} obj - object that contains the <i>ccm</i> dependency
@@ -3530,7 +3447,10 @@ var ccm = function () {
       solveDependency: function ( obj, key, callback ) {
 
         // given object not contains a ccm dependency at the given key? => abort and perform callback without a result
-        if ( !ccm.helper.isDependency( obj[ key ] ) ) { if ( callback ) callback(); return; }
+        if ( !self.helper.isDependency( obj[ key ] ) ) { if ( callback ) callback(); return; }
+
+        // determine ccm interface
+        obj[ key ][ 0 ] = self[ obj[ key ][ 0 ].split( '.' ).pop() ];
 
         // add a callback to the ccm action data of the ccm dependency
         obj[ key ].push( function ( result ) {
@@ -3539,13 +3459,26 @@ var ccm = function () {
         } );
 
         // perform the ccm action data of the ccm dependency
-        return ccm.helper.action( obj[ key ] );
+        return self.helper.action( obj[ key ] );
 
+      },
+
+      /**
+       * @summary performs a function after a waiting time
+       * @param {number} time - waiting time in milliseconds
+       * @param {function} callback - performed function after waiting time
+       * @example ccm.helper.wait( 1000, function () { console.log( 'I was called after 1 second' ) } );
+       */
+      wait: function ( time, callback ) {
+        window.setTimeout( callback, time );
       }
 
     }
 
   };
+
+  // set ccm version specific namespace
+  if ( !ccm[ self.version() ] ) ccm[ self.version() ] = self;
 
   /*---------------------------------------------- private ccm methods -----------------------------------------------*/
 
@@ -3561,7 +3494,7 @@ var ccm = function () {
      * ccm datastore source
      * @type {string|number}
      */
-    var source = JSON.stringify( ccm.helper.filterProperties( settings, 'url', 'db', 'store' ) );
+    var source = JSON.stringify( self.helper.filterProperties( settings, 'url', 'db', 'store' ) );
 
     // source is empty object? => use unique number as source
     if ( source === '{}' ) source = Object.keys( stores ).length;
@@ -3894,10 +3827,10 @@ var ccm = function () {
    */
 
   /**
-   * @typedef {number[]} ccm.types.version
+   * @typedef {string} ccm.types.version
    * @summary version number conform with Semantic Versioning 2.0.0 ({@link http://semver.org})
-   * @example [1,0,0]
-   * @example [2,1,3]
+   * @example '1.0.0'
+   * @example '2.1.3'
    */
 
-}();
+} )();
