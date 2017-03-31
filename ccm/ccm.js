@@ -22,7 +22,6 @@
  * version 8.0.0 (??.03.2017):
  * - no more jQuery dependency
  * - use of Shadow DOM for the website area of ccm instances (capsuled CSS)
- * - outsource not framework relevant helper functions for component developer
  * - support of different versions of the ccm framework in the same website
  * - updates for every part of the framework
  * (for older version changes see ccm-7.4.0.js)
@@ -932,6 +931,7 @@
 
     /**
      * @summary global namespaces for <i>ccm</i> components
+     * @memberOf ccm
      * @type {Object.<ccm.types.index, object>}
      */
     components: {},
@@ -969,6 +969,10 @@
      */
     version: function () { return '8.0.0'; },
 
+    /**
+     * @summary reset caches for resources and datastores
+     * @memberOf ccm
+     */
     clear: function () {
       resources = {};
       stores = {};
@@ -1018,7 +1022,7 @@
       var counter = 1;
 
       /**
-       * results
+       * result data of this ccm.load call
        * @type {*}
        */
       var results = [];
