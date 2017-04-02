@@ -3204,6 +3204,9 @@
        */
       onFinish: function ( instance, results ) {
 
+        // no finish callback? => abort
+        if ( !instance.onfinish ) return;
+
         // has only function? => abort and call it as finish callback
         if ( typeof instance.onfinish === 'function' ) return instance.onfinish( instance, results );
 
