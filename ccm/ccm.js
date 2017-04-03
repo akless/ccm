@@ -1360,6 +1360,7 @@
               settings.type = 'application/javascript';
               break;
           }
+          settings.async = settings.async === undefined ? true : !!settings.async;
 
           var request = new XMLHttpRequest();
           request.open( 'GET', buildURL( settings.url, settings.data ), !!settings.async, settings.username, settings.password );
