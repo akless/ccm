@@ -2830,7 +2830,7 @@
           // generate each HTML tag
           var result = [];
           for ( var i = 0; i < html.length; i++ )
-            result.push( self.helper.html( html[ i ] ) );       // recursive call
+            result.push( self.helper.html( html[ i ] ) );  // recursive call
           return result;
 
         }
