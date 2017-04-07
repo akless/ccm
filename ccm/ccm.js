@@ -3203,6 +3203,7 @@
        *   user_specific: true,
        *   embed_code: 'component_name',
        *   restart: true,
+       *   log: true,
        *   callback: function ( instance, results ) { console.log( results ); }
        * };
        */
@@ -3254,6 +3255,9 @@
             if ( instance.onfinish.restart ) instance.start( proceed ); else proceed();
 
             function proceed() {
+
+              // has to log result data? => do it
+              if ( instance.onfinish.log ) console.log( results );
 
               // has to a perform a callback? => do it
               if ( instance.onfinish.callback ) instance.onfinish.callback( instance, results );
