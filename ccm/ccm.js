@@ -1626,8 +1626,8 @@
 
           // has given default for default instance configuration? => consider this in later instance() and start() calls
           if ( component.config ) {
-            component.instance = function ( config, callback ) { if ( self.helper.isElementNode( config ) ) config = { element: config }; config = self.helper.integrate( config, self.helper.clone( component.config ) ); return self.instance( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
-            component.start    = function ( config, callback ) { if ( self.helper.isElementNode( config ) ) config = { element: config }; config = self.helper.integrate( config, self.helper.clone( component.config ) ); return self.start   ( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
+            component.instance = function ( config, callback ) { if ( typeof config === 'function' ) { callback = config; config = undefined; } if ( self.helper.isElementNode( config ) ) config = { element: config }; config = self.helper.integrate( config, self.helper.clone( component.config ) ); return self.instance( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
+            component.start    = function ( config, callback ) { if ( typeof config === 'function' ) { callback = config; config = undefined; } if ( self.helper.isElementNode( config ) ) config = { element: config }; config = self.helper.integrate( config, self.helper.clone( component.config ) ); return self.start   ( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
           }
 
         }
