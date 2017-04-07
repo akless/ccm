@@ -6,7 +6,6 @@
 
 ccm.files[ 'ccm-tests.js' ] = {
   setup: function ( suite, callback ) {
-    console.log( suite );
     suite.ccm.clear();
     callback();
   },
@@ -495,5 +494,4 @@ ccm.files[ 'ccm-tests.js' ] = {
   }
 };
 
-if ( !ccm.components.testsuite ) ccm.components.testsuite = {};
 ccm.components.testsuite.ccm = ccm.files[ 'ccm-tests.js' ];
