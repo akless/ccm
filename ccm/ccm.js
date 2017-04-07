@@ -1482,6 +1482,9 @@
       // register component
       components[ component.index ] = component;
 
+      // create global namespace for component
+      ccm.components[ component.index ] = {};
+
       // setup component
       setup();
 
