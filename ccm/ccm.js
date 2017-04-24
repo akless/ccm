@@ -2625,8 +2625,8 @@
       },
 
       /**
-       * @summary gets the input data of a HTML form
-       * @param {Element} form - HTML element of the HTML form
+       * @summary gets the input data of a form
+       * @param {Element} form - HTML element which contains the input fields (must not be a HTML form tag)
        * @returns {object} input data
        * @example
        * var result = ccm.helper.formData( document.getElementsById( 'form_id' ) );
@@ -2946,7 +2946,7 @@
        * var result = ccm.helper.integrate( undefined, { value: 'foo' } );
        * console.log( result );  // { value: 'foo' }
        */
-      integrate: function ( priodata, dataset ) {
+      integrate: function ( priodata, dataset, as_defaults ) {
 
         // no given priority data? => return given dataset
         if ( !priodata ) return dataset;
@@ -2958,7 +2958,7 @@
         for ( var key in priodata ) {
 
           // set value for the same property in the given dataset
-          self.helper.deepValue( dataset, key, priodata[ key ] );
+          if ( !as_defaults || self.helper.deepValue( dataset, key ) === undefined ) self.helper.deepValue( dataset, key, priodata[ key ] );
 
         }
 
