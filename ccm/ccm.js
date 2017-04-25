@@ -2641,8 +2641,11 @@
           }
           else if ( input.getAttribute( 'type' ) === 'checkbox' )
             data[ input.getAttribute( 'name' ) ] = input.checked ? ( input.value === 'on' ? true : input.value ) : '';
-          else if ( input.getAttribute( 'type' ) === 'number' )
-            data[ input.getAttribute( 'name' ) ] = parseInt( input.value ) || '';
+          else if ( input.getAttribute( 'type' ) === 'number' ) {
+            var value = parseInt( input.value );
+            if ( isNaN( value ) ) value = '';
+            data[ input.getAttribute( 'name' ) ] = value;
+          }
           else if ( !input.value )
             data[ input.getAttribute( 'name' ) ] = '';
           else
