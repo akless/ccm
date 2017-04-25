@@ -2735,6 +2735,7 @@
           config.childNodes.map( function ( child ) {
             config.node.appendChild( child );
           } );
+          delete config.childNodes;
 
           function interpretLoadTag( node ) {
 
