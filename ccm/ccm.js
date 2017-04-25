@@ -2842,9 +2842,6 @@
 
         }
 
-        // get string instead of ccm html data? => remove script tags
-        if ( typeof html === 'string' || typeof html === 'number' ) return document.createTextNode( html );
-
         // get no ccm html data? => return parameter value
         if ( typeof html !== 'object' ) return html;
 
@@ -2885,6 +2882,7 @@
 
               // inner HTML
             case 'inner':
+              if ( typeof value === 'string' || typeof value === 'number' ) { element.innerHTML = value; break; }
               var children = this.html( value );  // recursive call
               if ( !Array.isArray( children ) )
                 children = [ children ];
