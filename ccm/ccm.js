@@ -3175,7 +3175,7 @@
       /**
        * @summary performs minor finish actions
        * @param {ccm.types.instance} instance - finished <i>ccm</i> instance
-       * @param {function|object} instance.onfinish - finish callback or settings for minor finish actions
+       * @param {function|object|string} instance.onfinish - finish callback or settings for minor finish actions or global function name that should be called as finish callback
        * @param {ccm.types.instance} [instance.onfinish.user] - <i>ccm</i> user instance (user will be logged in if not already logged in)
        * @param {ccm.types.key} [instance.onfinish.key] - dataset key for result data
        * @param {ccm.types.settings} [instance.onfinish.store_settings] - settings for a <i>ccm</i> datastore (result data will be set in this datastore)
@@ -3216,6 +3216,9 @@
 
         // has only function? => abort and call it as finish callback
         if ( typeof instance.onfinish === 'function' ) return instance.onfinish( instance, results );
+
+        // has only string as global function name? => abort and call it as finish callback
+        if ( typeof instance.onfinish === 'string' ) return this.executeByName( instance.onfinish, [ instance, results ] );
 
         // has user instance? => login user
         if ( instance.onfinish.user ) instance.onfinish.user.login( proceed ); else proceed();
