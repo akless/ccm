@@ -917,15 +917,6 @@
 
   /*-------------------------------------- polyfills and public ccm namespaces ---------------------------------------*/
 
-  // no 'Custom Elements' support? => load polyfill  // TODO: update polyfill
-  if ( !( 'registerElement' in document ) ) {
-    document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js"></script>' );
-    document.write( '<script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"></script>' );
-  }
-  // no 'Shadow DOM v1' support? => load polyfill
-  if ( !document.head.attachShadow || !document.head.createShadowRoot )
-    document.write( '<script src="https://kaul.inf.h-brs.de/ccm/lib/shadydom.min.js"></script>' );
-
   // set global ccm namespace
   if ( !window.ccm ) ccm = {
 
@@ -1485,11 +1476,29 @@
       // create global namespace for component
       ccm.components[ component.index ] = {};
 
-      // setup component
-      setup();
+      // load needed polyfills (Custom Elements and Shadow DOM)
+      var polyfills = [];
+      if ( !( 'registerElement' in document ) )
+        polyfills.push( [
+          'https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js'
+        ] );
+      if ( !document.head.attachShadow || !document.head.createShadowRoot )
+        polyfills.push( 'https://kaul.inf.h-brs.de/ccm/lib/shadydom.min.js' );
+      if ( polyfills.length > 0 ) self.load( polyfills, proceed ); else return proceed();
 
-      // initialize component
-      if ( component.init ) { component.init( finish ); delete component.init; } else return finish();
+      function proceed() {
+
+        // setup component
+        setup();
+
+        // create HTML tag for ccm component
+        createCustomElement();
+
+        // initialize component
+        if ( component.init ) { component.init( finish ); delete component.init; } else return finish();
+
+      }
 
       /**
        * @summary get ccm component index by URL
@@ -1572,24 +1581,21 @@
         // set specific framework version
         component.config.ccm = self;
 
-        // create HTML tag for ccm component
-        createCustomElement();
+      }
 
-        /**
-         * create HTML tag for ccm component
-         */
-        function createCustomElement() {
+      /**
+       * create HTML tag for ccm component
+       */
+      function createCustomElement() {
 
-          var tag = Object.create( HTMLElement.prototype );
-          tag.attachedCallback = function () {
-            if ( !document.body.contains( this ) ) return;
-            var config = self.helper.generateConfig( this );
-            config.element = this;
-            component.start( config );
-          };
-          document.registerElement( 'ccm-' + component.index, { prototype: tag } );
-
-        }
+        var tag = Object.create( HTMLElement.prototype );
+        tag.attachedCallback = function () {
+          if ( !document.body.contains( this ) ) return;
+          var config = self.helper.generateConfig( this );
+          config.element = this;
+          component.start( config );
+        };
+        document.registerElement( 'ccm-' + component.index, { prototype: tag } );
 
       }
 
