@@ -19,7 +19,7 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @version latest (8.0.0)
  * @changes
- * version 8.0.0 (24.04.2017):
+ * version 8.0.0 (01.05.2017):
  * - no more jQuery dependency
  * - use of Shadow DOM for the website area of ccm instances (capsuled CSS)
  * - support of different versions of the ccm framework in the same website
@@ -1462,7 +1462,7 @@
 
       // is URL of component? => load component and finish registration
       if ( typeof component === 'string' )
-        return components[ getIndex( component ) ] ? finish() : self.load( component, finish );
+        return components[ self.helper.getIndex( component ) ] ? finish() : self.load( component, finish );
 
       // set component index
       setIndex();
@@ -1497,37 +1497,6 @@
 
         // initialize component
         if ( component.init ) { component.init( finish ); delete component.init; } else return finish();
-
-      }
-
-      /**
-       * @summary get ccm component index by URL
-       * @private
-       * @param {string} url - ccm component URL
-       * @returns {ccm.types.index} ccm component index
-       */
-      function getIndex( url ) {
-
-        // url is already an ccm component index? => abort and return it
-        if ( url.indexOf( '.js' ) === -1 ) return url;
-
-        /**
-         * from given url extracted filename of the ccm component
-         * @type {string}
-         */
-        var filename = url.split( '/' ).pop();
-
-        // abort if extracted filename is not a valid filename for a ccm component
-        if ( !self.helper.regex( 'filename' ).test( filename ) ) return '';
-
-        // filter and return the component index out of the extracted filename
-        var split = filename.split( '.' );
-        if ( split[ 0 ] === 'ccm' )
-          split.shift();
-        split.pop();
-        if ( split[ split.length - 1 ] === 'min' )
-          split.pop();
-        return split.join( '.' );
 
       }
 
@@ -1591,6 +1560,10 @@
         var tag = Object.create( HTMLElement.prototype );
         tag.attachedCallback = function () {
           if ( !document.body.contains( this ) ) return;
+          var node = this;
+          while ( node = node.parentNode )
+            if ( node.tagName && node.tagName.indexOf( 'CCM-' ) === 0 )
+              return;
           var config = self.helper.generateConfig( this );
           config.element = this;
           component.start( config );
@@ -1606,7 +1579,7 @@
       function finish() {
 
         // make deep copy of component
-        component = self.helper.clone( components[ typeof component === 'string' ? getIndex( component ) : component.index ] );
+        component = self.helper.clone( components[ typeof component === 'string' ? self.helper.getIndex( component ) : component.index ] );
 
         // component has individual default for default instance configuration?
         if ( config ) {
@@ -2815,6 +2788,36 @@
 
       },
 
+      /**
+       * @summary get ccm component index by URL
+       * @param {string} url - ccm component URL
+       * @returns {ccm.types.index} ccm component index
+       */
+      getIndex: function ( url ) {
+
+        // url is already an ccm component index? => abort and return it
+        if ( url.indexOf( '.js' ) === -1 ) return url;
+
+        /**
+         * from given url extracted filename of the ccm component
+         * @type {string}
+         */
+        var filename = url.split( '/' ).pop();
+
+        // abort if extracted filename is not a valid filename for a ccm component
+        if ( !self.helper.regex( 'filename' ).test( filename ) ) return '';
+
+        // filter and return the component index out of the extracted filename
+        var split = filename.split( '.' );
+        if ( split[ 0 ] === 'ccm' )
+          split.shift();
+        split.pop();
+        if ( split[ split.length - 1 ] === 'min' )
+          split.pop();
+        return split.join( '.' );
+
+      },
+
       hide: function ( instance ) {
         instance.element.parentNode.appendChild( self.helper.loading( instance ) );
         instance.element.style.display = 'none';
@@ -3352,13 +3355,11 @@
         function privatizeProperty( key ) {
           switch ( key ) {
             case 'ccm':
-            case 'childNodes':
             case 'component':
             case 'element':
             case 'id':
             case 'index':
             case 'onfinish':
-            case 'node':
             case 'parent':
               break;
             default:
@@ -3497,7 +3498,7 @@
         // add a callback to the ccm action data of the ccm dependency
         obj[ key ].push( function ( result ) {
           obj[ key ] = result;                  // replace ccm dependency with the result of the solved dependency
-          if ( callback) callback( result );
+          if ( callback ) callback( result );
         } );
 
         // perform the ccm action data of the ccm dependency
