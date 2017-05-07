@@ -2896,7 +2896,10 @@
               if ( !Array.isArray( children ) )
                 children = [ children ];
               for ( var i = 0; i < children.length; i++ )
-                element.appendChild( children[ i ] );
+                if ( self.helper.isElementNode( children[ i ] ) )
+                  element.appendChild( children[ i ] );
+                else
+                  element.innerHTML += children[ i ];
               break;
 
               // HTML value attributes and events
