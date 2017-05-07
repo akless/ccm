@@ -3192,6 +3192,8 @@
        * @param {boolean} [instance.onfinishn.user_specific] - do the set operation with a user-specific dataset key
        * @param {boolean} [instance.onfinish.restart] - restart finished <i>ccm</i> instance
        * @param {string} [instance.onfinish.embed_code] - show embed code if results are a instance configuration (value is component name)
+       * @param {boolean} [instance.onfinish.log] - log result data in browser console
+       * @param {object} [instance.onfinish.render] - render other content (could be <i>ccm</i> HTML data or data for embedding another component)
        * @param {callback} [instance.onfinish.callback] - additional individual finish callback (will be called after the performed minor actions)
        * @param {object} results - result data
        * @example
@@ -3215,6 +3217,7 @@
        *   embed_code: 'component_name',
        *   restart: true,
        *   log: true,
+       *   render: [ 'component_url', [ "ccm.get", "configs.json", "dataset_key" ] ],
        *   callback: function ( instance, results ) { console.log( results ); }
        * };
        */
@@ -3272,6 +3275,18 @@
 
               // has to log result data? => do it
               if ( instance.onfinish.log ) console.log( results );
+
+              // has to render other content?
+              if ( instance.onfinish.render ) {
+                if ( instance.onfinish.render.component ) {
+                  var config = instance.onfinish.render.config;
+                  if ( !config ) config = {};
+                  config.element = instance.element;
+                  self.start( instance.onfinish.render.component, config );
+                }
+                else
+                  self.helper.setContent( instance.element, self.helper.html( instance.onfinish.render ) );
+              }
 
               // has to a perform a callback? => do it
               if ( instance.onfinish.callback ) instance.onfinish.callback( instance, results );
