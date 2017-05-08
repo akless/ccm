@@ -1457,6 +1457,25 @@
      */
     component: function ( component, config, callback ) {
 
+      // default ccm instance configuration is a function? => configuration is callback
+      if ( typeof config === 'function' ) { callback = config; config = undefined; }
+
+      // is URL of component? => load component and finish registration
+      if ( typeof component === 'string' )
+        return components[ self.helper.getIndex( component ) ] ? finish() : self.load( component, finish );
+
+      // set component index
+      setIndex();
+
+      // component already registered? => finish registration
+      if ( components[ component.index ] ) return finish();
+
+      // register component
+      components[ component.index ] = component;
+
+      // create global namespace for component
+      ccm.components[ component.index ] = {};
+
       // load needed polyfills (Custom Elements and Shadow DOM)
       var polyfills = [];
       if ( !( 'registerElement' in document ) )
@@ -1469,25 +1488,6 @@
       if ( polyfills.length > 0 ) self.load( polyfills, proceed ); else return proceed();
 
       function proceed() {
-
-        // default ccm instance configuration is a function? => configuration is callback
-        if ( typeof config === 'function' ) { callback = config; config = undefined; }
-
-        // is URL of component? => load component and finish registration
-        if ( typeof component === 'string' )
-          return components[ self.helper.getIndex( component ) ] ? finish() : self.load( component, finish );
-
-        // set component index
-        setIndex();
-
-        // component already registered? => finish registration
-        if ( components[ component.index ] ) return finish();
-
-        // register component
-        components[ component.index ] = component;
-
-        // create global namespace for component
-        ccm.components[ component.index ] = {};
 
         // setup component
         setup();
