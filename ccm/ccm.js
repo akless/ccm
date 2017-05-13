@@ -19,7 +19,7 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @version latest (8.0.0)
  * @changes
- * version 8.0.0 (01.05.2017):
+ * version 8.0.0 (13.05.2017):
  * - no more jQuery dependency
  * - use of Shadow DOM for the website area of ccm instances (capsuled CSS)
  * - support of different versions of the ccm framework in the same website
@@ -1716,7 +1716,7 @@
 
               // configure created instance
               self.helper.integrate( self.helper.clone( components[ index ].config ), instance );  // set default ccm instance configuration
-              if ( cfg ) self.helper.integrate( cfg, instance );   // integrate ccm instance configuration
+              if ( cfg ) self.helper.integrate( cfg, instance );  // integrate ccm instance configuration
               instance.id = components[ index ].instances;        // set ccm instance id
               instance.index = index + '-' + instance.id;         // set ccm instance index
               instance.component = components[ index ];           // set ccm component reference
@@ -1808,10 +1808,9 @@
 
                     case 'ccm.component':
                       counter++;
-                      self.component( action[ 1 ], action[ 2 ], function ( result ) {
-                        result.config.parent = instance;
-                        setResult( result );
-                      } );
+                      if ( !action[ 2 ] ) action[ 2 ] = {};
+                      action[ 2 ].parent = instance;
+                      self.component( action[ 1 ], action[ 2 ], function ( result ) { setResult( result ); } );
                       break;
 
                     case 'ccm.instance':
