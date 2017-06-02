@@ -17,9 +17,9 @@ A market place has been developed as prototype where all published _ccm_ compone
 
 ## How to use a _ccm_ Component?
 There are three different ways how to use a _ccm_ component:
-Declarative via HTML Tag
-Functional via JavaScript
-Interactive via Bookmarklet
+* Declarative via HTML Tag
+* Functional via JavaScript
+* Interactive via Bookmarklet
 
 ### Declarative via HTML Tag
 This works in two steps. Firstly, the _ccm_ component must be loaded using a HTML <script> tag. That results in a new usable HTML tag which is an W3C Custom Element. Secondly, use this HTML tag at any place inside the web-based content for embedding. Use the component specific HTML attributes of the tag and the component specific inner HTML tags for setting up the configuration data. If the configuration data is stored in a database or a JSON file, it can be loaded directly from there with the _ccm_ specific HTML attribute “key”. The HTML tag then acts like an embed key.
