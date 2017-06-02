@@ -4,13 +4,10 @@
 The “Client-side Component Model” (_ccm_) is a model for running web components inside the browser and is consists of a _ccm_ framework and _ccm_ components. _ccm_ uses two features of the W3C web components standard: Custom Elements and Shadow DOM.
 
 ## What is the _ccm_ Framework?
-The _ccm_ framework provides two services, one for embedding _ccm_ components inside any web-based content and the other service for data management. It is a tiny JavaScript file (24kB minified, 9kB zipped) and uses native JavaScript only and has no dependency to other resources or frameworks. The _ccm_ framework is published as free software under MIT licence (see https://github.com/akless/ccm). It is loaded automatically when a _ccm_ component is used.
+The _ccm_ framework provides two services, one for embedding _ccm_ components inside any web-based content and the other service for data management. It is a tiny JavaScript file (24kB minified, 9kB zipped) and uses native JavaScript only and has no dependency to other resources or frameworks. The _ccm_ framework is published as free software under MIT licence. It is loaded automatically when a _ccm_ component is used.
 
 ## What is a _ccm_ Component?
 A _ccm_ component is a tiny JavaScript file which works with native HTML, CSS and JavaScript based on the _ccm_ framework. It may be composed of other _ccm_ components and use other JavaScript frameworks. There are no restrictions in application domain. Every _ccm_ component is embeddable in every web-based content. Each _ccm_ component that is published as free software increases the functionality of the free web. 
-
-## Which ccm Components already exists?
-ccm components for quiz, fill-in-the-blank text, chat, team building, slidecast, commentary, rating, user input, user authentication, data logging and unit tests have already been developed. All these components are published as free software under MIT Licence.
 
 ## Where to find _ccm_ Components?
 A market place has been developed as prototype where all published _ccm_ components are collected and informations about them presented. These informations contain basic data like author, licence, version and the public URL of the component JavaScript file.
@@ -31,10 +28,10 @@ This works in two steps. Firstly, the _ccm_ framework must be loaded using a HTM
 A bookmarklet is a browser bookmark enriched by JavaScript. Our _ccm_ market place provides a bookmarklet for each published component. Every web user can use such a bookmarklet on any web page to add a new draggable and resizable web page area with the embedded component in it.
 
 ## On-demand and Cross-domain Embedding of a _ccm_ Component
-A _ccm_ component is embeddable on-demand and cross-domain inside any web-based content. On-demand means that a component is not only embeddable when a website is loading, it can also be included later. Cross-domain means that components must not be located on the same server where the actual website comes from, but it can be located on any other web server. With both aspects, any web user is able to embed a component in any currently viewed web page (see 2.2.6.3). The embedding of a _ccm_ component works without iFrame.
+A _ccm_ component is embeddable on-demand and cross-domain inside any web-based content. On-demand means that a component is not only embeddable when a website is loading, it can also be included later. Cross-domain means that components must not be located on the same server where the actual website comes from, but it can be located on any other web server. With both aspects, any web user is able to embed a component in any currently viewed web page. The embedding of a _ccm_ component works without iFrame.
 
 ## _ccm_ Components are Recombinable
-Like the Lego way, _ccm_ components are recombinable. This results in a dependency tree. For example the component for rendering a learning unit reuses the components for quiz and video and the video component reuses components for commentary and rating (see Figure 1). These dependencies are automatically solved recursively and asynchronously by the _ccm_ framework at runtime. The framework makes sure that all dependent resources are loaded in parallel and no resource is loaded twice. Any dependent resource and data can be loaded cross-domain.
+Like the Lego way, _ccm_ components are recombinable. This results in a dependency tree. For example the component for rendering a learning unit reuses the components for quiz and video and the video component reuses components for commentary and rating. These dependencies are automatically solved recursively and asynchronously by the _ccm_ framework at runtime. The framework makes sure that all dependent resources are loaded in parallel and no resource is loaded twice. Any dependent resource and data can be loaded cross-domain.
 
 ## _ccm_ is Versioned and Backward Compatible
 The _ccm_ framework and all _ccm_ components are versioned and use Semantic Versioning 2.0.0 (see http://semver.org). The same _ccm_ component can be embedded multiple times in the same web page and also different versions of a component without any conflicts and side effects. That is because each component and version has its own namespace inside a web page. It is also possible to use different versions of the _ccm_ framework in the same web page. This ensures backward compatibility.
