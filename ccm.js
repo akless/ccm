@@ -2462,6 +2462,13 @@
 
       },
 
+      dataset: function ( store, key, callback ) {
+        if ( !key ) key = self.helper.generateKey();
+        store.get( key, function ( dataset ) {
+          callback( dataset === null ? { key: key } : dataset );
+        } );
+      },
+
       decodeDependencies: function ( obj ) {
 
         for ( var key in obj )
