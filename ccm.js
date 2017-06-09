@@ -3295,6 +3295,14 @@
 
       },
 
+      prepend: function ( parent, node ) {
+
+        if ( parent.hasChildNodes() )
+          parent.insertBefore( node, parent.firstChild );
+        parent.appendChild( node );
+
+      },
+
       /**
        * @summary privatizes public members of an <i>ccm</i> instance
        * @description
