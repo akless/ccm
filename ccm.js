@@ -3299,7 +3299,8 @@
 
         if ( parent.hasChildNodes() )
           parent.insertBefore( node, parent.firstChild );
-        parent.appendChild( node );
+        else
+          parent.appendChild( node );
 
       },
 
