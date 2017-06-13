@@ -2,7 +2,7 @@
  * @overview ccm framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (8.1.0)
+ * @version 8.1.0
  * @changes
  * version 8.1.0 (13.06.2017):
  * - optional ccm.load parameter that load the resource in <head> instead of Shadow DOM (important for loading css files with font-face properties)
