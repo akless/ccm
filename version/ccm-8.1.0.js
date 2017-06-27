@@ -6,6 +6,7 @@
  * @changes
  * version 8.1.0 (13.06.2017):
  * - optional ccm.load parameter that load the resource in <head> instead of Shadow DOM (important for loading css files with font-face properties)
+ * - allow ccm.load dependency for key property in instance configuration
  * version 8.0.0 (13.05.2017):
  * - no more jQuery dependency
  * - use of Shadow DOM for the website area of ccm instances (capsuled CSS)
@@ -1666,7 +1667,7 @@
             if ( self.helper.isObject( cfg.key ) )
               return integrate( self.helper.clone( cfg.key ) );
             else if ( self.helper.isDependency( cfg.key ) )
-              return self.get( cfg.key[ 1 ], cfg.key[ 2 ], integrate );
+              return cfg.key[ 0 ] === 'ccm.load' ? self.load( cfg.key[ 1 ], integrate ) : self.get( cfg.key[ 1 ], cfg.key[ 2 ], integrate );
             else {
               delete cfg.key;
               proceed( cfg );
