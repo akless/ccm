@@ -2,16 +2,14 @@
  * @overview ccm framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (8.1.0)
+ * @version latest (9.0.0)
  * @changes
- * version 8.1.0 (13.06.2017):
- * - optional ccm.load parameter that load the resource in <head> instead of Shadow DOM (important for loading css files with font-face properties)
- * version 8.0.0 (13.05.2017):
- * - no more jQuery dependency
- * - use of Shadow DOM for the website area of ccm instances (capsuled CSS)
- * - support of different versions of the ccm framework in the same website
- * - updates in every part of the framework
- * (for older version changes see ccm-7.4.0.js)
+ * version 9.0.0 (04.07.2017):
+ * - ccm.load supports resource data for each resource (incompatible change)
+ * - allow ccm.get dependency for key property of a ccm instance
+ * - default website area of a ccm instance is a on-the-fly div element
+ * - each ccm instance now knows it's root element
+ * (for older version changes see ccm-8.1.0.js)
  */
 
 ( function () {
@@ -945,7 +943,7 @@
      * @memberOf ccm
      * @return {ccm.types.version}
      */
-    version: function () { return '8.1.0'; },
+    version: function () { return '9.0.0'; },
 
     /**
      * @summary reset caches for resources and datastores
@@ -959,9 +957,8 @@
     /**
      * @summary load resource(s) (js, css, json and/or data from server interface)
      * @memberOf ccm
-     * @param {...string|Array} resources - resource(s) URLs
+     * @param {...object|string} resources - resource(s) data (contains data how to load resource) and/or URLs
      * @param {function} [callback] - callback when all resources are loaded (first parameter are the results)
-     * @param {ccm.element} [head]
      * @returns {*} results (only if all resources already loaded)
      * @example
      * // load ccm component with callback (local path)
@@ -1029,17 +1026,10 @@
        */
       var callback;
 
-      // last argument is 'undefined'? => remove it
-      if ( !args[ args.length - 1 ] ) args.pop();
-
-      // determine header container for appending HTML tags for loading resources (Shadow DOM or <head>)
-      var head = self.helper.isElementNode( args[ args.length - 1 ] ) ? args.pop().parentNode : document.head;
-
       // last argument is callback? => separate arguments and callback
-      if ( typeof args[ args.length - 1 ] === 'function' || args[ args.length - 1 ] === undefined )
-        callback = args.pop();
+      if ( typeof args[ args.length - 1 ] === 'function' ) callback = args.pop();
 
-      // iterate over all resource URLs => load resource
+      // iterate over all resources data => load resource
       args.map( loadResource );
 
       // check if all resources are loaded (important if all resources already loaded)
@@ -1047,48 +1037,46 @@
 
       /**
        * load resource
-       * @param {string|Array} url - resource URL
+       * @param {object|string} resource - resource data or URL
+       * @param {string} resource.url - resource URL
+       * @param {object} [resource.params] - HTTP GET parameters (in case of data exchange)
+       * @param {Element} [resource.context=document.head] - resource will loaded in this context
+       * @param {boolean} [resource.ignore_cache] - ignore already cached result for this resource
+       * @param {string} [resource.username] - username for HTTP request
+       * @param {string} [resource.password] - password for HTTP request
        * @param {number} i
        */
-      function loadResource( url, i ) {
-
-        /**
-         * GET parameter for potentially data exchange with server
-         * @type {object}
-         */
-        var data;
-
-        // URL is an array?
-        if ( Array.isArray( url ) ) {
-
-          // second array element is an object? => get URL of server interface and GET parameter
-          if ( url.length > 1 && self.helper.isObject( url[ 1 ] ) ) { data = url[ 1 ]; url = url[ 0 ]; }
-
-          // load resources serial
-          else { counter++; results[ i ] = []; return serial( null ); }
-
-        }
-
-        /**
-         * already loaded value for this resource
-         * @type {*}
-         */
-        var resource = resources[ url ];
-
-        // mark resource as 'loading'
-        resources[ url ] = null;
+      function loadResource( resource, i ) {
 
         // increase number of loading resources
         counter++;
 
+        // resource data is an array? => load resources serial
+        if ( Array.isArray( resource ) ) { results[ i ] = []; return serial( null ); }
+
+        // has URL instead of resource data? => use resource data which contains only the URL information
+        if ( !self.helper.isObject( resource ) ) resource = { url: resource };
+
+        // no context? => load resource in <head> context (no Shadow DOM)
+        if ( !resource.context ) resource.context = document.head;
+
+        /**
+         * already loaded result for this resource
+         * @type {*}
+         */
+        var cached = resources[ resource.url ];
+
+        // mark resource as 'loading'
+        resources[ resource.url ] = null;
+
         // GET parameter exists? => perform data exchange
-        if ( data ) return exchangeData();
+        if ( resource.params ) return exchangeData();
 
         /**
          * resource suffix
          * @type {string}
          */
-        var suffix = url.split( '.' ).pop();
+        var suffix = resource.url.split( '.' ).pop();
 
         // check resource suffix => load resource
         switch ( suffix ) {
@@ -1111,6 +1099,7 @@
 
         /**
          * load resources serial (recursive function)
+         * @param {*} result - result of the last serial loaded resource (is null on first call)
          */
         function serial( result ) {
 
@@ -1118,26 +1107,18 @@
           if ( result !== null ) results[ i ].push( result );
 
           // more resources to load serial?
-          if ( url.length > 0 ) {
+          if ( resource.length > 0 ) {
 
             /**
              * next resource that must load serial
              * @type {*}
              */
-            var next = url.shift();
+            var next = resource.shift();
 
-            // next is array of resources? (and not GET parameter)
-            if ( Array.isArray( next ) && !( next.length > 1 && self.helper.isObject( next[ 1 ] ) ) ) {
+            // next resource is array of resources? => load resources in parallel (recursive call)
+            if ( Array.isArray( next ) ) { next.push( serial ); self.load.apply( null, next ); }
 
-              // push callback to next array of resources
-              next.push( serial );
-
-              // load resources parallel (recursive call)
-              self.load.apply( null, next );
-
-            }
-
-            // one resource => load serial (recursive call)
+            // one resource => load next resource serial (recursive call)
             else self.load( next, serial );
 
           }
@@ -1147,41 +1128,31 @@
 
         }
 
-        /**
-         * loads the content of a HTML file
-         */
+        /** loads the content of a HTML file */
         function loadHTML() {
 
           // prevent loading resource twice
           if ( caching() ) return;
 
           // load content via AJAX request
-          ajax( {
-            url: url,
-            type: 'html',
-            callback: successData
-          } );
+          ajax( { url: resource.url, type: 'html', callback: successData } );
 
         }
 
-        /**
-         * loads (and executes) a CSS file
-         */
+        /** loads (and executes) a CSS file */
         function loadCSS() {
 
           // prevent loading resource twice
-          if ( caching() && head === document.head ) return;
+          if ( caching() ) return;
 
           // load css file via <link>
-          var tag = self.helper.html( { tag: 'link', rel: 'stylesheet', type: 'text/css', href: url } );
-          head.appendChild( tag );
+          var tag = self.helper.html( { tag: 'link', rel: 'stylesheet', type: 'text/css', href: resource.url } );
+          resource.context.appendChild( tag );
           tag.onload = success;
 
         }
 
-        /**
-         * (pre)loads a image file
-         */
+        /** (pre)loads a image file */
         function loadImage() {
 
           // prevent loading resource twice
@@ -1189,27 +1160,25 @@
 
           // load image via image object
           var image = new Image();
-          image.src = url;
+          image.src = resource.url;
           image.onload = success;
 
         }
 
-        /**
-         * loads (and executes) a javascript file
-         */
+        /** loads (and executes) a javascript file */
         function loadJS() {
 
           // prevent loading resource twice
           if ( caching() ) return;
 
           // load javascript file via <script>
-          var tag = self.helper.html( { tag: 'script', src: url } );
-          head.appendChild( tag );
+          var tag = self.helper.html( { tag: 'script', src: resource.url } );
+          resource.context.appendChild( tag );
           tag.onload = function () {
 
             // add deposited data of the loaded javascript file to results and already loaded resources
-            var filename = url.split( '/' ).pop();
-            results[ i ] = resources[ url ] = ccm.files[ filename ];
+            var filename = resource.url.split( '/' ).pop();
+            results[ i ] = resources[ resource.url ] = ccm.files[ filename ];
             delete ccm.files[ filename ];
 
             success();
@@ -1217,60 +1186,43 @@
 
         }
 
-        /**
-         * loads the content of a JSON file
-         */
+        /** loads the content of a JSON file */
         function loadJSON() {
 
           // prevent loading resource twice
           if ( caching() ) return;
 
           // load content via AJAX request
-          ajax( {
-            url: url,
-            type: 'json',
-            callback: function ( result ) { successData( JSON.parse( result ) ); }
-          } );
+          ajax( { url: resource.url, type: 'json', callback: function ( result ) { successData( JSON.parse( result ) ); } } );
 
         }
 
-        /**
-         * exchanges data with a server
-         */
+        /** exchanges data with a server */
         function exchangeData() {
 
           // is this ccm.load call already waiting for currently loading resource(s)? => skip data exchange for the moment
           if ( waiting ) return;
 
           // cross-domain request? => use JSONP
-          if ( url.indexOf( 'http' ) === 0 ) return jsonp();
+          if ( resource.url.indexOf( 'http' ) === 0 ) return jsonp();
 
           // prepare AJAX settings
-          var settings = {
-            url: url,
-            data: data,
-            callback: successData
-          };
-          if ( url.indexOf( 'http' ) === 0 ) settings.jsonp = true;
-          if ( data && data.username && data.password ) {
-            if ( data.username ) settings.username = data.username;
-            if ( data.password ) settings.password = data.password;
-            delete data.username;
-            delete data.password;
+          var settings = { url: resource.url, data: resource.params, callback: successData };
+          if ( resource.username && resource.password ) {
+            if ( resource.username ) settings.username = resource.username;
+            if ( resource.password ) settings.password = resource.password;
           }
 
           // exchange data with server via AJAX request
           ajax( settings );
 
-          /**
-           * exchange data with server via JSONP
-           */
+          /** exchange data with server via JSONP */
           function jsonp() {
 
             // prepare callback function
             var callback = 'callback' + self.helper.generateKey();
-            if ( !data ) data = {};
-            data.callback = 'ccm.callbacks.' + callback;
+            if ( !resource.params ) resource.params = {};
+            resource.params.callback = 'ccm.callbacks.' + callback;
             ccm.callbacks[ callback ] = function ( data ) {
               head.removeChild( tag );
               delete ccm.callbacks[ callback ];
@@ -1278,9 +1230,10 @@
             };
 
             // exchange data via <script>
-            var tag = self.helper.html( { tag: 'script', src: buildURL( url, data ) } );
+            var tag = self.helper.html( { tag: 'script', src: buildURL( resource.url, resource.params ) } );
             tag.src = tag.src.replace( /&amp;/g, '&' );
-            head.appendChild( tag );
+            resource.context.appendChild( tag );
+
           }
 
         }
@@ -1291,17 +1244,26 @@
          */
         function caching() {
 
+          // no caching for this resource? => continue current ccm.load call
+          if ( resource.ignore_cache ) return false;
+
+          // is a Shadow DOM resource?
+          if ( resource.context !== document.head ) return false;
+
           // is resource currently loading?
-          if ( resource === null ) {
+          if ( cached === null ) {
 
             // is this ccm.load call already waiting? => abort current ccm.load call (counter will not decrement)
-            if ( waiting ) return true; else waiting = true;
+            if ( waiting ) return true;
+
+            // mark current ccm.load call as waiting
+            waiting = true;
 
             // no waitlist for currently loading resource exists? => create waitlist
-            if ( !waiter[ url ] ) waiter[ url ] = [];
+            if ( !waiter[ resource.url ] ) waiter[ resource.url ] = [];
 
             // add ccm.load call to waitlist
-            waiter[ url ].push( call );
+            waiter[ resource.url ].push( call );
 
             // abort current ccm.load call (counter will not decrement)
             return true;
@@ -1309,10 +1271,10 @@
           }
 
           // resource already loaded?
-          if ( resource ) {
+          if ( cached ) {
 
             // result is already loaded resource value
-            results[ i ] = resources[ url ] = resource;
+            results[ i ] = resources[ resource.url ] = cached;
 
             // skip loading process
             success(); return true;
@@ -1378,24 +1340,22 @@
         function successData( data ) {
 
           // add received data to results and already loaded resources
-          results[ i ] = resources[ url ] = data;
+          results[ i ] = resources[ resource.url ] = data;
 
           // perform success callback
           success();
 
         }
 
-        /**
-         * callback when a resource is successful loaded
-         */
+        /** callback when a resource is successful loaded */
         function success() {
 
           // add url to results and already loaded resources
-          if ( results[ i ] === undefined ) results[ i ] = resources[ url ] = url;
+          if ( results[ i ] === undefined ) results[ i ] = resources[ resource.url ] = resource;
 
           // is resource on waitlist? => perform waiting actions
-          while ( waiter[ url ] && waiter[ url ].length > 0 )
-            self.helper.action( waiter[ url ].pop() );
+          while ( waiter[ resource.url ] && waiter[ resource.url ].length > 0 )
+            self.helper.action( waiter[ resource ].pop() );
 
           // check if all resources are loaded
           check();
@@ -1666,7 +1626,7 @@
             if ( self.helper.isObject( cfg.key ) )
               return integrate( self.helper.clone( cfg.key ) );
             else if ( self.helper.isDependency( cfg.key ) )
-              return self.get( cfg.key[ 1 ], cfg.key[ 2 ], integrate );
+              return cfg.key[ 0 ] === 'ccm.load' ? self.load( cfg.key[ 1 ], integrate ) : self.get( cfg.key[ 1 ], cfg.key[ 2 ], integrate );
             else {
               delete cfg.key;
               proceed( cfg );
@@ -1707,7 +1667,7 @@
               instance.id = components[ index ].instances;        // set ccm instance id
               instance.index = index + '-' + instance.id;         // set ccm instance index
               instance.component = components[ index ];           // set ccm component reference
-              if ( instance.element ) setElement();               // set website area
+              setElement();                                       // set website area
 
               // solve dependencies of created ccm instance
               solveDependencies( instance );
@@ -1718,11 +1678,17 @@
               /** set the website area for the created instance */
               function setElement() {
 
+                // no website area? => use on-the-fly element
+                if ( !instance.element ) instance.element = document.createElement( 'div' );
+
                 // keyword 'parent'? => use parent website area (and abort)
                 if ( instance.element === 'parent' ) return instance.element = parent.element;
 
                 // keyword 'name'? => use inner website area of the parent where HTML ID is equal to component name of created instance
                 if ( instance.element === 'name' ) instance.element = ( parent || instance.parent ).element.querySelector( '#' + instance.component.name );
+
+                // remember root element
+                instance.root = instance.element;
 
                 // prepare website area for ccm instance
                 var element = self.helper.html( { id: self.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name } );
@@ -1785,14 +1751,9 @@
 
                     case 'ccm.load':
                       counter++;
-                      var head;
-                      if ( action[ action.length - 1 ] === true ) { head = true; action.pop(); }
-                      if ( action.length === 2 )
-                        self.load( action[ 1 ], setResult, ( !head || undefined ) && instance && instance.element );
-                      else {
-                        action.shift();
-                        self.load( action, setResult, ( !head || undefined ) && instance && instance.element );
-                      }
+                      action.shift();
+                      if ( instance.element ) setContext( action );
+                      action.push( setResult ); self.load.apply( null, action );
                       break;
 
                     case 'ccm.component':
@@ -1831,6 +1792,14 @@
                       counter++;
                       self.del( action[ 1 ], action[ 2 ], setResult );
                       break;
+                  }
+
+                  function setContext( resources ) {
+                    for ( var i = 0; i < resources.length; i++ ) {
+                      if ( Array.isArray( resources[ i ] ) ) return setContext( resources[ i ] );
+                      if ( !self.helper.isObject( resources[ i ] ) ) resources[ i ] = { url: resources[ i ] };
+                      resources[ i ].context = instance.element.parentNode;
+                    }
                   }
 
                   /**
