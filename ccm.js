@@ -2438,11 +2438,12 @@
 
       dataset: function ( store, key, callback ) {
         if ( typeof key === 'function' ) {
+          callback = key;
           if ( store.store && store.key ) {
             store = store.store;
             key = store.key;
           }
-          else return key( store );
+          else return callback( store );
         }
         if ( !key ) key = self.helper.generateKey();
         store.get( key, function ( dataset ) {
