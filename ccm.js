@@ -9,6 +9,7 @@
  * - allow ccm.get dependency for key property of a ccm instance
  * - default website area of a ccm instance is a on-the-fly div element
  * - each ccm instance now knows it's root element
+ * - ccm.helper.dataset accepts data object or dataset directly
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -2436,6 +2437,13 @@
       },
 
       dataset: function ( store, key, callback ) {
+        if ( typeof key === 'function' ) {
+          if ( store.store && store.key ) {
+            store = store.store;
+            key = store.key;
+          }
+          else return key( store );
+        }
         if ( !key ) key = self.helper.generateKey();
         store.get( key, function ( dataset ) {
           callback( dataset === null ? { key: key } : dataset );
