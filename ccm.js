@@ -4,12 +4,13 @@
  * @license The MIT License (MIT)
  * @version latest (9.0.0)
  * @changes
- * version 9.0.0 (04.07.2017):
+ * version 9.0.0 (05.07.2017):
  * - ccm.load supports resource data for each resource (incompatible change)
  * - allow ccm.get dependency for key property of a ccm instance
  * - default website area of a ccm instance is a on-the-fly div element
  * - each ccm instance now knows it's root element
  * - ccm.helper.dataset accepts data object or dataset directly
+ * - bugfix for creating ccm instances without setting an element
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -1680,7 +1681,7 @@
               function setElement() {
 
                 // no website area? => use on-the-fly element
-                if ( !instance.element ) instance.element = document.createElement( 'div' );
+                if ( !instance.element ) document.head.appendChild( instance.element = document.createElement( 'div' ) );
 
                 // keyword 'parent'? => use parent website area (and abort)
                 if ( instance.element === 'parent' ) return instance.element = parent.element;
@@ -1868,10 +1869,13 @@
                 if ( counter === 0 ) {
 
                   // waitlist not empty? => continue with waiting unsolved dependencies
-                  if ( waiter.length > 0 ) return self.helper.action( waiter.shift() );    // recursive call
+                  if ( waiter.length > 0 ) return self.helper.action( waiter.shift() );  // recursive call
 
                   // initialize created instances (start recursive with result instance)
                   initialize( result, function () {
+
+                    // root element is a child of <head>? => remove it from <head> (but keep reference)
+                    if ( result.root.parentNode === document.head ) document.head.removeChild( result.root );
 
                     // perform callback with result instance
                     if ( callback ) callback( result );
@@ -3364,6 +3368,7 @@
             case 'index':
             case 'onfinish':
             case 'parent':
+            case 'root':
               break;
             default:
               if ( self.helper.isInstance( instance[ key ] ) && instance[ key ].parent && instance[ key ].parent.index === instance.index ) return;
