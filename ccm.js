@@ -11,6 +11,7 @@
  * - each ccm instance now knows it's root element
  * - ccm.helper.dataset accepts data object or dataset directly
  * - bugfix for creating ccm instances without setting an element
+ * - bugfix for cross-domain data exchanges via ccm.load
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -1226,7 +1227,7 @@
             if ( !resource.params ) resource.params = {};
             resource.params.callback = 'ccm.callbacks.' + callback;
             ccm.callbacks[ callback ] = function ( data ) {
-              head.removeChild( tag );
+              resource.context.removeChild( tag );
               delete ccm.callbacks[ callback ];
               successData( data );
             };
