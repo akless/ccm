@@ -1803,7 +1803,7 @@
                     for ( var i = 0; i < resources.length; i++ ) {
                       if ( Array.isArray( resources[ i ] ) ) return setContext( resources[ i ] );
                       if ( !self.helper.isObject( resources[ i ] ) ) resources[ i ] = { url: resources[ i ] };
-                      resources[ i ].context = instance.element.parentNode;
+                      if ( !resources[ i ].context ) resources[ i ].context = instance.element.parentNode;
                     }
                   }
 
