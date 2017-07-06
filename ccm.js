@@ -2446,8 +2446,8 @@
         if ( typeof key === 'function' ) {
           callback = key;
           if ( store.store && store.key ) {
-            store = store.store;
             key = store.key;
+            store = store.store;
           }
           else return callback( store );
         }
