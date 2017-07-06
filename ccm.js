@@ -12,6 +12,7 @@
  * - ccm.helper.dataset accepts data object or dataset directly
  * - bugfix for creating ccm instances without setting an element
  * - bugfix for cross-domain data exchanges via ccm.load
+ * - stricter pads for allowed characters inside a component filename
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -1227,6 +1228,7 @@
             if ( !resource.params ) resource.params = {};
             resource.params.callback = 'ccm.callbacks.' + callback;
             ccm.callbacks[ callback ] = function ( data ) {
+              console.log( '!' );
               resource.context.removeChild( tag );
               delete ccm.callbacks[ callback ];
               successData( data );
@@ -3435,7 +3437,7 @@
       regex: function ( index ) {
 
         switch ( index ) {
-          case 'filename': return /^ccm\.([^.-]+)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/;
+          case 'filename': return /^ccm\.([a-z][a-z0-9_]*)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/;
           case 'key':      return /^[a-zA-Z_0-9]+$/;
         }
 
