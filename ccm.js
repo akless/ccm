@@ -1228,7 +1228,6 @@
             if ( !resource.params ) resource.params = {};
             resource.params.callback = 'ccm.callbacks.' + callback;
             ccm.callbacks[ callback ] = function ( data ) {
-              console.log( '!' );
               resource.context.removeChild( tag );
               delete ccm.callbacks[ callback ];
               successData( data );
