@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (9.0.0)
  * @changes
- * version 9.0.0 (05.07.2017):
+ * version 9.0.0 (07.07.2017):
  * - ccm.load supports resource data for each resource (incompatible change)
  * - allow ccm.get dependency for key property of a ccm instance
  * - default website area of a ccm instance is a on-the-fly div element
@@ -13,6 +13,7 @@
  * - bugfix for creating ccm instances without setting an element
  * - bugfix for cross-domain data exchanges via ccm.load
  * - stricter pads for allowed characters inside a component filename
+ * - update caching mechanism for loading resources with ccm.load
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -1033,7 +1034,7 @@
       // last argument is callback? => separate arguments and callback
       if ( typeof args[ args.length - 1 ] === 'function' ) callback = args.pop();
 
-      // iterate over all resources data => load resource
+      // iterate over resources data => load resource
       args.map( loadResource );
 
       // check if all resources are loaded (important if all resources already loaded)
@@ -1061,14 +1062,17 @@
         // has URL instead of resource data? => use resource data which contains only the URL information
         if ( !self.helper.isObject( resource ) ) resource = { url: resource };
 
-        // no context? => load resource in <head> context (no Shadow DOM)
+        // resource has to be load in a specific context? => ignore cache (to support loading of same resource in different contexts)
+        if ( resource.context ) resource.ignore_cache = true;
+
+        // no caching for data exchanges with server interfaces
+        if ( resource.params ) resource.ignore_cache = true;
+
+        // no context? => load resource in global <head> context (no Shadow DOM)
         if ( !resource.context ) resource.context = document.head;
 
-        /**
-         * already loaded result for this resource
-         * @type {*}
-         */
-        var cached = resources[ resource.url ];
+        // prevent loading resource twice
+        if ( caching() ) return;
 
         // mark resource as 'loading'
         resources[ resource.url ] = null;
@@ -1132,11 +1136,53 @@
 
         }
 
+        /**
+         * prevents loading a resource twice
+         * @returns {boolean} abort current ccm.load call
+         */
+        function caching() {
+
+          // no caching for this resource? => continue current ccm.load call
+          if ( resource.ignore_cache ) return false;
+
+          // is resource currently loading?
+          if ( resources[ resource.url ] === null ) {
+
+            // is this ccm.load call already waiting? => abort current ccm.load call (counter will not decrement)
+            if ( waiting ) return true;
+
+            // mark current ccm.load call as waiting
+            waiting = true;
+
+            // no waitlist for currently loading resource exists? => create waitlist
+            if ( !waiter[ resource.url ] ) waiter[ resource.url ] = [];
+
+            // add ccm.load call to waitlist
+            waiter[ resource.url ].push( call );
+
+            // abort current ccm.load call (counter will not decrement)
+            return true;
+
+          }
+
+          // resource already loaded?
+          if ( resources[ resource.url ] !== undefined ) {
+
+            // result is already loaded resource value
+            results[ i ] = resources[ resource.url ];
+
+            // skip loading process
+            success(); return true;
+
+          }
+
+          // continue current ccm.load call
+          return false;
+
+        }
+
         /** loads the content of a HTML file */
         function loadHTML() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
 
           // load content via AJAX request
           ajax( { url: resource.url, type: 'html', callback: successData } );
@@ -1146,9 +1192,6 @@
         /** loads (and executes) a CSS file */
         function loadCSS() {
 
-          // prevent loading resource twice
-          if ( caching() ) return;
-
           // load css file via <link>
           var tag = self.helper.html( { tag: 'link', rel: 'stylesheet', type: 'text/css', href: resource.url } );
           resource.context.appendChild( tag );
@@ -1156,11 +1199,8 @@
 
         }
 
-        /** (pre)loads a image file */
+        /** (pre)loads an image file */
         function loadImage() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
 
           // load image via image object
           var image = new Image();
@@ -1171,9 +1211,6 @@
 
         /** loads (and executes) a javascript file */
         function loadJS() {
-
-          // prevent loading resource twice
-          if ( caching() ) return;
 
           // load javascript file via <script>
           var tag = self.helper.html( { tag: 'script', src: resource.url } );
@@ -1193,15 +1230,12 @@
         /** loads the content of a JSON file */
         function loadJSON() {
 
-          // prevent loading resource twice
-          if ( caching() ) return;
-
           // load content via AJAX request
           ajax( { url: resource.url, type: 'json', callback: function ( result ) { successData( JSON.parse( result ) ); } } );
 
         }
 
-        /** exchanges data with a server */
+        /** exchanges data with a server interface */
         function exchangeData() {
 
           // is this ccm.load call already waiting for currently loading resource(s)? => skip data exchange for the moment
@@ -1243,55 +1277,7 @@
         }
 
         /**
-         * prevents loading a resource twice
-         * @returns {boolean} abort current ccm.load call
-         */
-        function caching() {
-
-          // no caching for this resource? => continue current ccm.load call
-          if ( resource.ignore_cache ) return false;
-
-          // is a Shadow DOM resource?
-          if ( resource.context !== document.head ) return false;
-
-          // is resource currently loading?
-          if ( cached === null ) {
-
-            // is this ccm.load call already waiting? => abort current ccm.load call (counter will not decrement)
-            if ( waiting ) return true;
-
-            // mark current ccm.load call as waiting
-            waiting = true;
-
-            // no waitlist for currently loading resource exists? => create waitlist
-            if ( !waiter[ resource.url ] ) waiter[ resource.url ] = [];
-
-            // add ccm.load call to waitlist
-            waiter[ resource.url ].push( call );
-
-            // abort current ccm.load call (counter will not decrement)
-            return true;
-
-          }
-
-          // resource already loaded?
-          if ( cached ) {
-
-            // result is already loaded resource value
-            results[ i ] = resources[ resource.url ] = cached;
-
-            // skip loading process
-            success(); return true;
-
-          }
-
-          // continue current ccm.load call
-          return false;
-
-        }
-
-        /**
-         * sends a AJAX request
+         * sends an AJAX request
          * @param {object} settings - settings for AJAX request
          */
         function ajax( settings ) {
@@ -1355,11 +1341,11 @@
         function success() {
 
           // add url to results and already loaded resources
-          if ( results[ i ] === undefined ) results[ i ] = resources[ resource.url ] = resource;
+          if ( results[ i ] === undefined ) results[ i ] = resources[ resource.url ] = resource.url;
 
           // is resource on waitlist? => perform waiting actions
           while ( waiter[ resource.url ] && waiter[ resource.url ].length > 0 )
-            self.helper.action( waiter[ resource ].pop() );
+            self.helper.action( waiter[ resource.url ].pop() );
 
           // check if all resources are loaded
           check();
