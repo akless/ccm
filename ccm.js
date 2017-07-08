@@ -14,6 +14,7 @@
  * - bugfix for cross-domain data exchanges via ccm.load
  * - stricter pads for allowed characters inside a component filename
  * - update caching mechanism for loading resources with ccm.load
+ * - generated website area of a ccm instance is simply <div id='element'>
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -1681,7 +1682,7 @@
                 instance.root = instance.element;
 
                 // prepare website area for ccm instance
-                var element = self.helper.html( { id: self.helper.getElementID( instance ), class: 'ccm ccm-' + instance.component.name } );
+                var element = self.helper.html( { id: 'element' } );
 
                 // create shadow DOM
                 var shadow = instance.element.attachShadow( { mode: 'open' } );
