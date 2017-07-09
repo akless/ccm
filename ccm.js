@@ -3384,14 +3384,14 @@
           return tag.innerHTML;
         }
 
-        if ( typeof value === 'object' )
-          for ( var key in value )
-            value[ key ] = self.helper.protect( value[ key ] );
-
         if ( self.helper.isElementNode( value ) )
           self.helper.makeIterable( value.getElementsByTagName( 'script' ) ).map( function ( script ) {
             script.parentNode.removeChild( script );
           } );
+
+        else if ( typeof value === 'object' )
+          for ( var key in value )
+            value[ key ] = self.helper.protect( value[ key ] );
 
         return value;
 
