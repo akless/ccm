@@ -15,6 +15,7 @@
  * - stricter pads for allowed characters inside a component filename
  * - update caching mechanism for loading resources with ccm.load
  * - generated website area of a ccm instance is simply <div id='element'>
+ * - add helper function 'transformStringArray(arr)'
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -854,6 +855,14 @@
       if ( my.user && my.user.isLoggedIn() )
         data = self.helper.integrate( data, { user: my.user.data().key, token: my.user.data().token } );
       return data;
+
+    }
+
+    function transformStringArray( arr ) {
+
+      var obj = {};
+      arr.map( function ( value ) { obj[ value ] = true } );
+      return obj;
 
     }
 
