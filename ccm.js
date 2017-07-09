@@ -858,14 +858,6 @@
 
     }
 
-    function transformStringArray( arr ) {
-
-      var obj = {};
-      arr.map( function ( value ) { obj[ value ] = true } );
-      return obj;
-
-    }
-
     /**
      * @summary send data to server interface via websocket connection
      * @private
@@ -3509,6 +3501,14 @@
 
         // perform the ccm action data of the ccm dependency
         return self.helper.action( obj[ key ] );
+
+      },
+
+      transformStringArray: function ( arr ) {
+
+        var obj = {};
+        arr.map( function ( value ) { obj[ value ] = true } );
+        return obj;
 
       },
 
