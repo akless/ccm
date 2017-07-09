@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (9.0.0)
  * @changes
- * version 9.0.0 (07.07.2017):
+ * version 9.0.0 (09.07.2017):
  * - ccm.load supports resource data for each resource (incompatible change)
  * - allow ccm.get dependency for key property of a ccm instance
  * - default website area of a ccm instance is a on-the-fly div element
@@ -12,9 +12,9 @@
  * - ccm.helper.dataset accepts data object or dataset directly
  * - bugfix for creating ccm instances without setting an element
  * - bugfix for cross-domain data exchanges via ccm.load
- * - stricter pads for allowed characters inside a component filename
+ * - stricter pads for allowed characters inside a component filename (incompatible change)
  * - update caching mechanism for loading resources with ccm.load
- * - generated website area of a ccm instance is simply <div id='element'>
+ * - generated website area of a ccm instance is simply <div id='element'> (incompatible change)
  * - add helper function 'transformStringArray(arr)'
  * - ccm.helper.protect accepts arrays and objects
  * - content that moves into DOM via helper functions is protected
