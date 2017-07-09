@@ -16,6 +16,7 @@
  * - update caching mechanism for loading resources with ccm.load
  * - generated website area of a ccm instance is simply <div id='element'>
  * - add helper function 'transformStringArray(arr)'
+ * - ccm.helper.protect accepts arrays and objects
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -3371,12 +3372,7 @@
       },
 
       protect: function ( value ) {
-        if ( self.helper.isElementNode( value ) ) {
-          self.helper.makeIterable( value.getElementsByTagName( 'script' ) ).map( function ( script ) {
-            script.parentNode.removeChild( script );
-          } );
-          return value;
-        }
+
         if ( typeof value === 'string' ) {
           var tag = document.createElement( 'div' );
           tag.innerHTML = value;
@@ -3385,6 +3381,18 @@
           } );
           return tag.innerHTML;
         }
+
+        if ( typeof value === 'object' )
+          for ( var key in value )
+            value[ key ] = self.protect( value[ key ] );
+
+        if ( self.helper.isElementNode( value ) )
+          self.helper.makeIterable( value.getElementsByTagName( 'script' ) ).map( function ( script ) {
+            script.parentNode.removeChild( script );
+          } );
+
+        return value;
+
       },
 
       /**
@@ -3440,6 +3448,7 @@
        * @param {string|ccm.types.element|ccm.types.element[]} content - HTML element or HTML string for content
        */
       setContent: function ( element, content ) {
+
 
         if ( typeof content === 'object' ) {
           element.innerHTML = '';
