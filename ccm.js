@@ -17,6 +17,7 @@
  * - generated website area of a ccm instance is simply <div id='element'>
  * - add helper function 'transformStringArray(arr)'
  * - ccm.helper.protect accepts arrays and objects
+ * - content that moves into DOM via helper functions is protected
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -3275,6 +3276,7 @@
 
       prepend: function ( parent, node ) {
 
+        node = self.helper.protect( node );
         if ( parent.hasChildNodes() )
           parent.insertBefore( node, parent.firstChild );
         else
@@ -3449,7 +3451,7 @@
        */
       setContent: function ( element, content ) {
 
-
+        content = self.helper.protect( content );
         if ( typeof content === 'object' ) {
           element.innerHTML = '';
           if ( Array.isArray( content ) )
