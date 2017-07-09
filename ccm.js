@@ -18,6 +18,7 @@
  * - add helper function 'transformStringArray(arr)'
  * - ccm.helper.protect accepts arrays and objects
  * - content that moves into DOM via helper functions is protected
+ * - bugfix for realtime datastores
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -93,6 +94,8 @@
      */
     var callbacks = [];
 
+    var that = this;
+
     /**
      * @summary contains privatized members
      * @private
@@ -113,10 +116,10 @@
     this.init = function ( callback ) {
 
       // privatize security relevant members
-      my = self.helper.privatize( this, 'source', 'local', 'store', 'url', 'db', 'socket', 'onChange', 'user' );
+      my = self.helper.privatize( that, 'source', 'local', 'store', 'url', 'db', 'socket', 'user' );
 
       // set getter method for ccm datastore source
-      this.source = function () { return my.source; };
+      that.source = function () { return my.source; };
 
       // is realtime datastore? => set server notification callback
       if ( my.socket ) my.socket.onmessage = function ( message ) {
@@ -134,7 +137,7 @@
           var dataset = self.helper.isObject( message ) ? updateLocal( message ) : delLocal( message );
 
           // perform change callback
-          if ( my.onChange ) my.onChange( dataset );
+          if ( that.onchange ) that.onchange( dataset );
 
         }
 
@@ -3809,7 +3812,7 @@
    * This property is only relevant for the third data level.
    * See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#server-interface} for more informations about an <i>ccm</i> compatible server interface.
    * @property {string} db - database (in case of a server that offers more than one database)
-   * @property {function} onChange - Callback when server informs about changed stored datasets.
+   * @property {function} onchange - Callback when server informs about changed stored datasets.
    * This property is only relevant for the third data level with real-time communication.
    * See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management#real-time-communication} for more informations.
    * @property {ccm.types.instance} user - <i>ccm</i> instance for user authentication (not documented yet) | TODO: Wiki page for datastore security
@@ -3859,7 +3862,7 @@
    * {
    *   store: 'chat',                              // The file interface.php must be
    *   url: 'ws://path/to/server/interface.php',   // an ccm compatible server interface
-   *   onChange: function () {
+   *   onchange: function () {
    *     console.log( arguments );  // Shows the server informations about changed
    *   }                            // stored datasets in the developer console.
    * }
