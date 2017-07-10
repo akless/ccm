@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (9.0.0)
  * @changes
- * version 9.0.0 (09.07.2017):
+ * version 9.0.0 (10.07.2017):
  * - ccm.load supports resource data for each resource (incompatible change)
  * - allow ccm.get dependency for key property of a ccm instance
  * - default website area of a ccm instance is a on-the-fly div element
@@ -19,6 +19,7 @@
  * - ccm.helper.protect accepts arrays and objects
  * - content that moves into DOM via helper functions is protected
  * - bugfix for realtime datastores
+ * - bugfix for setting a deeper property via HTML attribute
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -2438,7 +2439,7 @@
       dataset: function ( store, key, callback ) {
         if ( typeof key === 'function' ) {
           callback = key;
-          if ( store.store && store.key ) {
+          if ( store.store ) {
             key = store.key;
             store = store.store;
           }
@@ -2624,10 +2625,10 @@
 
           self.helper.makeIterable( node.attributes ).map( function ( attr ) {
             if ( attr.name !== 'src' ||
-                ( node.tagName.indexOf( 'CCM-COMPONENT' ) !== 0
+                 ( node.tagName.indexOf( 'CCM-COMPONENT' ) !== 0
                 && node.tagName.indexOf( 'CCM-INSTANCE'  ) !== 0
                 && node.tagName.indexOf( 'CCM-PROXY'     ) !== 0 ) )
-              try { obj[ attr.name ] = attr.value.charAt( 0 ) === '{' || attr.value.charAt( 0 ) === '[' ? JSON.parse( attr.value ) : prepareValue( attr.value ); } catch ( err ) {}
+              try { self.helper.deepValue( obj, attr.name, attr.value.charAt( 0 ) === '{' || attr.value.charAt( 0 ) === '[' ? JSON.parse( attr.value ) : prepareValue( attr.value ) ) } catch ( err ) {}
           } );
 
         }
