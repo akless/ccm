@@ -1668,15 +1668,14 @@
               setElement();                                       // set website area
 
               /*
-              var parent_node;
-              var temp_node;
               if ( instance.root.parentNode ) {
-                parent_node = instance.root.parentNode;
-                temp_node = document.createElement( 'div' );
-                temp_node.classList.add( 'temp' );
-                parent_node.insertBefore( temp_node, instance.root );
+                instance.root.parent_node = instance.root.parentNode;
+                instance.root.temp_node = document.createElement( 'div' );
+                instance.root.temp_node.classList.add( 'temp' );
+                instance.root.parent_node.insertBefore( instance.root.temp_node, instance.root );
                 document.head.appendChild( instance.root );
               }
+              console.log( instance.index, instance.root, instance.root.shadowRoot, instance.root.parent_node, instance.root.temp_node );
               */
 
               // solve dependencies of created ccm instance
@@ -1687,8 +1686,6 @@
 
               /** set the website area for the created instance */
               function setElement() {
-
-                if ( instance.element && !instance.root ) instance.root = instance.element;
 
                 // keyword 'parent'? => use parent website area (and abort)
                 if ( instance.root === 'parent' ) {
@@ -1703,6 +1700,9 @@
                 // no website area? => use on-the-fly element
                 if ( !instance.root ) instance.root = document.createElement( 'div' );
 
+                // no DOM contact? => put root element into <head>
+                if ( !instance.root.parentNode ) document.head.appendChild( instance.root );
+
                 // prepare website area for ccm instance
                 var element = self.helper.html( { id: 'element' } );
 
@@ -1712,6 +1712,7 @@
 
                 // prepared website area is website area for created instance
                 instance.element = element;
+                //console.log( instance.root, instance.element, instance.root.parentNode );
 
               }
 
@@ -1879,10 +1880,14 @@
                 // are all ccm instance dependencies solved?
                 if ( counter === 0 ) {
 
-                  //if ( parent_node ) parent_node.replaceChild( instance.root, temp_node );
+                  /*
+                  if ( instance.root.parent_node ) instance.root.parent_node.appendChild( instance.root );
+                  //if ( instance.root.parent_node ) instance.root.parent_node.replaceChild( instance.root, instance.root.temp_node );
+                  console.log( instance.root.parent_node );
+                  */
 
                   // waitlist not empty? => continue with waiting unsolved dependencies
-                  //if ( waiter.length > 0 ) return self.helper.action( waiter.shift() );  // recursive call
+                  if ( waiter.length > 0 ) return self.helper.action( waiter.shift() );  // recursive call
 
                   // initialize created instances (start recursive with result instance)
                   initialize( result, function () {
