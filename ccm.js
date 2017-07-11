@@ -1078,7 +1078,7 @@
         if ( resource.params ) resource.ignore_cache = true;
 
         // no context? => load resource in global <head> context (no Shadow DOM)
-        if ( !resource.context ) resource.context = document.head;
+        if ( !resource.context || resource.context === 'head' ) resource.context = document.head;
 
         // prevent loading resource twice
         if ( caching() ) return;
