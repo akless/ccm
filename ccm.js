@@ -1667,6 +1667,18 @@
               instance.component = components[ index ];           // set ccm component reference
               setElement();                                       // set website area
 
+              /*
+              var parent_node;
+              var temp_node;
+              if ( instance.root.parentNode ) {
+                parent_node = instance.root.parentNode;
+                temp_node = document.createElement( 'div' );
+                temp_node.classList.add( 'temp' );
+                parent_node.insertBefore( temp_node, instance.root );
+                document.head.appendChild( instance.root );
+              }
+              */
+
               // solve dependencies of created ccm instance
               solveDependencies( instance );
 
@@ -1675,6 +1687,8 @@
 
               /** set the website area for the created instance */
               function setElement() {
+
+                if ( instance.element && !instance.root ) instance.root = instance.element;
 
                 // keyword 'parent'? => use parent website area (and abort)
                 if ( instance.root === 'parent' ) {
@@ -1751,7 +1765,7 @@
                     case 'ccm.load':
                       counter++;
                       action.shift();
-                      if ( instance.element ) setContext( action );
+                      setContext( action );
                       action.push( setResult ); self.load.apply( null, action );
                       break;
 
@@ -1864,6 +1878,8 @@
 
                 // are all ccm instance dependencies solved?
                 if ( counter === 0 ) {
+
+                  //if ( parent_node ) parent_node.replaceChild( instance.root, temp_node );
 
                   // waitlist not empty? => continue with waiting unsolved dependencies
                   if ( waiter.length > 0 ) return self.helper.action( waiter.shift() );  // recursive call
