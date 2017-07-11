@@ -1882,7 +1882,7 @@
                   //if ( parent_node ) parent_node.replaceChild( instance.root, temp_node );
 
                   // waitlist not empty? => continue with waiting unsolved dependencies
-                  if ( waiter.length > 0 ) return self.helper.action( waiter.shift() );  // recursive call
+                  //if ( waiter.length > 0 ) return self.helper.action( waiter.shift() );  // recursive call
 
                   // initialize created instances (start recursive with result instance)
                   initialize( result, function () {
