@@ -4,11 +4,11 @@
  * @license The MIT License (MIT)
  * @version latest (9.0.0)
  * @changes
- * version 9.0.0 (10.07.2017):
+ * version 9.0.0 (11.07.2017):
  * - ccm.load supports resource data for each resource (incompatible change)
  * - allow ccm.get dependency for key property of a ccm instance
  * - default website area of a ccm instance is a on-the-fly div element
- * - each ccm instance now knows it's root element
+ * - each ccm instance now knows it's root element (incompatible change)
  * - ccm.helper.dataset accepts data object or dataset directly
  * - bugfix for creating ccm instances without setting an element
  * - bugfix for cross-domain data exchanges via ccm.load
@@ -1505,7 +1505,7 @@
             if ( node.tagName && node.tagName.indexOf( 'CCM-' ) === 0 )
               return;
           var config = self.helper.generateConfig( this );
-          config.element = this;
+          config.root = this;
           component.start( config );
         };
         document.registerElement( 'ccm-' + component.index, { prototype: tag } );
@@ -1676,23 +1676,24 @@
               /** set the website area for the created instance */
               function setElement() {
 
-                // no website area? => use on-the-fly element
-                if ( !instance.element ) document.head.appendChild( instance.element = document.createElement( 'div' ) );
-
                 // keyword 'parent'? => use parent website area (and abort)
-                if ( instance.element === 'parent' ) return instance.element = parent.element;
+                if ( instance.root === 'parent' ) {
+                  instance.root = instance.parent.root;
+                  instance.element = instance.parent.element;
+                  return;
+                }
 
                 // keyword 'name'? => use inner website area of the parent where HTML ID is equal to component name of created instance
-                if ( instance.element === 'name' ) instance.element = ( parent || instance.parent ).element.querySelector( '#' + instance.component.name );
+                if ( instance.root === 'name' ) instance.root = instance.parent.element.querySelector( '#' + instance.component.name );
 
-                // remember root element
-                instance.root = instance.element;
+                // no website area? => use on-the-fly element
+                if ( !instance.root ) instance.root = document.createElement( 'div' );
 
                 // prepare website area for ccm instance
                 var element = self.helper.html( { id: 'element' } );
 
                 // create shadow DOM
-                var shadow = instance.element.attachShadow( { mode: 'open' } );
+                var shadow = instance.root.attachShadow( { mode: 'open' } );
                 shadow.appendChild( element );
 
                 // prepared website area is website area for created instance
