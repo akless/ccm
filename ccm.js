@@ -20,6 +20,7 @@
  * - content that moves into DOM via helper functions is protected
  * - bugfix for realtime datastores
  * - bugfix for setting a deeper property via HTML attribute
+ * - bugfix for calling ccm.helper.protect with a fragment
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -3415,7 +3416,7 @@
             script.parentNode.removeChild( script );
           } );
 
-        else if ( typeof value === 'object' )
+        else if ( typeof value === 'object' && !self.helper.isNode( value ) )
           for ( var key in value )
             value[ key ] = self.helper.protect( value[ key ] );
 
