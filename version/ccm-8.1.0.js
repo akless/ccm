@@ -1511,7 +1511,7 @@
 
         // has version? => append version number to component index
         if ( component.version )
-          component.index += '-' + component.version;
+          component.index += '-' + component.version.join( '-' );
 
       }
 
