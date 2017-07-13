@@ -21,6 +21,7 @@
  * - bugfix for realtime datastores
  * - bugfix for setting a deeper property via HTML attribute
  * - bugfix for calling ccm.helper.protect with a fragment
+ * - add 'clear' property to ccm.helper.onfinish object
  * (for older version changes see ccm-8.1.0.js)
  */
 
@@ -3192,6 +3193,7 @@
        * @param {ccm.types.settings} [instance.onfinish.store_settings] - settings for a <i>ccm</i> datastore (result data will be set in this datastore)
        * @param {object} [instance.onfinish.permissions] - permission settings for set operation
        * @param {boolean} [instance.onfinishn.user_specific] - do the set operation with a user-specific dataset key
+       * @param {object} [instance.onfinish.clear] - clear own website area
        * @param {boolean} [instance.onfinish.restart] - restart finished <i>ccm</i> instance
        * @param {string} [instance.onfinish.embed_code] - show embed code if results are a instance configuration (value is component name)
        * @param {boolean} [instance.onfinish.log] - log result data in browser console
@@ -3217,6 +3219,7 @@
        *   },
        *   user_specific: true,
        *   embed_code: 'component_name',
+       *   clear: true,
        *   restart: true,
        *   log: true,
        *   render: [ 'component_url', [ "ccm.get", "configs.json", "dataset_key" ] ],
@@ -3269,6 +3272,9 @@
           } else proceed();
 
           function proceed() {
+
+            // has to clear own website area? => do it
+            if ( instance.onfinish.clear ) instance.element.innerHTML = '';
 
             // has to restart the ccm instance? => do it
             if ( instance.onfinish.restart ) instance.start( proceed ); else proceed();
