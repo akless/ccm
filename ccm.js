@@ -3219,6 +3219,7 @@
        *   },
        *   user_specific: true,
        *   embed_code: 'component_name',
+       *   embed_code_url: 'path/to/ccm.component.js',
        *   clear: true,
        *   restart: true,
        *   log: true,
@@ -3264,7 +3265,8 @@
             self.set( instance.onfinish.store_settings, dataset, function ( result ) {
 
               // show embed code
-              if ( instance.onfinish.embed_code ) alert( '<ccm-' + instance.onfinish.embed_code + ' key=\'["ccm.get",' + JSON.stringify( instance.onfinish.store_settings ) + ',"' + result.key + '"]\'></ccm-' + instance.onfinish.embed_code + '>' );
+              var url = instance.onfinish.embed_code_url ? '<script src="'+instance.onfinish.embed_code_url+'"></script>' : '';
+              if ( instance.onfinish.embed_code ) alert( url + '<ccm-' + instance.onfinish.embed_code + ' key=\'["ccm.get",' + JSON.stringify( instance.onfinish.store_settings ) + ',"' + result.key + '"]\'></ccm-' + instance.onfinish.embed_code + '>' );
 
               proceed();
             } );
