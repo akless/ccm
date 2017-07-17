@@ -2875,7 +2875,7 @@
           // interpret ccm html data property
           switch ( key ) {
 
-              // HTML boolean attributes
+            // HTML boolean attributes
             case 'async':
             case 'autofocus':
             case 'checked':
@@ -2889,7 +2889,7 @@
               if ( value ) element[ key ] = true;
               break;
 
-              // inner HTML
+            // inner HTML
             case 'inner':
               if ( typeof value === 'string' || typeof value === 'number' ) { element.innerHTML = value; break; }
               var children = this.html( value );  // recursive call
@@ -2902,7 +2902,7 @@
                   element.innerHTML += children[ i ];
               break;
 
-              // HTML value attributes and events
+            // HTML value attributes and events
             default:
               if ( key.indexOf( 'on' ) === 0 && typeof value === 'function' )  // is HTML event
                 element.addEventListener( key.substr( 2 ), value );
