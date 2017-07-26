@@ -1647,7 +1647,7 @@
             function proceed() {
 
               // ccm instance configuration is a HTML element node? => configuration has only element property
-              if ( self.helper.isElementNode( cfg ) ) cfg = { element: cfg };
+              if ( self.helper.isElementNode( cfg ) ) cfg = { root: cfg };
 
               /**
                * created instance
