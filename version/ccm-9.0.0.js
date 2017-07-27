@@ -2,7 +2,7 @@
  * @overview ccm framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (9.0.0)
+ * @version 9.0.0
  * @changes
  * version 9.0.0 (27.07.2017):
  * - ccm.load supports resource data for each resource (incompatible change)
