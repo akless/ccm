@@ -2814,7 +2814,7 @@
         split.pop();
         if ( split[ split.length - 1 ] === 'min' )
           split.pop();
-        return split.join( '.' );
+        return split.join( '-' );
 
       },
 
