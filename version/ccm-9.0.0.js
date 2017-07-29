@@ -4,17 +4,18 @@
  * @license The MIT License (MIT)
  * @version 9.0.0
  * @changes
- * version 9.0.0 (27.07.2017):
- * - ccm.load supports resource data for each resource (incompatible change)
+ * version 9.0.0 (29.07.2017):
+ * - ccm.load supports resource data for each resource
  * - allow ccm.get dependency for key property of a ccm instance
  * - default website area of a ccm instance is a on-the-fly div element
- * - each ccm instance now knows it's root element (incompatible change)
+ * - each ccm instance now knows it's root element
+ * - light DOM is accessable via 'inner' property (not 'node')
  * - ccm.helper.dataset accepts data object or dataset directly
  * - bugfix for creating ccm instances without setting an element
  * - bugfix for cross-domain data exchanges via ccm.load
- * - stricter pads for allowed characters inside a component filename (incompatible change)
+ * - stricter pads for allowed characters inside a component filename
  * - update caching mechanism for loading resources with ccm.load
- * - generated website area of a ccm instance is simply <div id='element'> (incompatible change)
+ * - generated website area of a ccm instance is simply <div id='element'>
  * - add helper function 'transformStringArray(arr)'
  * - ccm.helper.protect accepts arrays and objects
  * - content that moves into DOM via helper functions is protected
@@ -2709,11 +2710,12 @@
               node.removeChild( child );
             }
           } );
-          config.node = self.helper.html( {} );
+          config.inner = self.helper.html( {} );
           config.childNodes.map( function ( child ) {
-            config.node.appendChild( child );
+            config.inner.appendChild( child );
           } );
           delete config.childNodes;
+          if ( !config.inner.hasChildNodes() ) delete config.inner;
 
           function interpretLoadTag( node ) {
 
