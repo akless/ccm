@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (9.1.0)
+ * @version 9.1.0
  * @changes
  * version 9.1.0 (14.08.2017):
  * - add helper function 'append(parent,node)'
