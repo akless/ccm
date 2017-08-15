@@ -2,8 +2,11 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (9.1.0)
+ * @version latest (9.2.0)
  * @changes
+ * version 9.2.0 (15.08.2017):
+ * - improve ccm.component()
+ * - dependent ccm instances must not use exactly the same ccm framework version as the root instance
  * version 9.1.0 (14.08.2017):
  * - add helper function 'append(parent,node)'
  * version 9.0.0 (29.07.2017):
@@ -961,7 +964,7 @@
      * @memberOf ccm
      * @return {ccm.types.version}
      */
-    version: function () { return '9.1.0'; },
+    version: function () { return '9.2.0'; },
 
     /**
      * @summary reset caches for resources and datastores
@@ -1407,151 +1410,201 @@
      */
     component: function ( component, config, callback ) {
 
-      // default ccm instance configuration is a function? => configuration is callback
+      // config parameter is a function? => config skipped
       if ( typeof config === 'function' ) { callback = config; config = undefined; }
 
-      // is URL of component? => load component and finish registration
-      if ( typeof component === 'string' )
-        return components[ self.helper.getIndex( component ) ] ? finish() : self.load( component, finish );
+      // component is given as string?
+      if ( typeof component === 'string' ) {
 
-      // set component index
-      setIndex();
+        // given string is component index? => proceed with already registered component object
+        if ( component.indexOf( '.js' ) === -1 ) return proceed( components[ component ] );
 
-      // component already registered? => finish registration
-      if ( components[ component.index ] ) return finish();
-
-      // register component
-      components[ component.index ] = component;
-
-      // create global namespace for component
-      ccm.components[ component.index ] = {};
-
-      // no Custom Element support? => load polyfill
-      if ( !( 'registerElement' in document ) ) self.load( [
-        'https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js'
-      ], proceed ); else return proceed();
-
-      function proceed() {
-
-        // setup component
-        setup();
-
-        // create HTML tag for ccm component
-        createCustomElement();
-
-        // initialize component
-        if ( component.init ) { component.init( finish ); delete component.init; } else return finish();
-
-      }
-
-      /**
-       * set ccm component index
-       */
-      function setIndex() {
-
-        // has component index?
-        if ( component.index ) {
+        // given string is component URL
+        else {
 
           /**
-           * name and version number of ccm component
-           * @type {Array}
+           * @type {ccm.types.component_index}
            */
-          var array = component.index.split( '-' );
+          var index = self.helper.getIndex( component );
 
-          // add name of ccm component
-          component.name = array[ 0 ];
+          // is already registered component? => proceed with already registered component object
+          if ( components[ index ] ) return proceed( components[ index ] );
 
-          // add version number of ccm component
-          if ( array.length > 1 )
-            component.version = array[ 1 ];
-
-        }
-
-        // component index is component name
-        component.index = component.name;
-
-        // has version? => append version number to component index
-        if ( component.version )
-          component.index += '-' + component.version.join( '-' );
-
-      }
-
-      /**
-       * setup ccm component
-       */
-      function setup() {
-
-        // add ccm instance counter
-        component.instances = 0;
-
-        // add function for creating and starting ccm instances
-        component.instance = function ( config, callback ) { return self.instance( component.index, config, callback ); };
-        component.start    = function ( config, callback ) { return self.start   ( component.index, config, callback ); };
-
-        // set default of default ccm instance configuration
-        if ( !component.config ) component.config = {};
-
-        // set specific framework version
-        component.config.ccm = self;
-
-      }
-
-      /**
-       * create HTML tag for ccm component
-       */
-      function createCustomElement() {
-
-        var tag = Object.create( HTMLElement.prototype );
-        tag.attachedCallback = function () {
-          if ( !document.body.contains( this ) ) return;
-          var node = this;
-          while ( node = node.parentNode )
-            if ( node.tagName && node.tagName.indexOf( 'CCM-' ) === 0 )
-              return;
-          var config = self.helper.generateConfig( this );
-          config.root = this;
-          component.start( config );
-        };
-        document.registerElement( 'ccm-' + component.index, { prototype: tag } );
-
-      }
-
-      /**
-       * finish registration of component
-       * @returns {ccm.types.component}
-       */
-      function finish() {
-
-        // make deep copy of component
-        component = self.helper.clone( components[ typeof component === 'string' ? self.helper.getIndex( component ) : component.index ] );
-
-        // component has individual default for default instance configuration?
-        if ( config ) {
-
-          // default ccm instance configuration is a HTML element node? => configuration has only element property
-          if ( self.helper.isElementNode( config ) ) config = { element: config };
-
-          // set given default of default ccm instance configuration
-          component.config = self.helper.integrate( self.helper.clone( config ), component.config );
-
-          // open closure for correct later variable visibility
-          closure( component );
+          // not registered component => load component file and proceed with resulting component object
+          else self.load( component, proceed );
 
         }
 
-        // perform callback with component
-        if ( callback ) callback( component );
+      }
+      // component is given as object => proceed with given object
+      else return proceed( component );
 
-        // return component
-        return component;
+      /**
+       * @param {ccm.types.component_object} [component] - component object (default: abort)
+       */
+      function proceed( component ) {
 
-        function closure( component ) {
+        // no component object? => abort
+        if ( !self.helper.isObject( component ) ) return;
 
-          // has given default for default instance configuration? => consider this in later instance() and start() calls
-          if ( component.config ) {
-            component.instance = function ( config, callback ) { if ( typeof config === 'function' ) { callback = config; config = undefined; } if ( self.helper.isElementNode( config ) ) config = { root: config }; config = self.helper.integrate( config, self.helper.clone( component.config ) ); return self.instance( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
-            component.start    = function ( config, callback ) { if ( typeof config === 'function' ) { callback = config; config = undefined; } if ( self.helper.isElementNode( config ) ) config = { root: config }; config = self.helper.integrate( config, self.helper.clone( component.config ) ); return self.start   ( component.index, config, function ( instance ) { instance.component = component; if ( callback ) callback( instance ); } ); };
+        // set component name/version or index
+        setNameVersionIndex();
+
+        // component already registered? => skip registration
+        if ( components[ component.index ] ) return finish();
+
+        // register component
+        components[ component.index ] = component;
+
+        // create global namespace for component
+        ccm.components[ component.index ] = {};
+
+        // no Custom Element support? => load polyfill
+        if ( !( 'registerElement' in document ) ) self.load( [
+          'https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js'
+        ], proceed ); else return proceed();
+
+        function proceed() {
+
+          // setup component
+          setup();
+
+          // define HTML tag for component
+          defineCustomElement();
+
+          // initialize component
+          if ( component.init ) { component.init( finish ); delete component.init; } else return finish();
+
+          /**
+           * setup component object
+           */
+          function setup() {
+
+            component.instances = 0;  // add ccm instance counter
+            component.ccm = self;     // add ccm framework reference
+
+            // add function for creating and starting ccm instances
+            component.instance = function ( config, callback ) { return self.instance( component.index, config, callback ); };
+            component.start    = function ( config, callback ) { return self.start   ( component.index, config, callback ); };
+
+            // set default of default ccm instance configuration
+            if ( !component.config ) component.config = {};
+
+            // set ccm framework reference for instances
+            component.config.ccm = self;
+
+          }
+
+          /**
+           * defines ccm Custom Element for component
+           */
+          function defineCustomElement() {
+
+            var tag = Object.create( HTMLElement.prototype );
+            tag.attachedCallback = function () {
+              if ( !document.body.contains( this ) ) return;
+              var node = this;
+              while ( node = node.parentNode )
+                if ( node.tagName && node.tagName.indexOf( 'CCM-' ) === 0 )
+                  return;
+              var config = self.helper.generateConfig( this );
+              config.root = this;
+              component.start( config );
+            };
+            try { document.registerElement( 'ccm-' + component.index, { prototype: tag } ); } catch ( err ) {}
+
+          }
+
+        }
+
+        /** sets name/version or index of the component object */
+        function setNameVersionIndex() {
+
+          // has component index?
+          if ( component.index ) {
+
+            /**
+             * name and version number of ccm component
+             * @type {Array}
+             */
+            var array = component.index.split( '-' );
+
+            // add name of ccm component
+            component.name = array[ 0 ];
+
+            // add version number of ccm component
+            if ( array.length > 1 )
+              component.version = array[ 1 ];
+
+          }
+
+          // component index is component name
+          component.index = component.name;
+
+          // has version? => append version number to component index
+          if ( component.version )
+            component.index += '-' + component.version.join( '-' );
+
+        }
+
+        /**
+         * finishes registration of component
+         */
+        function finish() {
+
+          // make deep copy of original registered component object
+          component = self.helper.clone( components[ component.index ] );
+
+          // component has individual default for default instance configuration?
+          if ( config ) {
+
+            // config is a HTML Element Node? => configuration has only root property (website area for embedding)
+            if ( self.helper.isElementNode( config ) ) config = { root: config };
+
+            // set individual default of default ccm instance configuration
+            component.config = self.helper.integrate( self.helper.clone( config ), component.config );
+
+            // open closure for correct later variable visibility
+            closure( component );
+
+          }
+          
+          // provide resulting component object
+          if ( callback ) callback( component );
+          return component;
+
+          /**
+           * @param {ccm.types.component_object} component - component object
+           */
+          function closure( component ) {
+
+            // consider default for default instance configuration in later instance() and start() calls
+            component.instance = function ( config, callback ) { return perform( self.instance, config, callback ); };
+            component.start    = function ( config, callback ) { return perform( self.start   , config, callback ); };
+
+            function perform( method, config, callback ) {
+
+              // config parameter is a function? => config skipped
+              if ( typeof config === 'function' ) { callback = config; config = undefined; }
+
+              // config is a HTML Element Node? => configuration has only root property (website area for embedding)
+              if ( self.helper.isElementNode( config ) ) config = { root: config };
+
+              // set instance configuration
+              config = self.helper.integrate( config, self.helper.clone( component.config ) );
+
+              // perform instance() or start() call
+              return method( component.index, config, function ( instance ) {
+
+                // set individual component object (with individual default instance configuration)
+                instance.component = component;
+
+                if ( callback ) callback( instance );
+              } );
+              
+            }
+
           }
 
         }
@@ -1571,7 +1624,7 @@
      */
     instance: function ( component, config, callback ) {
 
-      // ccm instance configuration is a function? => configuration is callback
+      // config parameter is a function? => config skipped
       if ( typeof config === 'function' ) { callback = config; config = undefined; }
 
       /**
@@ -1649,7 +1702,7 @@
 
             function proceed() {
 
-              // ccm instance configuration is a HTML element node? => configuration has only element property
+              // config is a HTML Element Node? => configuration has only root property (website area for embedding)
               if ( self.helper.isElementNode( cfg ) ) cfg = { root: cfg };
 
               /**
@@ -2038,7 +2091,7 @@
      */
     start: function ( component, config, callback ) {
 
-      // ccm instance configuration is a function? => configuration is callback
+      // config parameter is a function? => config skipped
       if ( typeof config === 'function' ) { callback = config; config = undefined; }
 
       // create ccm instance out of ccm component
