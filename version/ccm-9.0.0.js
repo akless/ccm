@@ -1458,11 +1458,10 @@
           var array = component.index.split( '-' );
 
           // add name of ccm component
-          component.name = array[ 0 ];
+          component.name = array.shift();
 
           // add version number of ccm component
-          if ( array.length > 1 )
-            component.version = array[ 1 ];
+          if ( array.length > 0 ) component.version = array;
 
         }
 
