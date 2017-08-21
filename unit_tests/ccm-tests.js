@@ -55,14 +55,14 @@ ccm.files[ 'ccm-tests.js' ] = {
         },
         */
         'remote': function ( suite ) {
-          suite.ccm.load( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css', function ( result ) {
-            suite.assertSame( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css', result );
+          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css', function ( result ) {
+            suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css', result );
           } );
         },
         'cached': function ( suite ) {
-          suite.ccm.load( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css', function () {
-            var local_cached_return_value = suite.ccm.load( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css' );
-            suite.assertSame( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css', local_cached_return_value );
+          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css', function () {
+            var local_cached_return_value = suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css' );
+            suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css', local_cached_return_value );
           } );
         }
       }
@@ -513,20 +513,20 @@ ccm.files[ 'ccm-tests.js' ] = {
     tests: {
       'correctHashCSS': function ( suite ) {
         suite.ccm.load( {
-          url: 'https://akless.github.io/ccm/testsuite/dummy/dummy.css',
+          url: 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css',
           attr: {
             integrity: 'sha384-HNXMzuxnB28OHU1JLVZfb4YpdyYG4Vso6Hde2TeK4ri6UolkaemI7vClL4SBbNyW',
             crossorigin: 'anonymous'
           }
         }, function ( result ) {
-          suite.assertSame( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css', result );
+          suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css', result );
         } );
       },
       'wrongHashCSS': function ( suite ) {
         var passed;
         suite.ccm.helper.wait( 500, function () { if ( !passed ) suite.passed(); passed = false; } );
         suite.ccm.load( {
-          url: 'https://akless.github.io/ccm/testsuite/dummy/dummy.css',
+          url: 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css',
           attr: {
             integrity: 'sha384-HNXMzuxnB28OHU1JLVZfb4YpdyYG4Vso6Hde2TeK4ri6UolkaemI7vClL4SBbNyX',
             crossorigin: 'anonymous'
@@ -538,20 +538,20 @@ ccm.files[ 'ccm-tests.js' ] = {
       },
       'correctHashJS': function ( suite ) {
         suite.ccm.load( {
-          url: 'https://akless.github.io/ccm/testsuite/dummy/dummy.js',
+          url: 'https://akless.github.io/ccm/unit_tests/dummy/dummy.js',
           attr: {
             integrity: 'sha384-TKnKV29u7ys0EBy1sBaTn8FNF2IixWLJ71F3+cSaPpzj6trbokB5Gsqm3jG5MTly',
             crossorigin: 'anonymous'
           }
         }, function ( result ) {
-          suite.assertSame( 'https://akless.github.io/ccm/testsuite/dummy/dummy.js', result );
+          suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.js', result );
         } );
       },
       'wrongHashJS': function ( suite ) {
         var passed;
         suite.ccm.helper.wait( 500, function () { if ( !passed ) suite.passed(); passed = false; } );
         suite.ccm.load( {
-          url: 'https://akless.github.io/ccm/testsuite/dummy/dummy.js',
+          url: 'https://akless.github.io/ccm/unit_tests/dummy/dummy.js',
           attr: {
             integrity: 'sha384-TKnKV29u7ys0EBy1sBaTn8FNF2IixWLJ71F3+cSaPpzj6trbokB5Gsqm3jG5MTlz',
             crossorigin: 'anonymous'
