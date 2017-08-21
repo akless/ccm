@@ -505,7 +505,7 @@ ccm.files[ 'ccm-tests.js' ] = {
       tests: {
         'oneSecond': function ( suite ) {
           var time = new Date().getTime();
-          suite.ccm.helper.wait( 1000, function () {
+          suite.ccm.helper.wait( 500, function () {
             suite.assertSame( 1000, Math.floor( ( new Date().getTime() - time ) / 10 ) * 10 );
           } );
         }
