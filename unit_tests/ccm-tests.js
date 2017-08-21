@@ -32,7 +32,7 @@ ccm.files[ 'ccm-tests.js' ] = {
           suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/dummy_html.js', function ( result ) {
             suite.assertSame( suite.expected_html_result, result );
           } );
-        },
+        }/*,
         'cached': function ( suite ) {
           suite.ccm.load( 'dummy/dummy.html', function () {
             var local_cached_return_value = suite.ccm.load( 'dummy/dummy.html' );
@@ -45,6 +45,7 @@ ccm.files[ 'ccm-tests.js' ] = {
             suite.assertNotSame( suite.expected_html_result, local_cached_return_value );
           } );
         }
+        */
       }
     },
     css: {
