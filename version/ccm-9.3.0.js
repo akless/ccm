@@ -6,6 +6,7 @@
  * @changes
  * version 9.3.0 (21.08.2017):
  * - allow attributes for script and link tags created on ccm.load calls (now subresource integrity is possible)
+ * - '.min' in filename is optional in ccm.files
  * version 9.2.0 (15.08.2017):
  * - improve ccm.component()
  * - dependent ccm instances must not use exactly the same ccm framework version as the root instance
@@ -1241,6 +1242,11 @@
 
             // add deposited data of the loaded javascript file to results and already loaded resources
             var filename = resource.url.split( '/' ).pop();
+
+            // '.min' in filename is optional
+            var shorter  = filename.replace( '.min.', '.' );
+            if ( !ccm.files[ filename ] && ccm.files[ shorter ] ) filename = shorter;
+
             results[ i ] = resources[ resource.url ] = ccm.files[ filename ];
             delete ccm.files[ filename ];
 
