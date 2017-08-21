@@ -476,7 +476,7 @@ ccm.files[ 'ccm-tests.js' ] = {
     },
     solveDependency: {
       setup: function ( suite, callback ) {
-        suite.url = 'dummy/dummy.css';
+        suite.url = 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css';
         suite.obj_key = 'dummy';
         callback();
       },
