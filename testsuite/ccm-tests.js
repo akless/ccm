@@ -16,51 +16,66 @@ ccm.files[ 'ccm-tests.js' ] = {
         callback();
       },
       tests: {
-        'local': function ( suite ) {
+        'localViaHtmlFile': function ( suite ) {
           suite.ccm.load( 'dummy/dummy.html', function ( result ) {
             suite.assertSame( suite.expected_html_result, result );
           } );
         },
-        'remote': function ( suite ) {
-          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js', function ( result ) {
+        'localViaJsFile': function ( suite ) {
+          suite.ccm.load( 'dummy/dummy_html.js', function ( result ) {
+            suite.assertSame( suite.expected_html_result, result );
+          } );
+        },
+        'remoteViaJsFile': function ( suite ) {
+          suite.ccm.load( 'https://akless.github.io/ccm/testsuite/dummy/dummy_html.js', function ( result ) {
             suite.assertSame( suite.expected_html_result, result );
           } );
         },
         'cached': function ( suite ) {
-          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js', function () {
-            var local_cached_return_value = suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/html/dummy_html.js' );
+          suite.ccm.load( 'dummy/dummy.html', function () {
+            var local_cached_return_value = suite.ccm.load( 'dummy/dummy.html' );
             suite.assertSame( suite.expected_html_result, local_cached_return_value );
+          } );
+        },
+        'ignoreCache': function ( suite ) {
+          suite.ccm.load( 'dummy/dummy.html', function () {
+            var local_cached_return_value = suite.ccm.load( { url: 'dummy/dummy.html', ignore_cache: true } );
+            suite.assertNotSame( suite.expected_html_result, local_cached_return_value );
           } );
         }
       }
     },
     css: {
       tests: {
+        /*
         'local': function ( suite ) {
           suite.ccm.load( 'dummy/dummy.css', function ( result ) {
             suite.assertSame( 'dummy/dummy.css', result );
           } );
         },
+        */
         'remote': function ( suite ) {
-          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', function ( result ) {
-            suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', result );
+          suite.ccm.load( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css', function ( result ) {
+            suite.assertSame( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css', result );
           } );
         },
         'cached': function ( suite ) {
-          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', function () {
-            var local_cached_return_value = suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css' );
-            suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/css/dummy.css', local_cached_return_value );
+          suite.ccm.load( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css', function () {
+            var local_cached_return_value = suite.ccm.load( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css' );
+            suite.assertSame( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css', local_cached_return_value );
           } );
         }
       }
     },
     image: {
       tests: {
+        /*
         'local': function ( suite ) {
           suite.ccm.load( 'dummy/dummy.png', function ( result ) {
             suite.assertSame( 'dummy/dummy.png', result );
           } );
         },
+        */
         'remote': function ( suite ) {
           suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/img/config.png', function ( result ) {
             suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/img/config.png', result );
@@ -76,11 +91,13 @@ ccm.files[ 'ccm-tests.js' ] = {
     },
     js: {
       tests: {
+        /*
         'local': function ( suite ) {
           suite.ccm.load( 'dummy/dummy.js', function ( result ) {
             suite.assertSame( 'dummy/dummy.js', result );
           } );
         },
+        */
         'remote': function ( suite ) {
           suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', function ( result ) {
             suite.assertSame( 'https://kaul.inf.h-brs.de/ccm/lib/jquery.js', result );
@@ -417,7 +434,7 @@ ccm.files[ 'ccm-tests.js' ] = {
           } );
           var instance = component.instance();
           if ( instance.foo !== 'abc' ) suite.failed( 'no public property "foo" with value "abc"' );
-          suite.assertEquals( [ 'foo', 'ccm', 'id', 'index', 'component' ], Object.keys( instance ) );
+          suite.assertEquals( [ 'foo', 'ccm', 'id', 'index', 'component', 'root', 'element' ], Object.keys( instance ) );
         },
         'allProperties': function ( suite ) {
           var component = suite.ccm.component( {
@@ -434,7 +451,7 @@ ccm.files[ 'ccm-tests.js' ] = {
             }
           } );
           var instance = component.instance( { baz: [ 'ccm.instance', 'dummy2' ] } );
-          suite.assertEquals( [ 'ccm', 'baz', 'id', 'index', 'component' ], Object.keys( instance ) );
+          suite.assertEquals( [ 'ccm', 'baz', 'id', 'index', 'component', 'root', 'element' ], Object.keys( instance ) );
         }
       }
     },
@@ -491,8 +508,59 @@ ccm.files[ 'ccm-tests.js' ] = {
         }
       }
     }
+  },
+  subresource_integrity: {
+    tests: {
+      'correctHashCSS': function ( suite ) {
+        suite.ccm.load( {
+          url: 'https://akless.github.io/ccm/testsuite/dummy/dummy.css',
+          attr: {
+            integrity: 'sha384-HNXMzuxnB28OHU1JLVZfb4YpdyYG4Vso6Hde2TeK4ri6UolkaemI7vClL4SBbNyW',
+            crossorigin: 'anonymous'
+          }
+        }, function ( result ) {
+          suite.assertSame( 'https://akless.github.io/ccm/testsuite/dummy/dummy.css', result );
+        } );
+      },
+      'wrongHashCSS': function ( suite ) {
+        var passed;
+        suite.ccm.helper.wait( 500, function () { if ( !passed ) suite.passed(); passed = false; } );
+        suite.ccm.load( {
+          url: 'https://akless.github.io/ccm/testsuite/dummy/dummy.css',
+          attr: {
+            integrity: 'sha384-HNXMzuxnB28OHU1JLVZfb4YpdyYG4Vso6Hde2TeK4ri6UolkaemI7vClL4SBbNyX',
+            crossorigin: 'anonymous'
+          }
+        }, function ( result ) {
+          if ( passed !== false ) suite.failed( 'correct hash', result );
+          passed = true;
+        } );
+      },
+      'correctHashJS': function ( suite ) {
+        suite.ccm.load( {
+          url: 'https://akless.github.io/ccm/testsuite/dummy/dummy.js',
+          attr: {
+            integrity: 'sha384-TKnKV29u7ys0EBy1sBaTn8FNF2IixWLJ71F3+cSaPpzj6trbokB5Gsqm3jG5MTly',
+            crossorigin: 'anonymous'
+          }
+        }, function ( result ) {
+          suite.assertSame( 'https://akless.github.io/ccm/testsuite/dummy/dummy.js', result );
+        } );
+      },
+      'wrongHashJS': function ( suite ) {
+        var passed;
+        suite.ccm.helper.wait( 500, function () { if ( !passed ) suite.passed(); passed = false; } );
+        suite.ccm.load( {
+          url: 'https://akless.github.io/ccm/testsuite/dummy/dummy.js',
+          attr: {
+            integrity: 'sha384-TKnKV29u7ys0EBy1sBaTn8FNF2IixWLJ71F3+cSaPpzj6trbokB5Gsqm3jG5MTlz',
+            crossorigin: 'anonymous'
+          }
+        }, function ( result ) {
+          if ( passed !== false ) suite.failed( 'correct hash', result );
+          passed = true;
+        } );
+      }
+    }
   }
 };
-
-if ( !ccm.components.testsuite ) ccm.components.testsuite = {};
-ccm.components.testsuite.ccm = ccm.files[ 'ccm-tests.js' ];
