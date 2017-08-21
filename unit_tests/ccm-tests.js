@@ -16,6 +16,7 @@ ccm.files[ 'ccm-tests.js' ] = {
         callback();
       },
       tests: {
+        /*
         'localViaHtmlFile': function ( suite ) {
           suite.ccm.load( 'dummy/dummy.html', function ( result ) {
             suite.assertSame( suite.expected_html_result, result );
@@ -26,8 +27,9 @@ ccm.files[ 'ccm-tests.js' ] = {
             suite.assertSame( suite.expected_html_result, result );
           } );
         },
+        */
         'remoteViaJsFile': function ( suite ) {
-          suite.ccm.load( 'https://akless.github.io/ccm/testsuite/dummy/dummy_html.js', function ( result ) {
+          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/dummy_html.js', function ( result ) {
             suite.assertSame( suite.expected_html_result, result );
           } );
         },
