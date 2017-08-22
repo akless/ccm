@@ -2504,6 +2504,9 @@
        */
       compareVersions: function ( a, b ) {
 
+        if ( a === b ) return 0;
+        if ( !a || a === 'latest' ) return 1;
+        if ( !b || b === 'latest' ) return -1;
         var a = a.split('.');
         var b = b.split('.');
         var x, y;
