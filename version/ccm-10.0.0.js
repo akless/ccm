@@ -2,36 +2,17 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version 9.3.0
+ * @version 10.0.0
  * @changes
- * version 9.3.0 (21.08.2017):
- * - allow attributes for script and link tags created on ccm.load calls (now subresource integrity is possible)
+ * version 10.0.0 (22.08.2017):
+ * - new helper function for comparing version numbers
+ * - new global namespace for latest framework version
+ * - loaded JavaScript files can detect whether they have been loaded by ccm framework
+ * - allow attributes for script and link tags created on ccm.load calls (now subresource integrity is supported)
  * - '.min' in filename is optional in ccm.files
- * version 9.2.0 (15.08.2017):
- * - improve ccm.component()
- * - dependent ccm instances must not use exactly the same ccm framework version as the root instance
- * version 9.1.0 (14.08.2017):
- * - add helper function 'append(parent,node)'
- * version 9.0.0 (29.07.2017):
- * - ccm.load supports resource data for each resource
- * - allow ccm.get dependency for key property of a ccm instance
- * - default website area of a ccm instance is a on-the-fly div element
- * - each ccm instance now knows it's root element
- * - light DOM is accessable via 'inner' property (not 'node')
- * - ccm.helper.dataset accepts data object or dataset directly
- * - bugfix for creating ccm instances without setting an element
- * - bugfix for cross-domain data exchanges via ccm.load
- * - stricter pads for allowed characters inside a component filename
- * - update caching mechanism for loading resources with ccm.load
- * - generated website area of a ccm instance is simply <div id='element'>
- * - add helper function 'transformStringArray(arr)'
- * - ccm.helper.protect accepts arrays and objects
- * - content that moves into DOM via helper functions is protected
- * - bugfix for realtime datastores
- * - bugfix for setting a deeper property via HTML attribute
- * - bugfix for calling ccm.helper.protect with a fragment
- * - add 'clear' property to ccm.helper.onfinish object
- * (for older version changes see ccm-8.1.0.js)
+ * - avoid a duplicate item registration by condition instead of try-catch
+ * - significantly shortened component backbone
+ * (for older version changes see ccm-9.2.0.js)
  */
 
 ( function () {
@@ -967,7 +948,7 @@
      * @memberOf ccm
      * @return {ccm.types.version}
      */
-    version: function () { return '9.3.0'; },
+    version: function () { return '10.0.0'; },
 
     /**
      * @summary reset caches for resources and datastores
@@ -1233,19 +1214,16 @@
         /** loads (and executes) a javascript file */
         function loadJS() {
 
+          // add deposited data of the loaded javascript file to results and already loaded resources
+          var filename = resource.url.split( '/' ).pop();
+          ccm.files[ filename ] = null;
+
           // load javascript file via <script>
           var tag = { tag: 'script', src: resource.url };
           if ( resource.attr ) self.helper.integrate( resource.attr, tag );
           tag = self.helper.html( tag );
           resource.context.appendChild( tag );
           tag.onload = function () {
-
-            // add deposited data of the loaded javascript file to results and already loaded resources
-            var filename = resource.url.split( '/' ).pop();
-
-            // '.min' in filename is optional
-            var shorter  = filename.replace( '.min.', '.' );
-            if ( !ccm.files[ filename ] && ccm.files[ shorter ] ) filename = shorter;
 
             results[ i ] = resources[ resource.url ] = ccm.files[ filename ];
             delete ccm.files[ filename ];
@@ -1515,6 +1493,8 @@
            */
           function defineCustomElement() {
 
+            var name = 'ccm-' + component.index;
+            if ( document.createElement( name ).constructor !== HTMLElement ) return;
             var tag = Object.create( HTMLElement.prototype );
             tag.attachedCallback = function () {
               if ( !document.body.contains( this ) ) return;
@@ -1526,7 +1506,7 @@
               config.root = this;
               component.start( config );
             };
-            try { document.registerElement( 'ccm-' + component.index, { prototype: tag } ); } catch ( err ) {}
+            document.registerElement( 'ccm-' + component.index, { prototype: tag } );
 
           }
 
@@ -2511,6 +2491,29 @@
           return value;
 
         }
+
+      },
+
+      /**
+       * @summary compares two version numbers (given as string)
+       * @description Version numbers must be conform with Semantic Versioning 2.0.0 ({@link http://semver.org}).
+       * @param {string} a - 1st version number
+       * @param {string} b - 2nd version number
+       * @returns {number} -1: a < b, 0: a = b, 1: a > b
+       * @example console.log( compareVersions( '8.0.1', '8.0.10' ) ); => -1
+       */
+      compareVersions: function ( a, b ) {
+
+        var a = a.split('.');
+        var b = b.split('.');
+        var x, y;
+        for (var i = 0; i < 3; i++) {
+          x = parseInt(a[i]);
+          y = parseInt(b[i]);
+          if (x < y) return -1;
+          else if (x > y) return 1;
+        }
+        return 0;
 
       },
 
@@ -3649,8 +3652,11 @@
 
   };
 
-  // set ccm version specific namespace
+  // set framework version specific namespace
   if ( !ccm[ self.version() ] ) ccm[ self.version() ] = self;
+
+  // latest version? => update namespace for latest framework version
+  if ( !ccm.latest || self.helper.compareVersions( self.version(), ccm.latest.version ) > 0 ) ccm.latest = self;
 
   /*---------------------------------------------- private ccm methods -----------------------------------------------*/
 
