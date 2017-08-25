@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (10.0.0)
  * @changes
- * version 10.0.0 (22.08.2017):
+ * version 10.0.0 (25.08.2017):
  * - new helper function for comparing version numbers
  * - new global namespace for latest framework version
  * - loaded JavaScript files can detect whether they have been loaded by ccm framework
@@ -1215,7 +1215,7 @@
         function loadJS() {
 
           // add deposited data of the loaded javascript file to results and already loaded resources
-          var filename = resource.url.split( '/' ).pop();
+          var filename = resource.url.split( '/' ).pop().replace( '.min.', '.' );
           ccm.files[ filename ] = null;
 
           // load javascript file via <script>
@@ -2552,7 +2552,9 @@
           else return callback( store );
         }
         if ( !key ) key = self.helper.generateKey();
+        console.log( '?', key );
         store.get( key, function ( dataset ) {
+          console.log( '!', dataset );
           callback( dataset === null ? { key: key } : dataset );
         } );
       },
