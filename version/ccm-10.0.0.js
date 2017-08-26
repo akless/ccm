@@ -3659,7 +3659,7 @@
   if ( !ccm[ self.version() ] ) ccm[ self.version() ] = self;
 
   // latest version? => update namespace for latest framework version
-  if ( !ccm.latest || self.helper.compareVersions( self.version(), ccm.latest.version ) > 0 ) ccm.latest = self;
+  if ( !ccm.latest || self.helper.compareVersions( self.version(), ccm.latest.version() ) > 0 ) ccm.latest = self;
 
   /*---------------------------------------------- private ccm methods -----------------------------------------------*/
 
