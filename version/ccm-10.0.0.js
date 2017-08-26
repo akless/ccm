@@ -1691,7 +1691,7 @@
           function proceed( cfg ) {
 
             // no Shadow DOM support? => load polyfill
-            if ( !document.head.attachShadow || !document.head.createShadowRoot ) self.load( 'https://kaul.inf.h-brs.de/ccm/lib/shadydom.min.js', proceed ); else return proceed();
+            if ( !document.head.attachShadow && !document.head.createShadowRoot ) self.load( 'https://kaul.inf.h-brs.de/ccm/lib/shadydom.min.js', proceed ); else return proceed();
 
             function proceed() {
 
