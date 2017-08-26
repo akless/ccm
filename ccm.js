@@ -2552,9 +2552,7 @@
           else return callback( store );
         }
         if ( !key ) key = self.helper.generateKey();
-        console.log( '?', key );
         store.get( key, function ( dataset ) {
-          console.log( '!', dataset );
           callback( dataset === null ? { key: key } : dataset );
         } );
       },
