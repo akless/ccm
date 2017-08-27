@@ -13,6 +13,7 @@
  * - new global namespace for latest framework version
  * - new helper function for comparing version numbers
  * - new help function that checks if firefox is used
+ * - ignore reserved properties in instance configurations
  * (for older version changes see ccm-9.2.0.js)
  */
 
@@ -1677,10 +1678,7 @@
               return integrate( self.helper.clone( cfg.key ) );
             else if ( self.helper.isDependency( cfg.key ) )
               return cfg.key[ 0 ] === 'ccm.load' ? self.load( cfg.key[ 1 ], integrate ) : self.get( cfg.key[ 1 ], cfg.key[ 2 ], integrate );
-            else {
-              delete cfg.key;
-              proceed( cfg );
-            }
+            else proceed( cfg );
           }
           else return proceed( cfg );
           function integrate( dataset ) {
@@ -1718,7 +1716,10 @@
 
               // configure created instance
               self.helper.integrate( self.helper.clone( components[ index ].config ), instance );  // set default ccm instance configuration
-              if ( cfg ) self.helper.integrate( cfg, instance );  // integrate ccm instance configuration
+              if ( cfg ) {
+                self.helper.privatize( cfg, 'inner', 'ccm', 'component', 'element', 'id', 'index', 'init', 'key', 'ready', 'start' );
+                self.helper.integrate( cfg, instance );           // integrate ccm instance configuration
+              }
               instance.id = components[ index ].instances;        // set ccm instance id
               instance.index = index + '-' + instance.id;         // set ccm instance index
               instance.component = components[ index ];           // set ccm component reference
