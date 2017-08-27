@@ -5,13 +5,14 @@
  * @version 10.0.0
  * @changes
  * version 10.0.0 (27.08.2017):
- * - new helper function for comparing version numbers
- * - new global namespace for latest framework version
- * - loaded JavaScript files can detect whether they have been loaded by ccm framework
- * - allow attributes for script and link tags created on ccm.load calls (now subresource integrity is supported)
- * - '.min' in filename is optional in ccm.files
- * - avoid a duplicate item registration by condition instead of try-catch
  * - significantly shortened component backbone
+ * - avoid a duplicate item registration by condition instead of try-catch
+ * - '.min' in filename is optional in ccm.files
+ * - allow attributes for script and link tags created on ccm.load calls (now subresource integrity is supported)
+ * - loaded JavaScript files can detect whether they have been loaded by ccm framework
+ * - new global namespace for latest framework version
+ * - new helper function for comparing version numbers
+ * - new help function that checks if firefox is used
  * (for older version changes see ccm-9.2.0.js)
  */
 
@@ -3146,6 +3147,12 @@
 
         return value instanceof Element;
         //return self.helper.isNode( value ) && value.tagName && true;
+
+      },
+
+      isFirefox: function () {
+
+        return navigator.userAgent.search( 'Firefox' ) > -1;
 
       },
 
