@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (10.0.0)
  * @changes
- * version 10.0.0 (25.08.2017):
+ * version 10.0.0 (27.08.2017):
  * - new helper function for comparing version numbers
  * - new global namespace for latest framework version
  * - loaded JavaScript files can detect whether they have been loaded by ccm framework
@@ -1691,7 +1691,12 @@
           function proceed( cfg ) {
 
             // no Shadow DOM support? => load polyfill
-            if ( !document.head.attachShadow && !document.head.createShadowRoot ) self.load( 'https://kaul.inf.h-brs.de/ccm/lib/shadydom.min.js', proceed ); else return proceed();
+            if ( !document.head.attachShadow && !document.head.createShadowRoot ) {
+              if ( ccm.shady ) return self.helper.wait( 1000, proceed );
+              ccm.shady = true;
+              self.load( 'https://kaul.inf.h-brs.de/ccm/lib/shadydom.min.js', function () { delete ccm.shady; proceed(); } );
+            }
+            else return proceed();
 
             function proceed() {
 
