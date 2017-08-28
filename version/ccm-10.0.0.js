@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (10.0.0)
  * @changes
- * version 10.0.0 (27.08.2017):
+ * version 10.0.0 (28.08.2017):
  * - significantly shortened component backbone
  * - avoid a duplicate item registration by condition instead of try-catch
  * - '.min' in filename is optional in ccm.files
