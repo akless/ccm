@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version 10.0.0
+ * @version latest (10.0.0)
  * @changes
  * version 10.0.0 (27.08.2017):
  * - significantly shortened component backbone
@@ -1717,7 +1717,7 @@
               // configure created instance
               self.helper.integrate( self.helper.clone( components[ index ].config ), instance );  // set default ccm instance configuration
               if ( cfg ) {
-                self.helper.privatize( cfg, 'inner', 'ccm', 'component', 'element', 'id', 'index', 'init', 'key', 'ready', 'start' );
+                self.helper.privatize( cfg, 'ccm', 'component', 'element', 'id', 'index', 'init', 'key', 'ready', 'start' );
                 self.helper.integrate( cfg, instance );           // integrate ccm instance configuration
               }
               instance.id = components[ index ].instances;        // set ccm instance id
