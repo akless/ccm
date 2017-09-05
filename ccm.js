@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (10.0.0)
  * @changes
- * version 10.0.0 (28.08.2017):
+ * version 10.0.0 (05.09.2017):
  * - significantly shortened component backbone
  * - avoid a duplicate item registration by condition instead of try-catch
  * - '.min' in filename is optional in ccm.files
@@ -14,6 +14,7 @@
  * - new helper function for comparing version numbers
  * - new help function that checks if firefox is used
  * - ignore reserved properties in instance configurations
+ * - add datastore method for clearing the local cache
  * (for older version changes see ccm-9.2.0.js)
  */
 
@@ -141,6 +142,11 @@
       // perform callback
       if ( callback ) callback();
 
+    };
+
+    /** clears local cache */
+    this.clear = function () {
+      my.local = {};
     };
 
     /**
@@ -853,7 +859,7 @@
       data = self.helper.integrate( data, { db: my.db, store: my.store } );
       if ( !my.db ) delete data.db;
       if ( my.user && my.user.isLoggedIn() )
-        data = self.helper.integrate( data, { user: my.user.data().key, token: my.user.data().token } );
+        data = self.helper.integrate( data, { user: my.user.data().user, token: my.user.data().token } );
       return data;
 
     }
@@ -880,7 +886,7 @@
      */
     function useHttp( data, callback ) {
 
-      self.load( [ my.url, data ], callback );
+      self.load( { url: my.url, params: data }, callback );
 
     }
 
