@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (10.0.0)
  * @changes
- * version 10.0.0 (05.09.2017):
+ * version 10.0.0 (09.09.2017):
  * - significantly shortened component backbone
  * - avoid a duplicate item registration by condition instead of try-catch
  * - '.min' in filename is optional in ccm.files
@@ -2369,9 +2369,11 @@
       self.store( settings, function ( store ) {
 
         var property;
-        if ( typeof key_or_query === 'string' ) property = key_or_query.split( '.' );
-        key_or_query = property.shift();
-        property = property.join( '.' );
+        if ( typeof key_or_query === 'string' ) {
+          property = key_or_query.split( '.' );
+          key_or_query = property.shift();
+          property = property.join( '.' );
+        }
 
         store.get( key_or_query, function ( result ) {
 
