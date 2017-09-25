@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (10.0.0)
  * @changes
- * version 10.0.0 (09.09.2017):
+ * version 10.0.0 (25.09.2017):
  * - significantly shortened component backbone
  * - avoid a duplicate item registration by condition instead of try-catch
  * - '.min' in filename is optional in ccm.files
@@ -15,6 +15,7 @@
  * - new help function that checks if firefox is used
  * - ignore reserved properties in instance configurations
  * - add datastore method for clearing the local cache
+ * - only ignore the cache when loading a CSS file in a specific context
  * (for older version changes see ccm-9.2.0.js)
  */
 
@@ -1070,14 +1071,20 @@
         // has URL instead of resource data? => use resource data which contains only the URL information
         if ( !self.helper.isObject( resource ) ) resource = { url: resource };
 
-        // resource has to be load in a specific context? => ignore cache (to support loading of same resource in different contexts)
-        if ( resource.context ) resource.ignore_cache = true;
-
-        // no caching for data exchanges with server interfaces
-        if ( resource.params ) resource.ignore_cache = true;
+        /**
+         * resource suffix
+         * @type {string}
+         */
+        var suffix = resource.url.split( '.' ).pop().toLowerCase();
 
         // no context? => load resource in global <head> context (no Shadow DOM)
         if ( !resource.context || resource.context === 'head' ) resource.context = document.head;
+
+        // CSS has to be load in a specific context? => ignore cache (to support loading of same CSS in different contexts)
+        if ( suffix === 'css' && resource.context !== document.head ) resource.ignore_cache = true;
+
+        // no caching for data exchanges with server interfaces
+        if ( resource.params ) resource.ignore_cache = true;
 
         // prevent loading resource twice
         if ( caching() ) return;
@@ -1087,12 +1094,6 @@
 
         // GET parameter exists? => perform data exchange
         if ( resource.params ) return exchangeData();
-
-        /**
-         * resource suffix
-         * @type {string}
-         */
-        var suffix = resource.url.split( '.' ).pop();
 
         // check resource suffix => load resource
         switch ( suffix ) {
@@ -1233,7 +1234,8 @@
           resource.context.appendChild( tag );
           tag.onload = function () {
 
-            results[ i ] = resources[ resource.url ] = ccm.files[ filename ];
+            var data = ccm.files[ filename ];
+            results[ i ] = resources[ resource.url ] = data === null ? undefined : data;
             delete ccm.files[ filename ];
 
             success();
