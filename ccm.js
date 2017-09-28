@@ -16,7 +16,6 @@
  * - ignore reserved properties in instance configurations
  * - add datastore method for clearing the local cache
  * - only ignore the cache when loading a CSS file in a specific context
- * - remove unneeded loading of polyfill 'webcomponents-lite.min.js'
  * (for older version changes see ccm-9.2.0.js)
  */
 
@@ -1463,10 +1462,10 @@
         ccm.components[ component.index ] = {};
 
         // no Custom Element support? => load polyfill
-        if ( !( 'registerElement' in document ) )
-          self.load( 'https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js', proceed );
-        else
-          return proceed();
+        if ( !( 'registerElement' in document ) ) self.load( [
+          'https://cdnjs.cloudflare.com/ajax/libs/document-register-element/0.5.3/document-register-element.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js'
+        ], proceed ); else return proceed();
 
         function proceed() {
 
