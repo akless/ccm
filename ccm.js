@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (10.0.0)
  * @changes
- * version 10.0.0 (28.09.2017):
+ * version 10.0.0 (30.09.2017):
  * - significantly shortened component backbone
  * - avoid a duplicate item registration by condition instead of try-catch
  * - '.min' in filename is optional in ccm.files
@@ -16,6 +16,8 @@
  * - ignore reserved properties in instance configurations
  * - add datastore method for clearing the local cache
  * - only ignore the cache when loading a CSS file in a specific context
+ * - new help function to convert an array into an object
+ * - updated ccm.helper.onFinish(): user property 'id' instead of 'key'
  * (for older version changes see ccm-9.2.0.js)
  */
 
@@ -2485,6 +2487,25 @@
       },
 
       /**
+       * @summary converts an array into an object
+       * @param {Array|object} obj - array or object that contains the array
+       * @param {string} [key] - object property where the array is to be found
+       * @returns {Object.<string,boolean>} resulting object
+       * @example console.log( arrToObj( [ 'foo', 'bar' ] ) ); => { foo: true, bar: true }
+       */
+      arrToObj: function arrToObj( obj, key ) {
+
+        var arr = key ? obj[ key ] : obj;
+        if ( !Array.isArray( arr ) ) return;
+
+        var result = {};
+        arr.map( function ( value ) { result[ value ] = true; } );
+        if ( key ) obj[ key ] = result;
+        return result;
+
+      },
+
+      /**
        * @summary create a deep copy of a given value
        * @param {*} value - given value
        * @returns {*} deep copy of given value
@@ -3364,7 +3385,7 @@
             if ( instance.onfinish.permissions ) dataset._ = instance.onfinish.permissions;
 
             // need user-specific dataset? => make dataset key user-specific
-            if ( instance.onfinish.user && instance.onfinish.user_specific ) dataset.key = [ dataset.key || self.helper.generateKey(), instance.onfinish.user.data().key ];
+            if ( instance.onfinish.user && instance.onfinish.user_specific ) dataset.key = [ dataset.key || self.helper.generateKey(), instance.onfinish.user.data().id ];
 
             // set dataset in ccm datastore
             self.set( instance.onfinish.store_settings, dataset, function ( result ) {
@@ -3391,7 +3412,7 @@
               // has to log result data? => do it
               if ( instance.onfinish.log ) console.log( results );
 
-              // has to render other content?
+              // has to render other content? => do it
               if ( instance.onfinish.render ) {
                 if ( instance.onfinish.render.component ) {
                   var config = instance.onfinish.render.config;

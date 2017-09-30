@@ -266,6 +266,18 @@ ccm.files[ 'ccm-tests.js' ] = {
     }
   },
   helper: {
+    arrToObj: {
+      tests: {
+        'arr': function ( suite ) {
+          suite.assertEquals( { foo: true, bar: true }, suite.ccm.helper.arrToObj( [ 'foo', 'bar' ] ) );
+        },
+        'objKey': function ( suite ) {
+          var obj = { arr: [ 'foo', 'bar' ] };
+          suite.ccm.helper.arrToObj( obj, 'arr' );
+          suite.assertEquals( { foo: true, bar: true }, obj.arr );
+        }
+      }
+    },
     convertObjectKeys: {
       tests: {
         'example': function ( suite ) {
@@ -506,7 +518,7 @@ ccm.files[ 'ccm-tests.js' ] = {
         'oneSecond': function ( suite ) {
           var time = new Date().getTime();
           suite.ccm.helper.wait( 500, function () {
-            suite.assertSame( 1000, Math.floor( ( new Date().getTime() - time ) / 10 ) * 10 );
+            suite.assertSame( 500, Math.floor( ( new Date().getTime() - time ) / 10 ) * 10 );
           } );
         }
       }
