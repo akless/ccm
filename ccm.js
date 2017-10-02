@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (10.0.0)
  * @changes
- * version 10.0.0 (30.09.2017):
+ * version 10.0.0 (02.10.2017):
  * - significantly shortened component backbone
  * - avoid a duplicate item registration by condition instead of try-catch
  * - '.min' in filename is optional in ccm.files
@@ -18,6 +18,7 @@
  * - only ignore the cache when loading a CSS file in a specific context
  * - new help function to convert an array into an object
  * - updated ccm.helper.onFinish(): user property 'id' instead of 'key'
+ * - no use of ccm.helper.deepValue() on catchAttributes()
  * (for older version changes see ccm-9.2.0.js)
  */
 
@@ -2771,7 +2772,7 @@
                  ( node.tagName.indexOf( 'CCM-COMPONENT' ) !== 0
                 && node.tagName.indexOf( 'CCM-INSTANCE'  ) !== 0
                 && node.tagName.indexOf( 'CCM-PROXY'     ) !== 0 ) )
-              try { self.helper.deepValue( obj, attr.name, attr.value.charAt( 0 ) === '{' || attr.value.charAt( 0 ) === '[' ? JSON.parse( attr.value ) : prepareValue( attr.value ) ) } catch ( err ) {}
+              try { obj[ attr.name ] = attr.value.charAt( 0 ) === '{' || attr.value.charAt( 0 ) === '[' ? JSON.parse( attr.value ) : prepareValue( attr.value ); } catch ( err ) {}
           } );
 
         }
