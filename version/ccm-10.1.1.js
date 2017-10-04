@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (10.1.1)
+ * @version 10.1.1
  * @changes
  * version 10.1.1 (04.10.2017): allow setting of "inner" property via HTML attribute
  * version 10.1.0 (03.10.2017): new help function for finding a parent element by class
