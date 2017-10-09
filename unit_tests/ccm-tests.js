@@ -278,6 +278,13 @@ ccm.files[ 'ccm-tests.js' ] = {
         }
       }
     },
+    cleanObject: {
+      tests: {
+        'example': function ( suite ) {
+          suite.assertEquals( { foo: 'bar' }, suite.ccm.helper.cleanObject( { foo: 'bar', is: false, i: 0, n: NaN, ref: null, text: '', value: undefined } ) );
+        }
+      }
+    },
     convertObjectKeys: {
       tests: {
         'example': function ( suite ) {

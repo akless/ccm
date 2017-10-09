@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (10.2.0)
+ * @version 10.2.0
  * @changes
  * version 10.2.0 (09.10.2017): add help function 'ccm.helper.cleanObject(obj):obj'
  * version 10.1.1 (04.10.2017): allow setting of "inner" property via HTML attribute
