@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (11.0.0)
+ * @version 11.0.0
  * @changes
  * version 11.0.0 (09.10.2017):
  * - uses Custom Elements v1 and Shadow DOM v1 (instead of v0)
