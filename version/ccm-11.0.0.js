@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version 11.0.0
  * @changes
- * version 11.0.0 (09.10.2017):
+ * version 11.0.0 (10.10.2017):
  * - uses Custom Elements v1 and Shadow DOM v1 (instead of v0)
  * - change used polyfills
  * (for older version changes see ccm-10.2.0.js)
@@ -1495,7 +1495,9 @@
            */
           function defineCustomElement() {
 
-            window.customElements.define( 'ccm-' + component.index, class extends HTMLElement {
+            var name = 'ccm-' + component.index;
+            if ( document.createElement( name ).constructor !== HTMLElement ) return;
+            window.customElements.define( name, class extends HTMLElement {
               connectedCallback() {
                 if ( !document.body.contains( this ) ) return;
                 var node = this;
