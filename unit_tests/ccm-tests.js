@@ -520,6 +520,43 @@ ccm.files[ 'ccm-tests.js' ] = {
         }
       }
     },
+    toJSON: {
+      tests: {
+        'example': function ( suite ) {
+          suite.assertEquals( {
+            ref: null,
+            error: null,
+            n: 0,
+            m: 12,
+            empty: '',
+            str: 'foo',
+            obj_str: 'bar',
+            not: false,
+            is: true,
+            plain: {},
+            _class: {},
+            node: {},
+            many: { 0: {} }
+          }, suite.ccm.helper.toJSON( {
+            x: undefined,
+            ref: null,
+            error: NaN,
+            n: 0,
+            m: 12,
+            empty: '',
+            str: 'foo',
+            obj_str: new String( 'bar' ),
+            not: false,
+            is: true,
+            func: function ( name ) { return 'Hello, ' + name; },
+            plain: {},
+            _class: new Object(),
+            node: document.head,
+            many: document.head.querySelectorAll( 'meta' )
+          } ) );
+        }
+      }
+    },
     wait: {
       tests: {
         'oneSecond': function ( suite ) {

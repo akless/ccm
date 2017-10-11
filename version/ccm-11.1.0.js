@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (11.1.0)
+ * @version 11.1.0
  * @changes
  * version 11.1.0 (11.10.2017):
  * - add help function 'ccm.helper.toJSON(*):*'
