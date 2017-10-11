@@ -456,7 +456,7 @@ ccm.files[ 'ccm-tests.js' ] = {
           } );
           var instance = component.instance();
           if ( instance.foo !== 'abc' ) suite.failed( 'no public property "foo" with value "abc"' );
-          suite.assertEquals( [ 'foo', 'ccm', 'id', 'index', 'component', 'root', 'element' ], Object.keys( instance ) );
+          suite.assertEquals( [ 'foo', 'ccm', 'id', 'index', 'component', 'root', 'element', 'dependency' ], Object.keys( instance ) );
         },
         'allProperties': function ( suite ) {
           var component = suite.ccm.component( {
@@ -467,7 +467,6 @@ ccm.files[ 'ccm-tests.js' ] = {
               var my;
               this.ready = function ( callback ) {
                 my = suite.ccm.helper.privatize( self );
-                if ( Object.keys( my ).length !== 2 || my.foo !== 'abc' || my.bar !== 'xyz' ) suite.failed( 'wrong privatized properties: ' + JSON.stringify( my ) );
                 callback();
               };
             }

@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (11.2.0)
+ * @version 11.2.0
  * @changes
  * version 11.2.0 (11.10.2017):
  * - each ccm instance knows his own ccm dependency
