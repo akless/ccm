@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (11.2.1)
+ * @version 11.2.1
  * @changes
  * version 11.2.1 (13.10.2017): bugfix for ccm.helper.solveDependency()
  * version 11.2.0 (11.10.2017):
