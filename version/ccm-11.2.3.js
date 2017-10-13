@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (11.2.3)
+ * @version 11.2.3
  * @changes
  * version 11.2.3 (13.10.2017): bugfix for framework version reference of a component/instance
  * version 11.2.2 (13.10.2017): bugfix for embedding ccm instance in the same HTML element
