@@ -3710,7 +3710,7 @@
       /**
        * @summary solves a <i>ccm</i> dependency
        * @param {object|ccm.types.action} obj - object that contains the <i>ccm</i> dependency or the dependency itself
-       * @param {number|string} [key] - object key that contains the <i>ccm</i> dependency
+       * @param {number|string|function} [key] - object key that contains the <i>ccm</i> dependency
        * @param {function} [callback] - callback (first parameter is the result of the solved dependency)
        * @returns {*} result of the solved dependency (only if synchron)
        * @example
