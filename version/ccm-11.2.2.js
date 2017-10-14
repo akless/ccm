@@ -1766,7 +1766,7 @@
               if ( !instance.root.parentNode ) document.head.appendChild( instance.root );
 
               // create element for shadow root
-              var shadow = self.helper.html( { id: 'shadow' } );
+              var shadow = document.createElement( 'div' );
               self.helper.setContent( instance.root, shadow );
 
               // prepare website area for ccm instance
