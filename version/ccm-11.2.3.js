@@ -1514,18 +1514,21 @@
 
               var name = 'ccm-' + component.index;
               if ( document.createElement( name ).constructor !== HTMLElement ) return;
-              var tag = Object.create( HTMLElement.prototype );
-              tag.attachedCallback = function () {
-                if ( !document.body.contains( this ) ) return;
-                var node = this;
-                while ( node = node.parentNode )
-                  if ( node.tagName && node.tagName.indexOf( 'CCM-' ) === 0 )
-                    return;
-                var config = self.helper.generateConfig( this );
-                config.root = this;
-                component.start( config );
-              };
-              document.registerElement( 'ccm-' + component.index, { prototype: tag } );
+              window.customElements.define( name, class extends HTMLElement {
+                connectedCallback() {
+                  var _this = this;
+                  self.helper.wait( 1, function () {
+                    if ( !document.body.contains( _this ) ) return;
+                    var node = _this;
+                    while ( node = node.parentNode )
+                      if ( node.tagName && node.tagName.indexOf( 'CCM-' ) === 0 )
+                        return;
+                    var config = self.helper.generateConfig( _this );
+                    config.root = _this;
+                    component.start( config );
+                  } );
+                }
+              } );
 
             }
 
