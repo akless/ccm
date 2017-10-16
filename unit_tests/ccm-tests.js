@@ -400,8 +400,7 @@ ccm.files[ 'ccm-tests.js' ] = {
     },
     loading: {
       setup: function ( suite, callback ) {
-        suite.dummy = suite.ccm.instance( { name: 'dummy', Instance: function () { this.render = function () {} } }, suite.ccm.helper.html( {} ) );
-        callback();
+        suite.ccm.instance( { name: 'dummy', ccm: 'https://akless.github.io/ccm/ccm.js', Instance: function () {} }, function ( instance ) { suite.dummy = instance; callback(); } );
       },
       tests: {
         'keyframe': function ( suite ) {
@@ -422,10 +421,7 @@ ccm.files[ 'ccm-tests.js' ] = {
           suite.assertTrue( typeof suite.ccm.helper.makeIterable( arguments ).map === 'function' );
         },
         'notIterableElements': function ( suite ) {
-          if ( suite.ccm.helper.isGoogleChrome() )
-            suite.assertFalse( typeof document.head.children.map === 'function' );
-          else
-            suite.assertTrue( typeof document.head.children.map === 'function' );
+          suite.assertFalse( typeof document.head.children.map === 'function' );
         },
         'iterableElements': function ( suite ) {
           suite.assertTrue( typeof suite.ccm.helper.makeIterable( document.head.children ).map === 'function' );
@@ -441,8 +437,9 @@ ccm.files[ 'ccm-tests.js' ] = {
     privatize: {
       tests: {
         'someProperties': function ( suite ) {
-          var component = suite.ccm.component( {
+          suite.ccm.instance( {
             name: 'dummy1',
+            ccm: 'https://akless.github.io/ccm/ccm.js',
             config: { foo: 'abc', bar: 'xyz' },
             Instance: function () {
               var self = this;
@@ -453,14 +450,15 @@ ccm.files[ 'ccm-tests.js' ] = {
                 callback();
               };
             }
+          }, function ( instance ) {
+            if ( instance.foo !== 'abc' ) suite.failed( 'no public property "foo" with value "abc"' );
+            suite.assertEquals( [ 'foo', 'ccm', 'id', 'index', 'component', 'root', 'element', 'dependency' ], Object.keys( instance ) );
           } );
-          var instance = component.instance();
-          if ( instance.foo !== 'abc' ) suite.failed( 'no public property "foo" with value "abc"' );
-          suite.assertEquals( [ 'foo', 'ccm', 'id', 'index', 'component', 'root', 'element', 'dependency' ], Object.keys( instance ) );
         },
         'allProperties': function ( suite ) {
-          var component = suite.ccm.component( {
+          suite.ccm.instance( {
             name: 'dummy2',
+            ccm: 'https://akless.github.io/ccm/ccm.js',
             config: { foo: 'abc', bar: 'xyz' },
             Instance: function () {
               var self = this;
@@ -470,9 +468,9 @@ ccm.files[ 'ccm-tests.js' ] = {
                 callback();
               };
             }
+          }, { baz: [ 'ccm.instance', 'dummy2' ] }, function ( instance ) {
+            suite.assertEquals( [ 'ccm', 'baz', 'id', 'index', 'component', 'root', 'element' ], Object.keys( instance ) );
           } );
-          var instance = component.instance( { baz: [ 'ccm.instance', 'dummy2' ] } );
-          suite.assertEquals( [ 'ccm', 'baz', 'id', 'index', 'component', 'root', 'element' ], Object.keys( instance ) );
         }
       }
     },
@@ -590,6 +588,7 @@ ccm.files[ 'ccm-tests.js' ] = {
             crossorigin: 'anonymous'
           }
         }, function ( result ) {
+          if ( suite.ccm.helper.isSafari() ) { passed = true; suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css', result ); return; }
           if ( passed !== false ) suite.failed( 'correct hash', result );
           passed = true;
         } );
@@ -615,6 +614,7 @@ ccm.files[ 'ccm-tests.js' ] = {
             crossorigin: 'anonymous'
           }
         }, function ( result ) {
+          if ( suite.ccm.helper.isSafari() ) { passed = true; suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.js', result ); return; }
           if ( passed !== false ) suite.failed( 'correct hash', result );
           passed = true;
         } );
