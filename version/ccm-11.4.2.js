@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (11.4.2)
+ * @version 11.4.2
  * @changes
  * version 11.4.2 (16.10.2017): bugfix for loading minified files
  * version 11.4.1 (16.10.2017): bugfix for custom element check
