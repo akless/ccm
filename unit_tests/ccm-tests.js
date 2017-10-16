@@ -400,7 +400,14 @@ ccm.files[ 'ccm-tests.js' ] = {
     },
     loading: {
       setup: function ( suite, callback ) {
-        suite.ccm.instance( { name: 'dummy', ccm: 'https://akless.github.io/ccm/ccm.js', Instance: function () {} }, function ( instance ) { suite.dummy = instance; callback(); } );
+        suite.ccm.instance( {
+          name: 'dummy',
+          ccm: '../ccm.js',
+          Instance: function () {}
+        }, function ( instance ) {
+          suite.dummy = instance;
+          callback();
+        } );
       },
       tests: {
         'keyframe': function ( suite ) {
