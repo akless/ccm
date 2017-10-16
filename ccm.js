@@ -1709,7 +1709,6 @@
        * @returns {ccm.types.instance} created instance (only if synchron)
        */
       function recursive( comp, cfg, prev_cfg, prev_key, parent, start ) {
-        console.log( 'recursive', comp );
 
         // increase number of loading resources
         counter++;
@@ -1993,7 +1992,6 @@
                 console.log( instance.root.parent_node );
                 */
 
-                console.log( instance.index, self.helper.clone( waiter ) );
                 // waitlist not empty? => continue with waiting unsolved dependencies
                 if ( waiter.length > 0 ) return self.helper.action( waiter.shift() );  // recursive call
 
