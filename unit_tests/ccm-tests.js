@@ -428,7 +428,10 @@ ccm.files[ 'ccm-tests.js' ] = {
           suite.assertTrue( typeof suite.ccm.helper.makeIterable( arguments ).map === 'function' );
         },
         'notIterableElements': function ( suite ) {
-          suite.assertFalse( typeof document.head.children.map === 'function' );
+          if ( suite.ccm.helper.isFirefox() )
+            suite.assertTrue( typeof document.head.children.map === 'function' );
+          else
+            suite.assertFalse( typeof document.head.children.map === 'function' );
         },
         'iterableElements': function ( suite ) {
           suite.assertTrue( typeof suite.ccm.helper.makeIterable( document.head.children ).map === 'function' );
@@ -540,7 +543,7 @@ ccm.files[ 'ccm-tests.js' ] = {
             plain: {},
             _class: {},
             node: {},
-            many: { 0: {} }
+            many: suite.ccm.helper.isFirefox() ? [ {} ] : { 0: {} }
           }, suite.ccm.helper.toJSON( {
             x: undefined,
             ref: null,
@@ -555,7 +558,7 @@ ccm.files[ 'ccm-tests.js' ] = {
             func: function ( name ) { return 'Hello, ' + name; },
             plain: {},
             _class: new Object(),
-            node: document.head,
+            node: document.createElement( 'span' ),
             many: document.head.querySelectorAll( 'meta' )
           } ) );
         }
@@ -595,7 +598,7 @@ ccm.files[ 'ccm-tests.js' ] = {
             crossorigin: 'anonymous'
           }
         }, function ( result ) {
-          if ( suite.ccm.helper.isSafari() ) { passed = true; suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css', result ); return; }
+          if ( suite.ccm.helper.isSafari() || suite.ccm.helper.isFirefox() ) { passed = true; suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css', result ); return; }
           if ( passed !== false ) suite.failed( 'correct hash', result );
           passed = true;
         } );
