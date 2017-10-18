@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (11.4.3)
+ * @version 11.4.3
  * @changes
  * version 11.4.3 (18.10.2017): default case in ccm.load() is loading JS
  * version 11.4.2 (16.10.2017): bugfix for loading minified files
