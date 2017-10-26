@@ -1308,7 +1308,7 @@
           //request.setRequestHeader( 'Authorization', 'Basic ' + btoa( settings.username + ':' + settings.password ) );
           request.onreadystatechange = function () {
             if( request.readyState == 4 && request.status == 200 )
-              settings.callback( request.responseText );
+              settings.callback( JSON.parse( request.responseText ) );
           };
           request.send();
 
