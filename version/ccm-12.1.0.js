@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (12.1.0)
+ * @version 12.1.0
  * @changes
  * version 12.1.0 (27.10.2017): choosable HTTP method for ccm.load resources (default is 'GET')
  * version 12.0.0 (26.10.2017): JSONP is optional, CORS is the new default for cross domain requests
