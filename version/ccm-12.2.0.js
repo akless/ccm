@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (12.2.0)
+ * @version 12.2.0
  * @changes
  * version 12.2.0 (08.11.2017):
  * - add 'ccm.helper.toDotNotation(obj):obj'
