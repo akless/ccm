@@ -7,7 +7,6 @@
  * version 12.3.0 (08.11.2017): update 'ccm.helper.format'
  * - a placeholder for a function can be used multiple times
  * - better keeping of original data types
- * - unit tests for 'ccm.helper.format'
  * version 12.2.0 (08.11.2017):
  * - add 'ccm.helper.toDotNotation(obj):obj'
  * - add 'ccm.helper.solveDotNotation(obj):obj'
