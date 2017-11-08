@@ -315,6 +315,97 @@ ccm.files[ 'ccm-tests.js' ] = {
         }
       }
     },
+    format: {
+      tests: {
+        'obj': function ( suite ) {
+          var func = function () {};
+          suite.assertEquals(
+            {
+              is: true,
+              abc: {
+                xyz: {
+                  foo: 'Hello, World!',
+                  ping: 'pong',
+                  f1: func
+                },
+                n: 12,
+                bar: 4711,
+                f2: func
+              },
+              baz: true,
+              a: 'x',
+              b: true,
+              c: 3,
+              d: 'Hello, World!',
+              e: 4711,
+              f: true,
+              func: function () {},
+              f3: func
+            },
+            suite.ccm.helper.format(
+              {
+                is: '%%',
+                abc: {
+                  xyz: {
+                    foo: '%text%',
+                    ping: '%%',
+                    f1: '%func%'
+                  },
+                  n: '%%',
+                  bar: '%number%',
+                  f2: '%func%'
+                },
+                baz: '%bool%',
+                a: 'x',
+                b: true,
+                c: 3,
+                d: '%text%',
+                e: '%number%',
+                f: '%bool%',
+                func: function () {},
+                f3: '%func%'
+              },
+              true,
+              'pong',
+              {
+                text: 'Hello, World!',
+                number: 4711,
+                bool: true,
+                func: func
+              },
+              12
+            )
+          );
+        },
+        'string': function ( suite ) {
+          suite.assertEquals(
+            'true, Hello, World!, pong, 12, 4711, true',
+            suite.ccm.helper.format( '%%, %text%, %%, %%, %number%, %bool%',
+              true,
+              'pong',
+              {
+                text: 'Hello, World!',
+                number: 4711,
+                bool: true
+              },
+              12
+            )
+          );
+        },
+        'func': function ( suite ) {
+          var func = function () {};
+          if ( func !== suite.ccm.helper.format(           func     )     ) return suite.failed();
+          if ( func !== suite.ccm.helper.format( { x:      func   } ).x   ) return suite.failed();
+          if ( func !== suite.ccm.helper.format( { x: { y: func } } ).x.y ) return suite.failed();
+          var result;
+          result = suite.ccm.helper.format( { f1: '%func%', f2: '%func%', f3: '%func%' }, { func: func } );
+          if ( func !== result.f1 || func !== result.f2 || func !== result.f3 ) return suite.failed();
+          result = suite.ccm.helper.format( { f1: '%%', f2: '%%', f3: '%%' }, func, func, func );
+          if ( func !== result.f1 || func !== result.f2 || func !== result.f3 ) return suite.failed();
+          suite.passed();
+        }
+      }
+    },
     isProxy: {
       tests: {
         'pseudoProxy': function ( suite ) {
