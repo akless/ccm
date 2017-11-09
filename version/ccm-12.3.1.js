@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (12.3.1)
+ * @version 12.3.1
  * @changes
  * version 12.3.1 (09.11.2017):
  * - update 'ccm.helper.encodeDependencies(obj)' and 'ccm.helper.decodeDependencies(obj)': respect deeper properties
