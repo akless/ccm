@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (12.4.0)
+ * @version 12.4.0
  * @changes
  * version 12.4.0 (16.11.2017):
  * - new ccm dependency for import of ECMAScript 6 Modules
