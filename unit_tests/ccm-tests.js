@@ -7,6 +7,7 @@
 ccm.files[ 'ccm-tests.js' ] = {
   setup: function ( suite, callback ) {
     suite.ccm.clear();
+    suite.$ = suite.ccm.helper;
     callback();
   },
   load: {
@@ -403,6 +404,249 @@ ccm.files[ 'ccm-tests.js' ] = {
           result = suite.ccm.helper.format( { f1: '%%', f2: '%%', f3: '%%' }, func, func, func );
           if ( func !== result.f1 || func !== result.f2 || func !== result.f3 ) return suite.failed();
           suite.passed();
+        }
+      }
+    },
+    formData: {
+      input: {
+        tests: {
+          'color': suite => {
+            suite.assertEquals( { x: '#66ccff' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'color', name: 'x', value: '#66ccff' }
+            } ) ) );
+          },
+          'date': suite => {
+            suite.assertEquals( { x: '2017-11-19' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'date', name: 'x', value: '2017-11-19' }
+            } ) ) );
+          },
+          'datetime-local': suite => {
+            suite.assertEquals( { x: '2017-11-19T09:55' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'datetime-local', name: 'x', value: '2017-11-19T09:55' }
+            } ) ) );
+          },
+          'email': suite => {
+            suite.assertEquals( { x: 'john.doe@web.de' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'email', name: 'x', value: 'john.doe@web.de' }
+            } ) ) );
+          },
+          'hidden': suite => {
+            suite.assertEquals( { x: 'secret' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'hidden', name: 'x', value: 'secret' }
+            } ) ) );
+          },
+          'month': suite => {
+            suite.assertEquals( { x: '2017-11' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'month', name: 'x', value: '2017-11' }
+            } ) ) );
+          },
+          'password': suite => {
+            suite.assertEquals( { x: 'xxx' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'password', name: 'x', value: 'xxx' }
+            } ) ) );
+          },
+          'search': suite => {
+            suite.assertEquals( { x: 'found!' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'search', name: 'x', value: 'found!' }
+            } ) ) );
+          },
+          'tel': suite => {
+            suite.assertEquals( { x: '0123456789' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'tel', name: 'x', value: '0123456789' }
+            } ) ) );
+          },
+          'text': suite => {
+            suite.assertEquals( { x: 'John Doe' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'text', name: 'x', value: 'John Doe' }
+            } ) ) );
+          },
+          'time': suite => {
+            suite.assertEquals( { x: '12:55' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'time', name: 'x', value: '12:55' }
+            } ) ) );
+          },
+          'url': suite => {
+            suite.assertEquals( { x: 'https://www.john-doe.de' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'url', name: 'x', value: 'https://www.john-doe.de' }
+            } ) ) );
+          },
+          'week': suite => {
+            suite.assertEquals( { x: '2017-W46' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'week', name: 'x', value: '2017-W46' }
+            } ) ) );
+          }
+        }
+      },
+      number: {
+        tests: {
+          'validNumber': suite => {
+            suite.assertEquals( { x: 3 }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'number', name: 'x', value: 3 }
+            } ) ) );
+          },
+          'invalidNumber': suite => {
+            suite.assertEquals( { x: '' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'number', name: 'x', value: 'foo' }
+            } ) ) );
+          },
+          'noNumber': suite => {
+            suite.assertEquals( { x: '' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'number', name: 'x' }
+            } ) ) );
+          },
+          'range': suite => {
+            suite.assertEquals( { x: 5 }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'range', name: 'x', min: 1, max: 12, value: 5 }
+            } ) ) );
+          }
+        }
+      },
+      checkbox: {
+        tests: {
+          'singleTrue': suite => {
+            suite.assertEquals( { x: true }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'checkbox', name: 'x', checked: true }
+            } ) ) );
+          },
+          'singleFalse': suite => {
+            suite.assertEquals( { x: false }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'checkbox', name: 'x' }
+            } ) ) );
+          },
+          'singleValueTrue': suite => {
+            suite.assertEquals( { x: 'foo' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'checkbox', name: 'x', value: 'foo', checked: true }
+            } ) ) );
+          },
+          'singleValueFalse': suite => {
+            suite.assertEquals( { x: '' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'input', type: 'checkbox', name: 'x', value: 'foo' }
+            } ) ) );
+          },
+          'multiZero': suite => {
+            suite.assertEquals( { x: [ '', '' ] }, suite.$.formData( suite.$.html( {
+              inner: [
+                { tag: 'input', type: 'checkbox', name: 'x', value: 'foo' },
+                { tag: 'input', type: 'checkbox', name: 'x', value: 'bar' }
+              ]
+            } ) ) );
+          },
+          'multiSubset': suite => {
+            suite.assertEquals( { x: [ '', 'bar' ] }, suite.$.formData( suite.$.html( {
+              inner: [
+                { tag: 'input', type: 'checkbox', name: 'x', value: 'foo' },
+                { tag: 'input', type: 'checkbox', name: 'x', value: 'bar', checked: true }
+              ]
+            } ) ) );
+          },
+          'multiMany': suite => {
+            suite.assertEquals( { x: [ 'foo', 'bar' ] }, suite.$.formData( suite.$.html( {
+              inner: [
+                { tag: 'input', type: 'checkbox', name: 'x', value: 'foo', checked: true },
+                { tag: 'input', type: 'checkbox', name: 'x', value: 'bar', checked: true }
+              ]
+            } ) ) );
+          },
+          'singleMultiMix': suite => {
+            suite.assertEquals( { x: [ 'foo', 'bar', '' ], y: true, z: false }, suite.$.formData( suite.$.html( {
+              inner: [
+                { tag: 'input', type: 'checkbox', name: 'x', value: 'foo', checked: true },
+                { tag: 'input', type: 'checkbox', name: 'x', value: 'bar', checked: true },
+                { tag: 'input', type: 'checkbox', name: 'x', value: 'baz' },
+                { tag: 'input', type: 'checkbox', name: 'y', checked: true },
+                { tag: 'input', type: 'checkbox', name: 'z' }
+              ]
+            } ) ) );
+          }
+        }
+      },
+      radio: {
+        tests: {
+          'zero': suite => {
+            suite.assertEquals( { x: '' }, suite.$.formData( suite.$.html( {
+              inner: [
+                { tag: 'input', type: 'radio', name: 'x', value: 'foo' },
+                { tag: 'input', type: 'radio', name: 'x', value: 'bar' }
+              ]
+            } ) ) );
+          },
+          'one': suite => {
+            suite.assertEquals( { x: 'bar' }, suite.$.formData( suite.$.html( {
+              inner: [
+                { tag: 'input', type: 'radio', name: 'x', value: 'foo' },
+                { tag: 'input', type: 'radio', name: 'x', value: 'bar', checked: true }
+              ]
+            } ) ) );
+          }
+        }
+      },
+      select: {
+        tests: {
+          'singleZero': suite => {
+            suite.assertEquals( { x: 'foo' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'select', name: 'x', inner: [
+                { tag: 'option', value: 'foo' },
+                { tag: 'option', value: 'bar' }
+              ] }
+            } ) ) );
+          },
+          'singleOne': suite => {
+            suite.assertEquals( { x: 'bar' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'select', name: 'x', inner: [
+                { tag: 'option', value: 'foo' },
+                { tag: 'option', value: 'bar', selected: true }
+              ] }
+            } ) ) );
+          },
+          'singleMany': suite => {
+            suite.assertEquals( { x: 'bar' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'select', name: 'x', inner: [
+                { tag: 'option', value: 'foo', selected: true },
+                { tag: 'option', value: 'bar', selected: true }
+              ] }
+            } ) ) );
+          },
+          'selectMultiZero': suite => {
+            suite.assertEquals( { x: '' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'select', name: 'x', multiple: true, inner: [
+                { tag: 'option', value: 'foo' },
+                { tag: 'option', value: 'bar' }
+              ] }
+            } ) ) );
+          },
+          'selectMultiOne': suite => {
+            suite.assertEquals( { x: 'bar' }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'select', name: 'x', multiple: true, inner: [
+                { tag: 'option', value: 'foo' },
+                { tag: 'option', value: 'bar', selected: true }
+              ] }
+            } ) ) );
+          },
+          'selectMultiMany': suite => {
+            suite.assertEquals( { x: [ 'foo', 'bar' ] }, suite.$.formData( suite.$.html( {
+              inner: { tag: 'select', name: 'x', multiple: true, inner: [
+                { tag: 'option', value: 'foo', selected: true },
+                { tag: 'option', value: 'bar', selected: true }
+              ] }
+            } ) ) );
+          }
+        }
+      },
+      tests: {
+        'textarea': suite => {
+          suite.assertEquals( { x: 'story' }, suite.$.formData( suite.$.html( {
+            inner: { tag: 'textarea', name: 'x', inner: 'story' }
+          } ) ) );
+        },
+        'objectValue': suite => {
+          suite.assertEquals( { x: { foo: 'bar' } }, suite.$.formData( suite.$.html( {
+            inner: { tag: 'input', type: 'text', name: 'x', value: "{'foo':'bar'}" }
+          } ) ) );
+        },
+        'arrayValue': suite => {
+          suite.assertEquals( { x: [ 'foo', 'bar' ] }, suite.$.formData( suite.$.html( {
+            inner: { tag: 'input', type: 'text', name: 'x', value: "['foo','bar']" }
+          } ) ) );
         }
       }
     },

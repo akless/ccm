@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (12.5.0)
+ * @version 12.5.0
  * @changes
  * version 12.5.0 (19.11.2017):
  * - update ccm.helper.formData (first time of ES6 use in framework)
