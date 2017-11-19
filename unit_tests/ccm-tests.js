@@ -647,6 +647,11 @@ ccm.files[ 'ccm-tests.js' ] = {
           suite.assertEquals( { x: [ 'foo', 'bar' ] }, suite.$.formData( suite.$.html( {
             inner: { tag: 'input', type: 'text', name: 'x', value: "['foo','bar']" }
           } ) ) );
+        },
+        'dotNotation': suite => {
+          suite.assertEquals( { foo: { bar: 'baz' } }, suite.$.formData( suite.$.html( {
+            inner: { tag: 'input', type: 'text', name: 'foo.bar', value: 'baz' }
+          } ) ) );
         }
       }
     },

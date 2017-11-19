@@ -2896,7 +2896,7 @@
               data[ input.name ] = JSON.parse( data[ input.name ].replace( /'/g, '"' ) );
           } catch ( err ) {}
         } );
-        return self.helper.protect( data );
+        return self.helper.protect( self.helper.solveDotNotation( data ) );
 
       },
 
