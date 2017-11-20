@@ -316,6 +316,291 @@ ccm.files[ 'ccm-tests.js' ] = {
         }
       }
     },
+    fillForm: {
+      input: {
+        tests: {
+          'color': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'color', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: '#66ccff' } );
+            suite.assertSame( '#66ccff', input.value );
+          },
+          'date': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'date', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: '2017-11-19' } );
+            suite.assertSame( '2017-11-19', input.value );
+          },
+          'datetime-local': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'datetime-local', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: '2017-11-19T09:55' } );
+            suite.assertSame( '2017-11-19T09:55', input.value );
+          },
+          'email': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'email', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 'john.doe@web.de' } );
+            suite.assertSame( 'john.doe@web.de', input.value );
+          },
+          'hidden': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'hidden', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 'secret' } );
+            suite.assertSame( 'secret', input.value );
+          },
+          'month': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'month', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: '2017-11' } );
+            suite.assertSame( '2017-11', input.value );
+          },
+          'password': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'password', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 'xxx' } );
+            suite.assertSame( 'xxx', input.value );
+          },
+          'search': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'search', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 'found!' } );
+            suite.assertSame( 'found!', input.value );
+          },
+          'tel': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'tel', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: '0123456789' } );
+            suite.assertSame( '0123456789', input.value );
+          },
+          'text': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'text', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 'John Doe' } );
+            suite.assertSame( 'John Doe', input.value );
+          },
+          'time': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'time', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: '12:55' } );
+            suite.assertSame( '12:55', input.value );
+          },
+          'url': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'url', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 'https://www.john-doe.de' } );
+            suite.assertSame( 'https://www.john-doe.de', input.value );
+          },
+          'week': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'week', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: '2017-W46' } );
+            suite.assertSame( '2017-W46', input.value );
+          }
+        }
+      },
+      number: {
+        tests: {
+          'validNumber': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'number', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 3 } );
+            suite.assertSame( '3', input.value );
+          },
+          'invalidNumber': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'number', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 'foo' } );
+            suite.assertSame( '', input.value );
+          },
+          'validRange': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'range', name: 'x', min: 1, max: 12 } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 5 } );
+            suite.assertSame( '5', input.value );
+          },
+          'invalidRange': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'range', name: 'x', min: 1, max: 12 } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 'foo' } );
+            suite.assertNotSame( 'foo', input.value );
+          },
+          'outOfRange': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'range', name: 'x', min: 1, max: 12 } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 5711 } );
+            suite.assertNotSame( '5711', input.value );
+          }
+        }
+      },
+      checkbox: {
+        tests: {
+          'singleTrueTrue': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'checkbox', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: true } );
+            suite.assertSame( 'on', input.value );
+          },
+          'singleTrueValue': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'checkbox', name: 'x' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 'foo' } );
+            suite.assertSame( 'on', input.value );
+          },
+          'singleValueTrue': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'checkbox', name: 'x', value: 'foo' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: true } );
+            suite.assertSame( 'foo', input.value );
+          },
+          'singleValueValue': suite => {
+            const form = suite.$.html( { inner: { tag: 'input', type: 'checkbox', name: 'x', value: 'foo' } } );
+            const input = form.querySelector( 'input' );
+            suite.$.fillForm( form, { x: 'foo' } );
+            suite.assertSame( 'foo', input.value );
+          },
+          'multiWrong': suite => {
+            const form = suite.$.html( { inner: [
+              { tag: 'input', type: 'checkbox', name: 'x', value: 'foo' },
+              { tag: 'input', type: 'checkbox', name: 'x', value: 'bar' }
+            ] } );
+            const inputs = form.querySelectorAll( 'input' );
+            suite.$.fillForm( form, { x: [ 'baz' ] } );
+            if ( inputs[ 0 ].checked ) return suite.failed( 'first checkbox is checked' );
+            if ( inputs[ 1 ].checked ) return suite.failed( 'second checkbox is checked' );
+            return suite.passed();
+          },
+          'multiSubset': suite => {
+            const form = suite.$.html( { inner: [
+              { tag: 'input', type: 'checkbox', name: 'x', value: 'foo' },
+              { tag: 'input', type: 'checkbox', name: 'x', value: 'bar' }
+            ] } );
+            const inputs = form.querySelectorAll( 'input' );
+            suite.$.fillForm( form, { x: [ 'bar' ] } );
+            if (  inputs[ 0 ].checked ) return suite.failed( 'first checkbox is checked' );
+            if ( !inputs[ 1 ].checked ) return suite.failed( 'second checkbox is not checked' );
+            return suite.passed();
+          },
+          'singleMultiMix': suite => {
+            const form = suite.$.html( { inner: [
+              { tag: 'input', type: 'checkbox', name: 'x', value: 'foo' },
+              { tag: 'input', type: 'checkbox', name: 'x', value: 'bar' },
+              { tag: 'input', type: 'checkbox', name: 'x', value: 'baz' },
+              { tag: 'input', type: 'checkbox', name: 'y' },
+              { tag: 'input', type: 'checkbox', name: 'z' }
+            ] } );
+            const inputs = form.querySelectorAll( 'input' );
+            suite.$.fillForm( form, { x: [ 'foo', 'bar' ], y: true, z: false } );
+            if ( !inputs[ 0 ].checked ) return suite.failed( 'first checkbox is checked' );
+            if ( !inputs[ 1 ].checked ) return suite.failed( 'second checkbox is checked' );
+            if (  inputs[ 2 ].checked ) return suite.failed( 'third checkbox is not checked' );
+            if ( !inputs[ 3 ].checked ) return suite.failed( 'fourth checkbox is not checked' );
+            if (  inputs[ 4 ].checked ) return suite.failed( 'fifth checkbox is checked' );
+            return suite.passed();
+          }
+        }
+      },
+      radio: {
+        tests: {
+          'wrong': suite => {
+            const form = suite.$.html( { inner: [
+              { tag: 'input', type: 'radio', name: 'x', value: 'foo' },
+              { tag: 'input', type: 'radio', name: 'x', value: 'bar' }
+            ] } );
+            const inputs = form.querySelectorAll( 'input' );
+            suite.$.fillForm( form, { x: 'baz' } );
+            if ( inputs[ 0 ].checked ) return suite.failed( 'first radio button is checked' );
+            if ( inputs[ 1 ].checked ) return suite.failed( 'second radio button is checked' );
+            return suite.passed();
+          },
+          'correct': suite => {
+            const form = suite.$.html( { inner: [
+              { tag: 'input', type: 'radio', name: 'x', value: 'foo' },
+              { tag: 'input', type: 'radio', name: 'x', value: 'bar' }
+            ] } );
+            const inputs = form.querySelectorAll( 'input' );
+            suite.$.fillForm( form, { x: 'bar' } );
+            if (  inputs[ 0 ].checked ) return suite.failed( 'first radio button is checked' );
+            if ( !inputs[ 1 ].checked ) return suite.failed( 'second radio button is not checked' );
+            return suite.passed();
+          }
+        }
+      },
+      select: {
+        tests: {
+          'singleWrong': suite => {
+            const form = suite.$.html( { inner: { tag: 'select', name: 'x', inner: [
+              { tag: 'option', value: 'foo' },
+              { tag: 'option', value: 'bar' }
+            ] } } );
+            const options = form.querySelectorAll( 'option' );
+            suite.$.fillForm( form, { x: 'baz' } );
+            if ( !options[ 0 ].selected ) return suite.failed( 'first entry is not selected' );
+            if (  options[ 1 ].selected ) return suite.failed( 'second entry is selected' );
+            return suite.passed();
+          },
+          'singleCorrect': suite => {
+            const form = suite.$.html( { inner: { tag: 'select', name: 'x', inner: [
+              { tag: 'option', value: 'foo' },
+              { tag: 'option', value: 'bar' }
+            ] } } );
+            const options = form.querySelectorAll( 'option' );
+            suite.$.fillForm( form, { x: 'bar' } );
+            if (  options[ 0 ].selected ) return suite.failed( 'first entry is selected' );
+            if ( !options[ 1 ].selected ) return suite.failed( 'second entry is not selected' );
+            return suite.passed();
+          },
+          'multipleWrong': suite => {
+            const form = suite.$.html( { inner: { tag: 'select', multiple: true, name: 'x', inner: [
+              { tag: 'option', value: 'foo' },
+              { tag: 'option', value: 'bar' }
+            ] } } );
+            const options = form.querySelectorAll( 'option' );
+            suite.$.fillForm( form, { x: [ 'baz' ] } );
+            if ( options[ 0 ].selected ) return suite.failed( 'first entry is selected' );
+            if ( options[ 1 ].selected ) return suite.failed( 'second entry is selected' );
+            return suite.passed();
+          },
+          'multipleCorrect': suite => {
+            const form = suite.$.html( { inner: { tag: 'select', multiple: true, name: 'x', inner: [
+              { tag: 'option', value: 'foo' },
+              { tag: 'option', value: 'bar' }
+            ] } } );
+            const options = form.querySelectorAll( 'option' );
+            suite.$.fillForm( form, { x: [ 'foo', 'bar' ] } );
+            if ( !options[ 0 ].selected ) return suite.failed( 'first entry is not selected' );
+            if ( !options[ 1 ].selected ) return suite.failed( 'second entry is not selected' );
+            return suite.passed();
+          }
+        }
+      },
+      tests: {
+        'textarea': suite => {
+          const form = suite.$.html( { inner: { tag: 'textarea', name: 'x' } } );
+          const input = form.querySelector( 'textarea' );
+          suite.$.fillForm( form, { x: 'foo' } );
+          suite.assertSame( 'foo', input.value );
+        },
+        'objectValue': suite => {
+          const form = suite.$.html( { inner: { tag: 'input', type: 'text', name: 'x' } } );
+          const input = form.querySelector( 'input' );
+          suite.$.fillForm( form, { x: { foo: 'bar' } } );
+          suite.assertSame( "{'foo':'bar'}", input.value );
+        },
+        'arrayValue': suite => {
+          const form = suite.$.html( { inner: { tag: 'input', type: 'text', name: 'x' } } );
+          const input = form.querySelector( 'input' );
+          suite.$.fillForm( form, { x: [ 'foo', 'bar' ] } );
+          suite.assertSame( "['foo','bar']", input.value );
+        },
+        'dotNotation': suite => {
+          const form = suite.$.html( { inner: { tag: 'input', type: 'text', name: 'x.foo' } } );
+          const input = form.querySelector( 'input' );
+          suite.$.fillForm( form, { x: { foo: 'bar' } } );
+          suite.assertSame( 'bar', input.value );
+        }
+      }
+    },
     format: {
       tests: {
         'obj': function ( suite ) {
@@ -651,6 +936,11 @@ ccm.files[ 'ccm-tests.js' ] = {
         'dotNotation': suite => {
           suite.assertEquals( { foo: { bar: 'baz' } }, suite.$.formData( suite.$.html( {
             inner: { tag: 'input', type: 'text', name: 'foo.bar', value: 'baz' }
+          } ) ) );
+        },
+        'xss': suite => {
+          suite.assertEquals( { x: 'foo  bar' }, suite.$.formData( suite.$.html( {
+            inner: { tag: 'textarea', name: 'x', inner: 'foo <script>alert("XSS");</script> bar' }
           } ) ) );
         }
       }

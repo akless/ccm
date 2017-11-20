@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (12.6.0)
+ * @version 12.6.0
  * @changes
  * version 12.6.0 (20.11.2017):
  * - add help function 'ccm.helper.fillForm(elem,obj)'
