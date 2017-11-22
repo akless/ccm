@@ -1157,6 +1157,38 @@ ccm.files[ 'ccm-tests.js' ] = {
         }
       }
     },
+    solveDotNotation: {
+      tests: {
+        'simple': suite => {
+          suite.assertEquals( { foo: 'bar', n: 5711, is: true }, suite.$.solveDotNotation( { foo: 'bar', n: 5711, is: true } ) );
+        },
+        'object': suite => {
+          suite.assertEquals( { foo: { bar: 'baz', n: 5711, is: true } }, suite.$.solveDotNotation( { 'foo.bar': 'baz', 'foo.n': 5711, 'foo.is': true } ) );
+        },
+        'array': suite => {
+          suite.assertEquals( { foo: [ 'bar', 'baz' ] }, suite.$.solveDotNotation( { 'foo.0': 'bar', 'foo.1': 'baz' } ) );
+        },
+        'complex': suite => {
+          suite.assertEquals( { foo: { bar: [ { baz: [ 'A', 'B' ] } ] } }, suite.$.solveDotNotation( { 'foo.bar.0.baz.0': 'A', 'foo.bar.0.baz.1': 'B' } ) );
+        }
+      }
+    },
+    toDotNotation: {
+      tests: {
+        'simple': suite => {
+          suite.assertEquals( { foo: 'bar', n: 5711, is: true }, suite.$.toDotNotation( { foo: 'bar', n: 5711, is: true } ) );
+        },
+        'object': suite => {
+          suite.assertEquals( { 'foo.bar': 'baz', 'foo.n': 5711, 'foo.is': true }, suite.$.toDotNotation( { foo: { bar: 'baz', n: 5711, is: true } } ) );
+        },
+        'array': suite => {
+          suite.assertEquals( { 'foo.0': 'bar', 'foo.1': 'baz' }, suite.$.toDotNotation( { foo: [ 'bar', 'baz' ] } ) );
+        },
+        'complex': suite => {
+          suite.assertEquals( { 'foo.bar.0.baz.0': 'A', 'foo.bar.0.baz.1': 'B' }, suite.$.toDotNotation( { foo: { bar: [ { baz: [ 'A', 'B' ] } ] } } ) );
+        }
+      }
+    },
     toJSON: {
       tests: {
         'example': function ( suite ) {

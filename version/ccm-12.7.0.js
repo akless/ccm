@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (12.7.0)
+ * @version 12.7.0
  * @changes
  * version 12.7.0 (22.11.2017):
  * - update help functions 'toDotNotation(obj):obj', 'solveDotNotation(obj):obj' and 'deepValue(obj,key,value):*': dot notation supports array
