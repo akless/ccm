@@ -1074,6 +1074,190 @@ ccm.files[ 'ccm-tests.js' ] = {
         }
       }
     },
+    onFinish: {
+      tests: {
+        'login': suite => {
+          suite.ccm.instance( 'https://akless.github.io/ccm-components/user/versions/ccm.user-2.0.0.js', user =>
+            user.logout( () =>
+              suite.$.onFinish( { user: user, onfinish: { login: true, callback: () =>
+                suite.assertTrue( user.isLoggedIn() )
+              } } )
+            )
+          );
+        },
+        'log': suite => {
+          const original = console.log;
+          console.log = data => {
+            console.log = original;
+            suite.assertSame( 'foo', data );
+          };
+          suite.$.onFinish( { onfinish: { log: true } }, 'foo' );
+        },
+        'clearTrue': suite => {
+          suite.ccm.start( {
+            name: 'clear1',
+            ccm: '../ccm.js',
+            Instance: function () {
+              this.start = callback => this.ccm.helper.setContent( this.element, 'foo' ) || callback();
+              this.onfinish = { clear: true };
+            }
+          }, instance => {
+            suite.$.onFinish( instance );
+            suite.assertSame( '', instance.element.innerHTML );
+          } );
+        },
+        'clearFalse': suite => {
+          suite.ccm.start( {
+            name: 'clear2',
+            ccm: '../ccm.js',
+            Instance: function () {
+              this.start = callback => this.ccm.helper.setContent( this.element, 'foo' ) || callback();
+              this.onfinish = { clear: false };
+            }
+          }, instance => {
+            suite.$.onFinish( instance );
+            suite.assertSame( 'foo', instance.element.innerHTML );
+          } );
+        },
+        'restart': suite => {
+          suite.ccm.start( {
+            name: 'restart',
+            ccm: '../ccm.js',
+            Instance: function () {
+              this.ready = callback => { this.counter = 0; callback(); };
+              this.start = callback => { this.ccm.helper.setContent( this.element, ++this.counter ); callback(); };
+              this.onfinish = { restart: true, callback: instance => {
+                suite.assertSame( '2', instance.element.innerHTML );
+              } };
+            }
+          }, instance => suite.$.onFinish( instance ) );
+        },
+        'renderComponent': suite => {
+          suite.$.onFinish( { onfinish: { render: {
+            component: {
+              name: 'render',
+              ccm: '../ccm.js',
+              Instance: function () {
+                this.start = () => suite.assertSame( 'bar', this.foo );
+              }
+            },
+            config: { foo: 'bar' }
+          } } } );
+        },
+        'renderHTML': suite => {
+          const elem = suite.$.html( { inner: { id: 'foo', inner: 'bar' } } );
+          suite.$.onFinish( {
+            root: elem.querySelector( '#foo' ),
+            onfinish: {
+              render: { inner: 'baz' },
+              callback: () => suite.assertSame( '<div>baz</div>', elem.innerHTML )
+            }
+          } );
+        },
+        'callbackInstance': suite => {
+          const instance = { onfinish: { callback: _instance => suite.assertEquals( instance, _instance ) } };
+          suite.$.onFinish( instance );
+        },
+        'callbackResults': suite => {
+          suite.$.onFinish( { onfinish: { callback: ( instance, results ) => suite.assertSame( 'foo', results ) } }, 'foo' );
+        }
+      },
+      store: {
+        setup: ( suite, callback ) => {
+          suite.settings = { store: 'test' };
+          suite.ccm.store( suite.settings, store => {
+            suite.store = store;
+            callback();
+          } );
+        },
+        tests: {
+          'simple': suite => {
+            suite.$.onFinish(
+              {
+                onfinish: {
+                  store: { settings: suite.settings, key: 'test' },
+                  callback: () => suite.store.get( 'test', result => {
+                    delete result.updated_at;
+                    suite.assertEquals( { foo: 'bar', key: 'test' }, result );
+                  } )
+                }
+              },
+              { foo: 'bar' }
+            );
+          },
+          'user': suite => {
+            suite.ccm.instance( 'https://akless.github.io/ccm-components/user/versions/ccm.user-2.0.0.js', { logged_in: true }, user =>
+              suite.$.onFinish( {
+                  user: user,
+                  onfinish: {
+                    store: { settings: suite.settings, key: 'test', user: true },
+                    callback: () =>
+                      suite.store.get( [ 'guest', 'test' ], result => {
+                        delete result.updated_at;
+                        suite.assertEquals( { foo: 'bar', key: [ 'guest', 'test' ] }, result );
+                      } )
+                  }
+                },
+                { foo: 'bar' }
+              )
+            )
+          },
+          'userNoInstance': suite => {
+            suite.$.onFinish(
+              {
+                onfinish: {
+                  store: { settings: suite.settings, key: 'test', user: true },
+                  callback: () =>
+                    suite.store.get( [ 'guest', 'test' ], result =>
+                      suite.assertSame( null, result )
+                    )
+                }
+              },
+              { foo: 'bar' }
+            );
+          },
+          'userLoggedOut': suite => {
+            suite.ccm.instance( 'https://akless.github.io/ccm-components/user/versions/ccm.user-2.0.0.js', user =>
+              suite.$.onFinish(
+                {
+                  user: user,
+                  onfinish: {
+                    store: { settings: suite.settings, key: 'test', user: true },
+                    callback: () =>
+                      suite.store.get( [ 'guest', 'test' ], result =>
+                        suite.assertSame( null, result )
+                      )
+                  }
+                },
+                { foo: 'bar' }
+              )
+            )
+          },
+          'permissions': suite => {
+            suite.ccm.instance( 'https://akless.github.io/ccm-components/user/versions/ccm.user-2.0.0.js', user =>
+              suite.$.onFinish(
+                {
+                  user: user,
+                  onfinish: {
+                    login: true,
+                    store: { settings: suite.settings, key: 'test', permissions: 'foo' },
+                    callback: () => suite.store.get( 'test', result => suite.assertEquals( { key: 'test', _: 'foo' }, result ) )
+                  }
+                },
+                {}
+              )
+            )
+          }
+        },
+        finally: ( suite, callback ) => {
+          suite.store.del( 'test', () => {
+            suite.store.del( [ 'guest', 'test' ], () => {
+              callback()
+            } )
+          } )
+        }
+      }
+    },
     privatize: {
       tests: {
         'someProperties': function ( suite ) {
