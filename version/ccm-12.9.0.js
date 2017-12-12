@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (12.9.0)
+ * @version 12.9.0
  * @changes
  * version 12.9.0 (12.12.2017):
  * - update ccm.helper.html: accepts HTML strings
