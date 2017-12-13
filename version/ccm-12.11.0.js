@@ -1829,7 +1829,7 @@
 
               // create element for shadow root
               var shadow = document.createElement( 'div' );
-              shadow.id = instance.index;
+              shadow.id = 'ccm-' + instance.index;
               root = document.createElement( 'div' );
               self.helper.setContent( root, shadow );
               document.head.appendChild( root );
