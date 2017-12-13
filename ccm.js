@@ -3167,7 +3167,7 @@
         if ( typeof html === 'string' ) html = document.createRange().createContextualFragment( html );
 
         // jQuery element? => convert to HTML elements
-        if ( html instanceof jQuery ) {
+        if ( window.jQuery && html instanceof jQuery ) {
           html = html.get();
           const fragment = document.createDocumentFragment();
           html.map( elem => fragment.appendChild( elem ) );
