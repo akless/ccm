@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (12.10.1)
+ * @version 12.10.1
  * @changes
  * version 12.10.1 (13.12.2017):
  * - bugfix for appending shadow element to root element
