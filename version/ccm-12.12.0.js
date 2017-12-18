@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2017
  * @license The MIT License (MIT)
- * @version latest (12.12.0)
+ * @version 12.12.0
  * @changes
  * version 12.12.0 (18.12.2017): supports loading of (Google) fonts via ccm.load
  * version 12.11.0 (13.12.2017): ccm.helper.html accepts jQuery elements
