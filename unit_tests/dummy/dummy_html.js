@@ -1,1 +1,0 @@
-ccm.files[ 'dummy_html.js' ] = '<span>Hello, <b>World</b>!</span><br>\n<i>This is only a test file.</i>';

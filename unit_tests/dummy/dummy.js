@@ -1,1 +1,0 @@
-ccm.files[ 'dummy.js' ] = { foo: 'bar' };
