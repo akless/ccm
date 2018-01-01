@@ -54,10 +54,10 @@
    * contains the already loaded resources
    * @type {object}
    * @example
-   * // Example of a cache containing two resources already loaded.
+   * // example of a cache containing two resources already loaded
    * {
-   *   'https://akless.github.io/ccm/unit_tests/dummy/dummy.html': "<span>Hello, <b>World</b>!</span><br>\n<i>This is only a test file.</i>",
-   *   'https://akless.github.io/ccm/unit_tests/dummy/dummy.js': { foo: 'bar' }
+   *   'https://akless.github.io/ccm/unit_tests/dummy/hello.html': "Hello, <b>World</b>!",
+   *   'https://akless.github.io/ccm/unit_tests/dummy/script.js': { foo: 'bar' }
    * }
    */
   let cache = {};
@@ -91,16 +91,16 @@
    * A wait list contains the ccm.load calls that will be run again after the resource is loaded.
    * @type {Object.<string,ccm.types.action[]>}
    * @example
-   * // An example of a wait list for the resource "dummy.css" for which two ccm.load calls are waiting.
+   * // example of a wait list for the resource "style.css" for which two ccm.load calls are waiting
    * {
-   *   'https://akless.github.io/ccm/unit_tests/dummy/dummy.css': [
+   *   'https://akless.github.io/ccm/unit_tests/dummy/style.css': [
    *     [ ccm.load,
-   *       'https://akless.github.io/ccm/unit_tests/dummy/dummy.css',
-   *       'https://akless.github.io/ccm/unit_tests/dummy/dummy.html'
+   *       'https://akless.github.io/ccm/unit_tests/dummy/style.css',
+   *       'https://akless.github.io/ccm/unit_tests/dummy/hello.html'
    *     ],
    *     [ ccm.load,
-   *       'https://akless.github.io/ccm/unit_tests/dummy/dummy.js',
-   *       'https://akless.github.io/ccm/unit_tests/dummy/dummy.css'
+   *       'https://akless.github.io/ccm/unit_tests/dummy/script.js',
+   *       'https://akless.github.io/ccm/unit_tests/dummy/style.css'
    *     ]
    *   ]
    * }
@@ -950,16 +950,13 @@
 
     /**
      * @summary global namespaces for <i>ccm</i> components
-     * @memberOf ccm
      * @type {Object.<ccm.types.index, object>}
      */
     components: {},
 
     /**
-     * @summary callbacks for cross domain data exchanges
-     * @memberOf ccm
+     * callbacks for cross domain data exchanges
      * @type {Object.<string, function>}
-     * @ignore
      */
     callbacks: {},
 
@@ -972,17 +969,14 @@
   };
 
   /**
-   * global <i>ccm</i> object of this framework version
+   * global ccm object of the framework
    * @type {object}
    */
-  var self = {
-
-    /*---------------------------------------------- public ccm methods ----------------------------------------------*/
+  const self = {
 
     /**
-     * @summary returns <i>ccm</i> version number
-     * @memberOf ccm
-     * @return {ccm.types.version}
+     * version number of the framework
+     * @type {ccm.types.version}
      */
     version: function () { return '13.0.0'; },
 
@@ -996,10 +990,11 @@
     },
 
     /**
-     * loads resource(s)
+     * asynchronous loading of resources
+     * @see https://github.com/akless/ccm/wiki/Loading-of-Resources
      * @param {...ccm.types.resource} resources - resources data
-     * @param {function} [callback] - callback when all resources are loaded (first parameter are the results)
-     * @returns {*} result(s) of this ccm.load call (only if no asynchronous operations were required)
+     * @param {function} [callback] - when all resources are loaded (first parameter are the results)
+     * @returns {*} result(s) of the ccm.load call (only if no asynchronous operations were required)
      */
     load: function () {
 
@@ -3436,7 +3431,6 @@
        * @summary checks if a value is an ccm proxy instance
        * @param {*} value - value to check
        * @returns {boolean}
-       * @example
        */
       isProxy: function ( value ) {
 
@@ -3980,7 +3974,7 @@
   };
 
   // set framework version specific namespace
-  if ( !ccm[ self.version() ] ) ccm[ self.version() ] = self;
+  if ( self.version && !ccm[ self.version() ] ) ccm[ self.version ] = self;
 
   // latest version? => update namespace for latest framework version
   if ( !ccm.version || self.helper.compareVersions( self.version(), ccm.version() ) > 0 ) { ccm.latest = self; self.helper.integrate( self, ccm ); }
@@ -4233,11 +4227,12 @@
    * @typedef {object} ccm.types.resource
    * @summary <i>ccm</i> resource data
    * @property {string} url - URL of the resource
+   * @property {Element} [context=document.head] - context in which the resource should be loaded (default is <head>)
    * @property {string} [method='POST'] - HTTP method to use: 'GET' or 'POST' (default is 'POST')
    * @property {object} [params] - HTTP parameters to send (in the case of a data exchange)
-   * @property {Element} [context=document.head] - context in which the resource should be loaded (default is <head>)
-   * @property {boolean} [ignore_cache] - ignore any result already cached by <i>ccm</i>
    * @property {boolean} [jsonp] - use JSONP (only relevant in case of data exchange)
+   * @property {obj} [attr] - HTML attributes to be set for the HTML tag that loads the resource
+   * @property {boolean} [ignore_cache] - ignore any result already cached by <i>ccm</i>
    */
 
   /**
