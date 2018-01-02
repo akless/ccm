@@ -20,8 +20,8 @@ ccm.files[ 'ccm-tests.js' ] = {
         'local': suite => suite.ccm.load( 'dummy/hello.html', result => suite.assertSame( suite.expected, result ) ),
         'sop': suite => {
           let finished = false;
-          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/hello.html', result => { if ( !finished ) suite.failed( 'broken SOP security', result ); finished = true; } );
-          suite.ccm.helper.wait( 500, () => { if ( !finished ) suite.passed(); finished = true; } );
+          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/hello.html', () => { if ( !finished ) suite.failed( 'broken SOP security' ); finished = true; } );
+          suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.passed(); finished = true; } );
         },
         'remote': suite => suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/html.js', result => suite.assertSame( suite.expected, result ) ),
         'cached': suite => suite.ccm.load( 'dummy/hello.html', () => suite.assertSame( suite.expected, suite.ccm.load( 'dummy/hello.html' ) ) ),
@@ -30,25 +30,68 @@ ccm.files[ 'ccm-tests.js' ] = {
       }
     },
     css: {
+      setup: ( suite, callback ) => {
+        suite.local = 'dummy/style.css';
+        suite.check = ( url, context ) => ( context || document ).querySelector( 'link[href="' + url + '"]' );
+        suite.msg = 'already present';
+        callback();
+      },
       tests: {
-        /*
-        'local': function ( suite ) {
-          suite.ccm.load( 'dummy/style.css', function ( result ) {
-            suite.assertSame( 'dummy/style.css', result );
+        'local': suite => {
+          if ( suite.check( suite.local ) ) return suite.failed( suite.msg );
+          suite.ccm.load( suite.local, () => suite.assertTrue( suite.check( suite.local, document.head ) ) );
+        },
+        'remote': suite => {
+          suite.remote = 'https://akless.github.io/ccm/unit_tests/' + suite.local;
+          if ( suite.check( suite.remote ) ) return suite.failed( suite.msg );
+          suite.ccm.load( suite.remote, () => suite.assertTrue( suite.check( suite.remote, document.head ) ) );
+        },
+        'returnValue': suite => suite.ccm.load( suite.local, result => suite.assertSame( suite.local, result ) ),
+        'cached': suite => suite.ccm.load( suite.local, () => suite.assertSame( suite.local, suite.ccm.load( suite.local ) ) ),
+        'notCached': suite => {
+          if ( suite.check( suite.local ) ) return suite.failed( suite.msg );
+          suite.assertSame( undefined, suite.ccm.load( suite.local ) );
+        },
+        'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) ),
+        'context': suite => {
+          if ( suite.check( suite.local ) ) return suite.failed( suite.msg );
+          let element = document.createElement( 'div' );
+          document.body.appendChild( element );
+          suite.ccm.load( { url: suite.local, context: element }, () => {
+            if ( suite.check( suite.local, document.head ) ) return suite.failed( suite.msg );
+            suite.assertTrue( suite.check( suite.local, element ) );
           } );
         },
-        */
-        'remote': function ( suite ) {
-          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/style.css', function ( result ) {
-            suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/style.css', result );
+        'on-the-fly': suite => {
+          if ( suite.check( suite.local ) ) return suite.failed( suite.msg );
+          let finished = false;
+          let element = document.createElement( 'div' );
+          suite.ccm.load( { url: suite.local, context: element }, () => { if ( !finished ) suite.failed( 'CSS loaded on-the-fly' ); finished = true; } );
+          suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.passed(); finished = true; } );
+        },
+        'shadow': suite => {
+          let shadow = document.createElement( 'div' );
+          document.body.appendChild( shadow );
+          shadow = shadow.attachShadow( { mode: 'open' } );
+          suite.ccm.load( { url: suite.local, context: shadow }, () => {
+            if ( suite.check( suite.local ) ) return suite.failed( suite.msg );
+            suite.assertTrue( suite.check( suite.local, shadow ) );
           } );
         },
-        'cached': function ( suite ) {
-          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/style.css', function () {
-            var local_cached_return_value = suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/style.css' );
-            suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/style.css', local_cached_return_value );
-          } );
+        'instance': suite => {
+          if ( suite.check( suite.local ) ) return suite.failed( suite.msg );
+          const element = document.createElement( 'div' );
+          document.body.appendChild( element );
+          suite.ccm.instance( { name: 'dummy', ccm: '../ccm.js', Instance: function () {} }, element, instance => suite.ccm.load( { url: suite.local, context: instance }, () => {
+            if ( suite.check( suite.local ) ) return suite.failed( suite.msg );
+            suite.assertTrue( suite.check( suite.local, instance.element.parentNode ) );
+          } ) );
         }
+      },
+      finally: ( suite, callback ) => {
+        [ ...document.querySelectorAll( 'link' ) ].map( suite.$.removeElement );
+        [ ...document.querySelectorAll( 'body > div' ) ].map( suite.$.removeElement );
+        callback();
       }
     },
     image: {
