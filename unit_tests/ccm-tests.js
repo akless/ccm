@@ -1,52 +1,32 @@
 /**
- * @overview tests for <i>ccm</i> framework
- * @author André Kless <andre.kless@web.de> 2016-2017
+ * @overview unit tests for the ccm framework
+ * @author André Kless <andre.kless@web.de> 2016-2018
  * @license The MIT License (MIT)
  */
 
 ccm.files[ 'ccm-tests.js' ] = {
-  setup: function ( suite, callback ) {
+  setup: ( suite, callback ) => {
     suite.ccm.clear();
     suite.$ = suite.ccm.helper;
     callback();
   },
   load: {
     html: {
-      setup: function ( suite, callback ) {
-        suite.expected_html_result = 'Hello, <b>World</b>!';
+      setup: ( suite, callback ) => {
+        suite.expected = 'Hello, <b>World</b>!';
         callback();
       },
       tests: {
-        /*
-        'localViaHtmlFile': function ( suite ) {
-          suite.ccm.load( 'dummy/hello.html', function ( result ) {
-            suite.assertSame( suite.expected_html_result, result );
-          } );
+        'local': suite => suite.ccm.load( 'dummy/hello.html', result => suite.assertSame( suite.expected, result ) ),
+        'sop': suite => {
+          let finished = false;
+          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/hello.html', result => { if ( !finished ) suite.failed( 'broken SOP security', result ); finished = true; } );
+          suite.ccm.helper.wait( 500, () => { if ( !finished ) suite.passed(); finished = true; } );
         },
-        'localViaJsFile': function ( suite ) {
-          suite.ccm.load( 'dummy/html.js', function ( result ) {
-            suite.assertSame( suite.expected_html_result, result );
-          } );
-        },
-        */
-        'remoteViaJsFile': function ( suite ) {
-          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/html.js', function ( result ) {
-            suite.assertSame( suite.expected_html_result, result );
-          } );
-        }/*,
-        'cached': function ( suite ) {
-          suite.ccm.load( 'dummy/hello.html', function () {
-            var local_cached_return_value = suite.ccm.load( 'dummy/hello.html' );
-            suite.assertSame( suite.expected_html_result, local_cached_return_value );
-          } );
-        },
-        'ignoreCache': function ( suite ) {
-          suite.ccm.load( 'dummy/hello.html', function () {
-            var local_cached_return_value = suite.ccm.load( { url: 'dummy/hello.html', ignore_cache: true } );
-            suite.assertNotSame( suite.expected_html_result, local_cached_return_value );
-          } );
-        }
-        */
+        'remote': suite => suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/html.js', result => suite.assertSame( suite.expected, result ) ),
+        'cached': suite => suite.ccm.load( 'dummy/hello.html', () => suite.assertSame( suite.expected, suite.ccm.load( 'dummy/hello.html' ) ) ),
+        'notCached': suite => suite.assertSame( undefined, suite.ccm.load( 'dummy/hello.html' ) ),
+        'ignoreCache': suite => suite.ccm.load( 'dummy/hello.html', () => suite.assertSame( undefined, suite.ccm.load( { url: 'dummy/hello.html', ignore_cache: true } ) ) )
       }
     },
     css: {
