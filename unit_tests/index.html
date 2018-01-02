@@ -1,13 +1,5 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<script src="../ccm.js"></script>
-<script>
-  ccm.components.testsuite = { ccm: '../ccm.js' };
-</script>
-<script src="https://akless.github.io/ccm-components/testsuite/versions/ccm.testsuite-1.0.0.js"></script>
-<ccm-testsuite-1-0-0>
-  <ccm-load-tests src="ccm-tests.js"></ccm-load-tests>
-</ccm-testsuite-1-0-0>
 
 <fieldset>
   If you visit this web page directly from GitHub, the unit tests will not work. The unit tests work when the <i>ccm</i> repository is checked out and the web page is opened locally.
@@ -16,3 +8,12 @@
   if ( document.location.host !== 'akless.github.io' )
     document.querySelector( 'fieldset' ).remove();
 </script>
+
+<script src="../ccm.js"></script>
+<script>
+  ccm.components.testsuite = { ccm: '../ccm.js' };
+</script>
+<script src="https://akless.github.io/ccm-components/testsuite/versions/ccm.testsuite-1.0.0.js"></script>
+<ccm-testsuite-1-0-0>
+  <ccm-load-tests src="ccm-tests.js"></ccm-load-tests>
+</ccm-testsuite-1-0-0>
