@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (13.1.0)
+ * @version 13.1.0
  * @changes
  * version 13.1.0 (03.01.2018): consider HTTP parameters and HTTP method when loading HTML and JSON files via ccm.load
  * version 13.0.0 (29.12.2017): modernisation of ccm.load
