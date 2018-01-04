@@ -152,6 +152,15 @@ ccm.files[ 'ccm-tests.js' ] = {
         'min': suite => suite.ccm.load( 'dummy/script.min.js', result => suite.assertEquals( suite.expected, result ) )
       }
     },
+    data: {
+      tests: {
+        'demoLogin': suite => suite.ccm.load( {
+          url: 'https://ccm.inf.h-brs.de',
+          params: { realm: 'ccm' },
+          jsonp: true
+        }, result => suite.assertEquals( [ 'id', 'token' ], Object.keys( result ) ) )
+      }
+    },
     tests: {
       'callback': suite => suite.ccm.load( suite.passed ),
       'clone': suite => {
