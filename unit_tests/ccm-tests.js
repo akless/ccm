@@ -57,6 +57,7 @@ ccm.files[ 'ccm-tests.js' ] = {
           suite.assertSame( undefined, suite.ccm.load( suite.local ) );
         },
         'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) ),
+        'noCacheContext': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, context: document.body } ) ) ),
         'context': suite => {
           if ( suite.check( suite.local ) ) return suite.failed( suite.msg );
           let element = document.createElement( 'div' );
@@ -72,6 +73,12 @@ ccm.files[ 'ccm-tests.js' ] = {
           let element = document.createElement( 'div' );
           suite.ccm.load( { url: suite.local, context: element }, () => { if ( !finished ) suite.failed( 'CSS loaded on-the-fly' ); finished = true; } );
           suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.passed(); finished = true; } );
+        },
+        'head': suite => {
+          if ( suite.check( suite.local ) ) return suite.failed( suite.msg );
+          suite.ccm.load( { url: suite.local, context: 'head' }, () => {
+            suite.assertTrue( suite.check( suite.local, document.head ) );
+          } );
         },
         'shadow': suite => {
           let shadow = document.createElement( 'div' );
@@ -91,11 +98,6 @@ ccm.files[ 'ccm-tests.js' ] = {
             suite.assertTrue( suite.check( suite.local, instance.element.parentNode ) );
           } ) );
         }
-      },
-      finally: ( suite, callback ) => {
-        [ ...document.querySelectorAll( 'link' ) ].map( suite.$.removeElement );
-        [ ...document.querySelectorAll( 'body > div' ) ].map( suite.$.removeElement );
-        callback();
       }
     },
     image: {
@@ -146,7 +148,43 @@ ccm.files[ 'ccm-tests.js' ] = {
         'remote': suite => suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/' + suite.local, result => suite.assertEquals( suite.expected, result ) ),
         'cached': suite => suite.ccm.load( suite.local, () => suite.assertEquals( suite.expected, suite.ccm.load( suite.local ) ) ),
         'notCached': suite => suite.assertSame( undefined, suite.ccm.load( suite.local ) ),
-        'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) )
+        'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) ),
+        'min': suite => suite.ccm.load( 'dummy/script.min.js', result => suite.assertEquals( suite.expected, result ) )
+      }
+    },
+    tests: {
+      'callback': suite => suite.ccm.load( suite.passed ),
+      'clone': suite => {
+        const resource = { url: 'dummy/hello.html' };
+        suite.ccm.load( resource, () => suite.assertEquals( { url: 'dummy/hello.html' }, resource ) );
+      },
+      'array': suite => {
+        suite.ccm.load(
+          'dummy/hello.html',
+          [
+            'dummy/style.css',
+            'dummy/image.png',
+            [
+              'dummy/data.json',
+              'dummy/script.js'
+            ],
+            'dummy/logo.gif'
+          ],
+          'dummy/picture.jpg',
+          result => suite.assertEquals( [
+            'Hello, <b>World</b>!',
+            [
+              'dummy/style.css',
+              'dummy/image.png',
+              [
+                { foo: 'bar' },
+                { foo: 'bar' }
+              ],
+              'dummy/logo.gif'
+            ],
+            'dummy/picture.jpg'
+          ], result )
+        );
       }
     }
   },
@@ -1503,5 +1541,10 @@ ccm.files[ 'ccm-tests.js' ] = {
         } );
       }
     }
+  },
+  finally: ( suite, callback ) => {
+    [ ...document.querySelectorAll( 'link' ) ].map( suite.$.removeElement );
+    [ ...document.querySelectorAll( 'body > div' ) ].map( suite.$.removeElement );
+    callback();
   }
 };
