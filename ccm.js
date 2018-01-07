@@ -7,6 +7,7 @@
  * version 14.0.0 (07.01.2018): improvement of ccm.load
  * - loading resources regardless of their file extension
  * - loading an unknown resource type is treated as data exchange
+ * - default used HTTP method is GET
  * (for older version changes see ccm-13.1.0.js)
  */
 
@@ -1257,7 +1258,7 @@
             }
             settings.async = settings.async === undefined ? true : !!settings.async;
             const request = new XMLHttpRequest();
-            request.open( settings.method || 'POST', buildURL( settings.url, settings.data ), !!settings.async );
+            request.open( settings.method || 'GET', buildURL( settings.url, settings.data ), !!settings.async );
             if ( settings.type ) request.setRequestHeader( 'Content-type', settings.type );
             request.onreadystatechange = () => {
               if( request.readyState === 4 && request.status === 200 )
