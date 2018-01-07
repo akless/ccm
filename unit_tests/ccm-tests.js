@@ -187,6 +187,66 @@ ccm.files[ 'ccm-tests.js' ] = {
         'dynamicJS'   : suite => suite.ccm.load( { url: suite.url +     'js.php', type: 'js'    }, result => suite.assertEquals(          { foo: 'bar' }, result ) )
       }
     },
+    subresource_integrity: {
+      setup: ( suite, callback ) => {
+        suite.url = 'https://akless.github.io/ccm/unit_tests/dummy/';
+        callback();
+      },
+      tests: {
+        'correctHashCSS': suite => suite.ccm.load( {
+          url: suite.url + 'style.css',
+          attr: {
+            integrity: 'sha384-TNlMHgEvh4ObcFIulNi29adH0Fz/RRputWGgEk/ZbfIzua6sHbLCReq+SZ4nfISA',
+            crossorigin: 'anonymous'
+          }
+        }, result => suite.assertSame( suite.url + 'style.css', result ) ),
+        'wrongHashCSS': suite => {
+          let finished = false;
+          suite.ccm.helper.wait( 300, () => { if ( !finished ) suite.passed(); finished = true; } );
+          suite.ccm.load( {
+            url: suite.url + 'style.css',
+            attr: {
+              integrity: 'sha384-TNlMHgEvh4ObcFIulNi29adH0Fz/RRputWGgEk/ZbfIzua6sHbLCReq+SZ4nfISB',
+              crossorigin: 'anonymous'
+            }
+          }, result => {
+            if ( !finished )
+              if ( suite.ccm.helper.isSafari() || suite.ccm.helper.isFirefox() )
+                suite.assertSame( suite.url + 'style.css', result );
+              else
+                suite.failed( 'correct hash', result );
+            finished = true;
+          } );
+        },
+        'correctHashJS': suite => {
+          suite.ccm.load( {
+            url: suite.url + 'script.js',
+            attr: {
+              integrity: 'sha384-QoLtnRwWkKw2xXw4o/pmW2Z1Zwst5f16sRMbRfP/Ova1nnEN6t2xUwiLOZ7pbbDW',
+              crossorigin: 'anonymous'
+            }
+          }, result => suite.assertEquals( { foo: 'bar' }, result ) );
+        },
+        'wrongHashJS': suite => {
+          let finished = false;
+          suite.ccm.helper.wait( 300, () => { if ( !finished ) suite.passed(); finished = false; } );
+          suite.ccm.load( {
+            url: suite.url + 'script.js',
+            attr: {
+              integrity: 'sha384-QoLtnRwWkKw2xXw4o/pmW2Z1Zwst5f16sRMbRfP/Ova1nnEN6t2xUwiLOZ7pbbDX',
+              crossorigin: 'anonymous'
+            }
+          }, result => {
+            if ( !finished )
+              if ( suite.ccm.helper.isSafari() || suite.ccm.helper.isFirefox() )
+                suite.assertSame( suite.url + 'script.js', result );
+              else
+                suite.failed( 'correct hash', result );
+            finished = true;
+          } );
+        }
+      }
+    },
     tests: {
       'callback': suite => suite.ccm.load( suite.passed ),
       'clone': suite => {
@@ -1518,62 +1578,6 @@ ccm.files[ 'ccm-tests.js' ] = {
             suite.assertSame( 500, Math.floor( ( new Date().getTime() - time ) / 10 ) * 10 );
           } );
         }
-      }
-    }
-  },
-  subresource_integrity: {
-    tests: {
-      'correctHashCSS': function ( suite ) {
-        suite.ccm.load( {
-          url: 'https://akless.github.io/ccm/unit_tests/dummy/style.css',
-          attr: {
-            integrity: 'sha384-Oea46LTw6VVf9eJGtbRPZuHnaiLdIBaaqzHkRosSUswGAh5Q0U+3ysztR5/iidzL',
-            crossorigin: 'anonymous'
-          }
-        }, function ( result ) {
-          suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/style.css', result );
-        } );
-      },
-      'wrongHashCSS': function ( suite ) {
-        var passed;
-        suite.ccm.helper.wait( 500, function () { if ( !passed ) suite.passed(); passed = false; } );
-        suite.ccm.load( {
-          url: 'https://akless.github.io/ccm/unit_tests/dummy/style.css',
-          attr: {
-            integrity: 'sha384-Oea46LTw6VVf9eJGtbRPZuHnaiLdIBaaqzHkRosSUswGAh5Q0U+3ysztR5/iidzM',
-            crossorigin: 'anonymous'
-          }
-        }, function ( result ) {
-          if ( suite.ccm.helper.isSafari() || suite.ccm.helper.isFirefox() ) { passed = true; suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/dummy.css', result ); return; }
-          if ( passed !== false ) suite.failed( 'correct hash', result );
-          passed = true;
-        } );
-      },
-      'correctHashJS': function ( suite ) {
-        suite.ccm.load( {
-          url: 'https://akless.github.io/ccm/unit_tests/dummy/script.js',
-          attr: {
-            integrity: 'sha384-QoLtnRwWkKw2xXw4o/pmW2Z1Zwst5f16sRMbRfP/Ova1nnEN6t2xUwiLOZ7pbbDW',
-            crossorigin: 'anonymous'
-          }
-        }, function ( result ) {
-          suite.assertEquals( { foo: 'bar' }, result );
-        } );
-      },
-      'wrongHashJS': function ( suite ) {
-        var passed;
-        suite.ccm.helper.wait( 500, function () { if ( !passed ) suite.passed(); passed = false; } );
-        suite.ccm.load( {
-          url: 'https://akless.github.io/ccm/unit_tests/dummy/script.js',
-          attr: {
-            integrity: 'sha384-QoLtnRwWkKw2xXw4o/pmW2Z1Zwst5f16sRMbRfP/Ova1nnEN6t2xUwiLOZ7pbbDX',
-            crossorigin: 'anonymous'
-          }
-        }, function ( result ) {
-          if ( suite.ccm.helper.isSafari() ) { passed = true; suite.assertSame( 'https://akless.github.io/ccm/unit_tests/dummy/script.js', result ); return; }
-          if ( passed !== false ) suite.failed( 'correct hash', result );
-          passed = true;
-        } );
       }
     }
   },
