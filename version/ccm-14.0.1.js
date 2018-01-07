@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (14.0.1)
+ * @version 14.0.1
  * @changes
  * version 14.0.1 (07.01.2018): bugfix for Safari to recognize self reference
  * version 14.0.0 (07.01.2018): improvement of ccm.load
