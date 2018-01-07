@@ -29,7 +29,11 @@ ccm.files[ 'ccm-tests.js' ] = {
         'notCached': suite => suite.assertSame( undefined, suite.ccm.load( suite.local ) ),
         'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) ),
         'get': suite => suite.ccm.load( { url: suite.local, method: 'GET' }, result => suite.assertSame( suite.expected, result ) ),
-        'post': suite => suite.ccm.load( { url: suite.local, method: 'POST' }, result => suite.assertSame( suite.expected, result ) ),
+        'post': suite => {
+          let finished = false;
+          suite.ccm.load( { url: suite.local, method: 'POST' }, result => { if ( !finished ) suite.assertSame( suite.expected, result ); finished = true; } );
+          suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.ccm.helper.isFirefox() ? suite.passed() : suite.failed(); finished = true; } );
+        },
         'params': suite => suite.ccm.load( { url: suite.local, params: { foo: 'bar' } }, result => suite.assertSame( suite.expected, result ) )
       }
     },
@@ -133,7 +137,11 @@ ccm.files[ 'ccm-tests.js' ] = {
         'notCached': suite => suite.assertSame( undefined, suite.ccm.load( suite.local ) ),
         'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) ),
         'get': suite => suite.ccm.load( { url: suite.local, method: 'GET' }, result => suite.assertEquals( suite.expected, result ) ),
-        'post': suite => suite.ccm.load( { url: suite.local, method: 'POST' }, result => suite.assertEquals( suite.expected, result ) ),
+        'post': suite => {
+          let finished = false;
+          suite.ccm.load( { url: suite.local, method: 'POST' }, result => { if ( !finished ) suite.assertEquals( suite.expected, result ); finished = true; } );
+          suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.ccm.helper.isFirefox() ? suite.passed() : suite.failed(); finished = true; } );
+        },
         'params': suite => suite.ccm.load( { url: suite.local, params: { foo: 'bar' } }, result => suite.assertEquals( suite.expected, result ) )
       }
     },
@@ -229,7 +237,7 @@ ccm.files[ 'ccm-tests.js' ] = {
         },
         'wrongHashJS': suite => {
           let finished = false;
-          suite.ccm.helper.wait( 300, () => { if ( !finished ) suite.passed(); finished = false; } );
+          suite.ccm.helper.wait( 300, () => { if ( !finished ) suite.passed(); finished = true; } );
           suite.ccm.load( {
             url: suite.url + 'script.js',
             attr: {
@@ -239,7 +247,7 @@ ccm.files[ 'ccm-tests.js' ] = {
           }, result => {
             if ( !finished )
               if ( suite.ccm.helper.isSafari() || suite.ccm.helper.isFirefox() )
-                suite.assertSame( suite.url + 'script.js', result );
+                suite.assertEquals( { foo: 'bar' }, result );
               else
                 suite.failed( 'correct hash', result );
             finished = true;
@@ -1582,7 +1590,8 @@ ccm.files[ 'ccm-tests.js' ] = {
     }
   },
   finally: ( suite, callback ) => {
-    [ ...document.querySelectorAll( 'link' ) ].map( suite.$.removeElement );
+    [ ...document.querySelectorAll( 'link'       ) ].map( suite.$.removeElement );
+    [ ...document.querySelectorAll( 'script'     ) ].map( suite.$.removeElement );
     [ ...document.querySelectorAll( 'body > div' ) ].map( suite.$.removeElement );
     callback();
   }

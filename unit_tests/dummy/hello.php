@@ -1,7 +1,7 @@
 <?php
 
 header( 'Access-Control-Allow-Origin: *' );
-header( 'Access-Control-Allow-Headers: *' );
+header( "Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}" );
 
 $get  = filter_input( INPUT_GET , 'name', FILTER_SANITIZE_STRING );
 $post = filter_input( INPUT_POST, 'name', FILTER_SANITIZE_STRING );

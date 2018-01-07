@@ -1,7 +1,7 @@
 <?php
 
 header( 'Access-Control-Allow-Origin: *' );
-header( 'Access-Control-Allow-Headers: *' );
+header( "Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}" );
 
 $response = array( 'foo' => 'bar' );
 
