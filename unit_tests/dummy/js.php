@@ -1,0 +1,1 @@
+ccm.files[ 'js.php' ] = { foo: '<? echo 'bar'; ?>' };

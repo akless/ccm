@@ -25,7 +25,7 @@ ccm.files[ 'ccm-tests.js' ] = {
           suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.passed(); finished = true; } );
         },
         'remote': suite => suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/html.js', result => suite.assertSame( suite.expected, result ) ),
-        'cached': suite => suite.ccm.load( suite.local, () => suite.assertSame( suite.expected, suite.ccm.load( suite.local ) ) ),
+        'cached': suite => suite.ccm.load( suite.local, () => suite.assertSame( suite.expected, suite.ccm.load( { url: suite.local, ignore_cache: false } ) ) ),
         'notCached': suite => suite.assertSame( undefined, suite.ccm.load( suite.local ) ),
         'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) ),
         'get': suite => suite.ccm.load( { url: suite.local, method: 'GET' }, result => suite.assertSame( suite.expected, result ) ),
@@ -129,7 +129,7 @@ ccm.files[ 'ccm-tests.js' ] = {
           suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/' + suite.local, () => { if ( !finished ) suite.failed( 'broken SOP security' ); finished = true; } );
           suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.passed(); finished = true; } );
         },
-        'cached': suite => suite.ccm.load( suite.local, () => suite.assertEquals( suite.expected, suite.ccm.load( suite.local ) ) ),
+        'cached': suite => suite.ccm.load( suite.local, () => suite.assertEquals( suite.expected, suite.ccm.load( { url: suite.local, ignore_cache: false } ) ) ),
         'notCached': suite => suite.assertSame( undefined, suite.ccm.load( suite.local ) ),
         'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) ),
         'get': suite => suite.ccm.load( { url: suite.local, method: 'GET' }, result => suite.assertEquals( suite.expected, result ) ),
@@ -153,12 +153,38 @@ ccm.files[ 'ccm-tests.js' ] = {
       }
     },
     data: {
+      setup: ( suite, callback ) => {
+        suite.url = 'https://kaul.inf.h-brs.de/ccm/dummy/hello.php';
+        suite.expected = 'Hello, World!';
+        callback();
+      },
       tests: {
+        'default': suite => suite.ccm.load( suite.url, result => suite.assertSame( suite.expected, result ) ),
+        'get':   suite => suite.ccm.load( { url: suite.url, params: { name: 'World' }, method: 'GET'  }, result => suite.assertSame( suite.expected, result ) ),
+        'post':  suite => suite.ccm.load( { url: suite.url, params: { name: 'World' }, method: 'POST' }, result => suite.assertSame( suite.expected, result ) ),
+        'jsonp': suite => suite.ccm.load( { url: suite.url, params: { name: 'World' }, jsonp :  true  }, result => suite.assertSame( suite.expected, result ) ),
+        'notCached': suite => suite.ccm.load( suite.url, () => suite.assertSame( undefined, suite.ccm.load( suite.url ) ) ),
         'demoLogin': suite => suite.ccm.load( {
           url: 'https://ccm.inf.h-brs.de',
           params: { realm: 'ccm' },
           jsonp: true
         }, result => suite.assertEquals( [ 'id', 'token' ], Object.keys( result ) ) )
+      }
+    },
+    type: {
+      setup: ( suite, callback ) => {
+        suite.url = 'https://kaul.inf.h-brs.de/ccm/dummy/';
+        callback();
+      },
+      tests: {
+         'staticHTML' : suite => suite.ccm.load(                    'dummy/html'                 , result => suite.assertSame  (  'Hello, <b>World</b>!', result ) ),
+        'dynamicHTML' : suite => suite.ccm.load(        suite.url +   'html.php'                 , result => suite.assertSame  (  'Hello, <b>World</b>!', result ) ),
+        'dynamicCSS'  : suite => suite.ccm.load( { url: suite.url +    'css.php', type: 'css'   }, result => suite.assertSame  ( suite.url +   'css.php', result ) ),
+        'dynamicImage': suite => suite.ccm.load( { url: suite.url +  'image.php', type: 'image' }, result => suite.assertSame  ( suite.url + 'image.php', result ) ),
+         'staticData' : suite => suite.ccm.load(                    'dummy/data'                 , result => suite.assertEquals(          { foo: 'bar' }, result ) ),
+        'dynamicData' : suite => suite.ccm.load(        suite.url +   'data.php'                 , result => suite.assertEquals(          { foo: 'bar' }, result ) ),
+          'jsonpData' : suite => suite.ccm.load( { url: suite.url +   'data.php', jsonp: true   }, result => suite.assertEquals(          { foo: 'bar' }, result ) ),
+        'dynamicJS'   : suite => suite.ccm.load( { url: suite.url +     'js.php', type: 'js'    }, result => suite.assertEquals(          { foo: 'bar' }, result ) )
       }
     },
     tests: {
