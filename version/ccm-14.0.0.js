@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (14.0.0)
+ * @version 14.0.0
  * @changes
  * version 14.0.0 (07.01.2018): improvement of ccm.load
  * - loading resources regardless of their file extension

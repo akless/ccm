@@ -12,41 +12,7 @@
  * - default used HTTP method is POST
  * - improved avoidance of duplicate loading of a resource
  * - accepted image file extensions for image preloading are 'jpg', 'jpeg', 'gif', 'png', 'svg' and 'bmp'
- * version 12.12.0 (18.12.2017): supports loading of (Google) fonts via ccm.load
- * version 12.11.0 (13.12.2017): ccm.helper.html accepts jQuery elements
- * version 12.10.2 (13.12.2017): bugfix for passing a string to ccm.helper.html
- * version 12.10.1 (13.12.2017): bugfix for appending shadow element to root element
- * version 12.10.0 (12.12.2017): instance property 'root' can set before or after rendering in any case
- * version 12.9.0  (12.12.2017): update ccm.helper.html: accepts HTML strings
- * version 12.8.0  (23.11.2017):
- * - modernisation of help function 'onFinish(obj)'
- * - add help function 'replace(newnode,oldnode)'
- * - bugfix when getting a not existing dataset from IndexedDB
- * - bugfix when getting an empty server response
- * version 12.7.0 (22.11.2017):
- * - update help functions 'toDotNotation(obj):obj', 'solveDotNotation(obj):obj' and 'deepValue(obj,key,value):*': dot notation supports array
- * version 12.6.0 (20.11.2017):
- * - add help function 'fillForm(elem,obj)'
- * - bugfix for loading HTML via 'ccm.load'
- * - update help function 'regex': add regular expression for JSON strings
- * version 12.5.0 (19.11.2017): update ccm.helper.formData (first time of ES6 use in framework)
- * version 12.4.0 (16.11.2017): new ccm dependency for import of ECMAScript 6 Modules
- * version 12.3.1 (09.11.2017):
- * - update 'ccm.helper.encodeDependencies(obj)' and 'ccm.helper.decodeDependencies(obj)': respect deeper properties
- * version 12.3.0 (08.11.2017): update 'ccm.helper.format'
- * - a placeholder for a function can be used multiple times
- * - better preservation of the original data types
- * version 12.2.0 (08.11.2017):
- * - add 'ccm.helper.toDotNotation(obj):obj'
- * - add 'ccm.helper.solveDotNotation(obj):obj'
- * - add 'ccm.helper.encode(obj,bool):obj'
- * - add 'ccm.helper.decode(obj):obj'
- * - update 'ccm.helper.cleanObject(obj):obj': respect deeper properties
- * version 12.1.2 (28.10.2017): bugfix when instance is faster than component
- * version 12.1.1 (27.10.2017): change algorithm for HTML encoding
- * version 12.1.0 (27.10.2017): choosable HTTP method for ccm.load resources (default is 'GET')
- * version 12.0.0 (26.10.2017): JSONP is optional, CORS is the new default for cross domain requests
- * (for older version changes see ccm-11.5.0.js)
+ * (for older version changes see ccm-12.12.0.js)
  */
 
 {
