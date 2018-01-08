@@ -21,10 +21,10 @@ ccm.files[ 'ccm-tests.js' ] = {
         'local': suite => suite.ccm.load( suite.local, result => suite.assertSame( suite.expected, result ) ),
         'sop': suite => {
           let finished = false;
-          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/' + suite.local, () => { if ( !finished ) suite.failed( 'broken SOP security' ); finished = true; } );
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/' + suite.local, () => { if ( !finished ) suite.failed( 'broken SOP security' ); finished = true; } );
           suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.passed(); finished = true; } );
         },
-        'remote': suite => suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/dummy/html.js', result => suite.assertSame( suite.expected, result ) ),
+        'remote': suite => suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/dummy/html.js', result => suite.assertSame( suite.expected, result ) ),
         'cached': suite => suite.ccm.load( suite.local, () => suite.assertSame( suite.expected, suite.ccm.load( { url: suite.local, ignore_cache: false } ) ) ),
         'notCached': suite => suite.assertSame( undefined, suite.ccm.load( suite.local ) ),
         'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) ),
@@ -50,7 +50,7 @@ ccm.files[ 'ccm-tests.js' ] = {
           suite.ccm.load( suite.local, () => suite.assertTrue( suite.check( suite.local, document.head ) ) );
         },
         'remote': suite => {
-          suite.remote = 'https://akless.github.io/ccm/unit_tests/' + suite.local;
+          suite.remote = 'https://kaul.inf.h-brs.de/ccm/' + suite.local;
           if ( suite.check( suite.remote ) ) return suite.failed( suite.msg );
           suite.ccm.load( suite.remote, () => suite.assertTrue( suite.check( suite.remote, document.head ) ) );
         },
@@ -112,7 +112,7 @@ ccm.files[ 'ccm-tests.js' ] = {
       tests: {
         'local': suite => suite.ccm.load( suite.local, result => suite.assertSame( suite.local, result ) ),
         'remote': suite => {
-          const remote = 'https://akless.github.io/ccm/unit_tests/' + suite.local;
+          const remote = 'https://kaul.inf.h-brs.de/ccm/' + suite.local;
           suite.ccm.load( remote, result => suite.assertSame( remote, result ) );
         },
         'cached': suite => suite.ccm.load( suite.local, () => suite.assertSame( suite.local, suite.ccm.load( suite.local ) ) ),
@@ -130,7 +130,7 @@ ccm.files[ 'ccm-tests.js' ] = {
         'local': suite => suite.ccm.load( suite.local, result => suite.assertEquals( suite.expected, result ) ),
         'sop': suite => {
           let finished = false;
-          suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/' + suite.local, () => { if ( !finished ) suite.failed( 'broken SOP security' ); finished = true; } );
+          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/' + suite.local, () => { if ( !finished ) suite.failed( 'broken SOP security' ); finished = true; } );
           suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.passed(); finished = true; } );
         },
         'cached': suite => suite.ccm.load( suite.local, () => suite.assertEquals( suite.expected, suite.ccm.load( { url: suite.local, ignore_cache: false } ) ) ),
@@ -153,7 +153,7 @@ ccm.files[ 'ccm-tests.js' ] = {
       },
       tests: {
         'local': suite => suite.ccm.load( suite.local, result => suite.assertEquals( suite.expected, result ) ),
-        'remote': suite => suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/' + suite.local, result => suite.assertEquals( suite.expected, result ) ),
+        'remote': suite => suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/' + suite.local, result => suite.assertEquals( suite.expected, result ) ),
         'cached': suite => suite.ccm.load( suite.local, () => suite.assertEquals( suite.expected, suite.ccm.load( suite.local ) ) ),
         'notCached': suite => suite.assertSame( undefined, suite.ccm.load( suite.local ) ),
         'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) ),
@@ -197,7 +197,7 @@ ccm.files[ 'ccm-tests.js' ] = {
     },
     subresource_integrity: {
       setup: ( suite, callback ) => {
-        suite.url = 'https://akless.github.io/ccm/unit_tests/dummy/';
+        suite.url = 'dummy/';
         callback();
       },
       tests: {
