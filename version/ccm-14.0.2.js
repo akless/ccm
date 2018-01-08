@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (14.0.2)
+ * @version 14.0.2
  * @changes
  * version 14.0.2 (08.01.2018): set no 'content-type' in request header on a data change
  * version 14.0.1 (07.01.2018): bugfix for Safari to recognize self reference
