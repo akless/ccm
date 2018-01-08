@@ -3931,7 +3931,7 @@
   };
 
   // set framework version specific namespace
-  if ( self.version && !ccm[ self.version() ] ) ccm[ self.version ] = self;
+  if ( self.version && !ccm[ self.version() ] ) ccm[ self.version() ] = self;
 
   // latest version? => update namespace for latest framework version
   if ( !ccm.version || self.helper.compareVersions( self.version(), ccm.version() ) > 0 ) { ccm.latest = self; self.helper.integrate( self, ccm ); }
