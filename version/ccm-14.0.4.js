@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (14.0.4)
+ * @version 14.0.4
  * @changes
  * version 14.0.4 (11.01.2018): bugfix for URL handling in ccm.load
  * version 14.0.3 (09.01.2018): bugfix for setting context when loading multiple resources serially
