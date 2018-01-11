@@ -1298,7 +1298,7 @@
         function success() {
 
           // is there no result value yet? => use the URL as the result of the ccm.load call and the cache
-          if ( results[ i ] === undefined ) results[ i ] = cache[ resource.url ] = resource.original;
+          if ( results[ i ] === undefined ) results[ i ] = cache[ resource.url ] = resource.url;
 
           // is there a waiting list for the loaded resource? => perform waiting ccm.load calls
           if ( waiting_lists[ resource.url ] )
