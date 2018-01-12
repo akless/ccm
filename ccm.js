@@ -3774,7 +3774,6 @@
        * console.log( obj );  // => { "bar": 5711 }
        */
       renameProperty: ( obj, before, after ) => {
-        console.log( obj, before, after, obj[ before ] );
         if ( obj[ before ] === undefined ) return delete obj[ before ];
         obj[ after ] = obj[ before ];
         delete obj[ before ];
