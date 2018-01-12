@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (14.1.0)
+ * @version 14.1.0
  * @changes
  * version 14.1.0 (12.01.2018): add help function 'renameProperty(obj,before,after)'
  * version 14.0.4 (11.01.2018): bugfix for URL handling in ccm.load
