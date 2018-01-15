@@ -2,7 +2,7 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (14.3.0)
+ * @version 14.3.0
  * @changes
  * version 14.3.0 (15.01.2018): adjustable HTTP method and JSONP in datastore settings
  * version 14.2.0 (15.01.2018):
