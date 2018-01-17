@@ -174,8 +174,8 @@ ccm.files[ 'ccm-tests.js' ] = {
         'notCached': suite => suite.ccm.load( suite.url, () => suite.assertSame( undefined, suite.ccm.load( suite.url ) ) ),
         'demoLogin': suite => suite.ccm.load( {
           url: 'https://ccm.inf.h-brs.de',
+          method: 'JSONP',
           params: { realm: 'ccm' },
-          jsonp: true
         }, result => suite.assertEquals( [ 'id', 'token' ], Object.keys( result ) ) )
       }
     },
