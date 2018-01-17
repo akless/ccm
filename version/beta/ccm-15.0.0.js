@@ -1245,7 +1245,7 @@
               if( request.readyState === 4 && request.status === 200 )
                 successData( self.helper.regex( 'json' ).test( request.responseText ) ? JSON.parse( request.responseText ) : request.responseText );
             };
-            request.send( resource.method === 'POST' ? JSON.stringify( params ) : undefined );
+            request.send( resource.method === 'POST' ? JSON.stringify( resource.params ) : undefined );
           }
 
           /**
