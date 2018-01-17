@@ -2,22 +2,12 @@
  * @overview <i>ccm</i> framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (14.3.0)
+ * @version latest (15.0.0)
  * @changes
- * version 14.3.0 (15.01.2018): adjustable HTTP method and JSONP in datastore settings
- * version 14.2.0 (15.01.2018):
- * - ccm.helper.onFinish uses instance.getValue if no result data is given
- * - ccm.helper.dataset supports user-specific keys
- * version 14.1.0 (12.01.2018): add help function 'renameProperty(obj,before,after)'
- * version 14.0.4 (11.01.2018): bugfix for URL handling in ccm.load
- * version 14.0.3 (09.01.2018): bugfix for setting context when loading multiple resources serially
- * version 14.0.2 (08.01.2018): set no 'content-type' in request header on a data change
- * version 14.0.1 (07.01.2018): bugfix for Safari to recognize self reference
- * version 14.0.0 (07.01.2018): improvement of ccm.load
- * - loading resources regardless of their file extension
- * - loading an unknown resource type is treated as data exchange
- * - default used HTTP method is GET
- * (for older version changes see ccm-13.1.0.js)
+ * version 15.0.0 (17.01.2018): update ccm.load
+ * - {"method":"JSONP"} instead of {"jsonp":true} in a Resource Data Object for using JSONP
+ * - bugfix for using HTTP method POST
+ * (for older version changes see ccm-14.3.0.js)
  */
 
 {
@@ -114,7 +104,7 @@
     this.init = function ( callback ) {
 
       // privatize security relevant members
-      my = self.helper.privatize( that, 'source', 'local', 'store', 'url', 'db', 'socket', 'user', 'method', 'jsonp' );
+      my = self.helper.privatize( that, 'source', 'local', 'store', 'url', 'db', 'socket', 'user', 'method' );
 
       // set getter method for ccm datastore source
       that.source = function () { return my.source; };
@@ -888,7 +878,7 @@
      */
     function useHttp( data, callback ) {
 
-      self.load( { url: my.url, params: data, method: my.method, jsonp: my.jsonp }, callback );
+      self.load( { url: my.url, params: data, method: my.method }, callback );
 
     }
 
@@ -950,7 +940,7 @@
      * version number of the framework
      * @type {ccm.types.version}
      */
-    version: function () { return '14.3.0'; },
+    version: function () { return '15.0.0'; },
 
     /**
      * @summary reset caches for resources and datastores
@@ -1217,8 +1207,11 @@
         /** performs a data exchange */
         function loadData() {
 
+          // no HTTP method set? => use 'GET'
+          if ( !resource.method ) resource.method = 'GET';
+
           // should JSONP be used? => load data via JSONP, otherwise via AJAX request
-          if ( resource.jsonp ) jsonp(); else ajax();
+          if ( resource.method === 'JSONP' ) jsonp(); else ajax();
 
           /** performs a data exchange via JSONP */
           function jsonp() {
@@ -1247,12 +1240,12 @@
           /** performs an AJAX request */
           function ajax() {
             const request = new XMLHttpRequest();
-            request.open( resource.method || 'GET', buildURL( resource.url, resource.params ), true );
+            request.open( resource.method, resource.method === 'GET' ? buildURL( resource.url, resource.params ) : resource.url, true );
             request.onreadystatechange = () => {
               if( request.readyState === 4 && request.status === 200 )
                 successData( self.helper.regex( 'json' ).test( request.responseText ) ? JSON.parse( request.responseText ) : request.responseText );
             };
-            request.send();
+            request.send( resource.method === 'POST' ? JSON.stringify( params ) : undefined );
           }
 
           /**
@@ -4204,9 +4197,8 @@
    * @summary <i>ccm</i> resource data
    * @property {string} url - URL of the resource
    * @property {Element} [context=document.head] - context in which the resource should be loaded (default is <head>)
-   * @property {string} [method='POST'] - HTTP method to use: 'GET' or 'POST' (default is 'POST')
+   * @property {string} [method='GET'] - HTTP method to use: 'GET', 'POST' or 'JSONP' (default is 'GET')
    * @property {object} [params] - HTTP parameters to send (in the case of a data exchange)
-   * @property {boolean} [jsonp] - use JSONP (only relevant in case of data exchange)
    * @property {obj} [attr] - HTML attributes to be set for the HTML tag that loads the resource
    * @property {boolean} [ignore_cache] - ignore any result already cached by <i>ccm</i>
    */

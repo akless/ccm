@@ -1,51 +1,28 @@
 /**
  * @overview <i>ccm</i> framework
- * @author André Kless <andre.kless@web.de> 2014-2017
+ * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version 12.10.2
+ * @version 15.0.0
  * @changes
- * version 12.10.2 (13.12.2017): bugfix for passing a string to ccm.helper.html
- * version 12.10.1 (13.12.2017): bugfix for appending shadow element to root element
- * version 12.10.0 (12.12.2017):
- * - instance property 'root' can set before or after rendering in any case
- * version 12.9.0 (12.12.2017):
- * - update ccm.helper.html: accepts HTML strings
- * version 12.8.0 (23.11.2017):
- * - modernisation of help function 'onFinish(obj)'
- * - add help function 'replace(newnode,oldnode)'
- * - bugfix when getting a not existing dataset from IndexedDB
- * - bugfix when getting an empty server response
- * version 12.7.0 (22.11.2017):
- * - update help functions 'toDotNotation(obj):obj', 'solveDotNotation(obj):obj' and 'deepValue(obj,key,value):*': dot notation supports array
- * version 12.6.0 (20.11.2017):
- * - add help function 'fillForm(elem,obj)'
- * - bugfix for loading HTML via 'ccm.load'
- * - update help function 'regex': add regular expression for JSON strings
- * version 12.5.0 (19.11.2017):
- * - update ccm.helper.formData (first time of ES6 use in framework)
- * version 12.4.0 (16.11.2017):
- * - new ccm dependency for import of ECMAScript 6 Modules
- * version 12.3.1 (09.11.2017):
- * - update 'ccm.helper.encodeDependencies(obj)' and 'ccm.helper.decodeDependencies(obj)': respect deeper properties
- * version 12.3.0 (08.11.2017): update 'ccm.helper.format'
- * - a placeholder for a function can be used multiple times
- * - better preservation of the original data types
- * version 12.2.0 (08.11.2017):
- * - add 'ccm.helper.toDotNotation(obj):obj'
- * - add 'ccm.helper.solveDotNotation(obj):obj'
- * - add 'ccm.helper.encode(obj,bool):obj'
- * - add 'ccm.helper.decode(obj):obj'
- * - update 'ccm.helper.cleanObject(obj):obj': respect deeper properties
- * version 12.1.2 (28.10.2017): bugfix when instance is faster than component
- * version 12.1.1 (27.10.2017): change algorithm for HTML encoding
- * version 12.1.0 (27.10.2017): choosable HTTP method for ccm.load resources (default is 'GET')
- * version 12.0.0 (26.10.2017): JSONP is optional, CORS is the new default for cross domain requests
- * (for older version changes see ccm-11.5.0.js)
+ * version 15.0.0 (17.01.2018): update ccm.load
+ * - {"method":"JSONP"} instead of {"jsonp":true} in a Resource Data Object for using JSONP
+ * - bugfix for using HTTP method POST
+ * (for older version changes see ccm-14.3.0.js)
  */
 
-( function () {
+{
 
-  /*---------------------------------------------- private ccm members -----------------------------------------------*/
+  /**
+   * contains the already loaded resources
+   * @type {object}
+   * @example
+   * // example of a cache containing two resources already loaded
+   * {
+   *   'https://akless.github.io/ccm/unit_tests/dummy/hello.html': "Hello, <b>World</b>!",
+   *   'https://akless.github.io/ccm/unit_tests/dummy/script.js': { foo: 'bar' }
+   * }
+   */
+  let cache = {};
 
   /**
    * @summary loaded <i>ccm</i> components
@@ -64,14 +41,6 @@
   var db;
 
   /**
-   * @summary already loaded resources
-   * @memberOf ccm
-   * @private
-   * @type {object}
-   */
-  var resources = {};
-
-  /**
    * @summary created <i>ccm</i> datastores
    * @memberOf ccm
    * @private
@@ -80,33 +49,31 @@
   var stores = {};
 
   /**
-   * @summary waitlist with actions that wait for currently loading resources
-   * @memberOf ccm
-   * @private
-   * @type {Object.<string, ccm.types.action[]>}
-   */
-  var waiter = {};
-
-  /*---------------------------------------------- private ccm classes -----------------------------------------------*/
-
-  /**
-   * @summary constructor for creating <i>ccm</i> datastores
-   * @description See [this wiki page]{@link https://github.com/akless/ccm-developer/wiki/Data-Management} for general informations about <i>ccm</i> data management.
-   * @memberOf ccm
-   * @private
-   * @class
+   * Contains the waiting lists of the resources being loaded.
+   * A wait list contains the ccm.load calls that will be run again after the resource is loaded.
+   * @type {Object.<string,ccm.types.action[]>}
    * @example
-   * // Example for a <i>ccm</i> datastore instance:
+   * // example of a wait list for the resource "style.css" for which two ccm.load calls are waiting
    * {
-   *   get: function ( key_or_query, callback ) {...},
-   *   set: function ( priodata, callback ) {...},
-   *   del: function ( key, callback ) {...},
-   *   source: function () {...}
+   *   'https://akless.github.io/ccm/unit_tests/dummy/style.css': [
+   *     [ ccm.load,
+   *       'https://akless.github.io/ccm/unit_tests/dummy/style.css',
+   *       'https://akless.github.io/ccm/unit_tests/dummy/hello.html'
+   *     ],
+   *     [ ccm.load,
+   *       'https://akless.github.io/ccm/unit_tests/dummy/script.js',
+   *       'https://akless.github.io/ccm/unit_tests/dummy/style.css'
+   *     ]
+   *   ]
    * }
    */
-  var Datastore = function () {
+  const waiting_lists = {};
 
-    /*-------------------------------------------- ccm datastore members ---------------------------------------------*/
+  /**
+   * for creating <i>ccm</i> datastores
+   * @constructor
+   */
+  const Datastore = function () {
 
     /**
      * @summary websocket communication callbacks
@@ -132,12 +99,12 @@
      * When datastore is created and after the initialization of an <i>ccm</i> instance in case of
      * this datastore is provided via a <i>ccm</i> dependency of that <i>ccm</i> instance.
      * This method will be removed by <i>ccm</i> after the one-time call.
-     * @param {function} callback - when this datastore is initialized
+     * @param {function} callback - when datastore is initialized
      */
     this.init = function ( callback ) {
 
       // privatize security relevant members
-      my = self.helper.privatize( that, 'source', 'local', 'store', 'url', 'db', 'socket', 'user' );
+      my = self.helper.privatize( that, 'source', 'local', 'store', 'url', 'db', 'socket', 'user', 'method' );
 
       // set getter method for ccm datastore source
       that.source = function () { return my.source; };
@@ -911,7 +878,7 @@
      */
     function useHttp( data, callback ) {
 
-      self.load( { url: my.url, params: data }, callback );
+      self.load( { url: my.url, params: data, method: my.method }, callback );
 
     }
 
@@ -945,477 +912,420 @@
 
     /**
      * @summary global namespaces for <i>ccm</i> components
-     * @memberOf ccm
      * @type {Object.<ccm.types.index, object>}
      */
     components: {},
 
     /**
-     * @summary callbacks for cross domain data exchanges
-     * @memberOf ccm
+     * callbacks for cross domain data exchanges via ccm.load
      * @type {Object.<string, function>}
-     * @ignore
      */
     callbacks: {},
 
     /**
-     * @summary deposited data from loaded javascript files
-     * @memberOf ccm
+     * globally stored data of the JavaScript files downloaded via ccm.load
      * @type {object}
-     * @ignore
      */
     files: {}
 
   };
 
   /**
-   * global <i>ccm</i> object of this framework version
+   * global ccm object of the framework
    * @type {object}
    */
   var self = {
 
-    /*---------------------------------------------- public ccm methods ----------------------------------------------*/
-
     /**
-     * @summary returns <i>ccm</i> version number
-     * @memberOf ccm
-     * @return {ccm.types.version}
+     * version number of the framework
+     * @type {ccm.types.version}
      */
-    version: function () { return '12.10.2'; },
+    version: function () { return '15.0.0'; },
 
     /**
      * @summary reset caches for resources and datastores
      * @memberOf ccm
      */
     clear: function () {
-      resources = {};
+      cache = {};
       stores = {};
     },
 
     /**
-     * @summary load resource(s) (js, css, json and/or data from server interface)
-     * @memberOf ccm
-     * @param {...object|string} resources - resource(s) data (contains data how to load resource) and/or URLs
-     * @param {function} [callback] - callback when all resources are loaded (first parameter are the results)
-     * @returns {*} results (only if all resources already loaded)
-     * @example
-     * // load ccm component with callback (local path)
-     * ccm.load( 'ccm.chat.js', function ( component ) {...} );
-     * @example
-     * // load ccm component without callback (cross domain)
-     * ccm.load( 'http://akless.github.io/ccm-developer/resources/ccm.chat.min.js' );
-     * @example
-     * // load javascript file (local path)
-     * ccm.load( 'scripts/helper.js' );
-     * @example
-     * // load jQuery UI (cross domain)
-     * ccm.load( 'https://code.jquery.com/ui/1.11.4/jquery-ui.min.js' );
-     * @example
-     * // load css file (local path)
-     * ccm.load( 'css/style.css' );
-     * @example
-     * // load image file (cross domain)
-     * ccm.load( 'http://www.fh-lsoopjava.de/ccm/img/dialogbox.png' );
-     * @example
-     * // load json file with callback (local path)
-     * ccm.load( 'json/data.json', function ( data ) { console.log( data ); } );
-     * @example
-     * // load json file with callback (cross domain), json file must look like this: ccm.callback[ 'ccm.chat.templates.min.json' ]( {...} );
-     * ccm.load( 'http://akless.github.io/ccm-developer/resources/ccm.chat.templates.min.json', function ( data ) {...} );
-     * @example
-     * // data exchange between client and server php interface with callback (cross domain), php file must use jsonp
-     * ccm.load( [ 'http://www.fh-lsoopjava.de/ccm/php/greetings.php', { name: 'world' } ], function ( response ) { console.log( response ); } );
+     * asynchronous loading of resources
+     * @see https://github.com/akless/ccm/wiki/Loading-of-Resources
+     * @param {...ccm.types.resource} resources - resources data
+     * @param {function} [callback] - when all resources are loaded (first parameter are the results)
+     * @returns {*} result(s) of the ccm.load call (only if no asynchronous operations were required)
      */
     load: function () {
 
       /**
-       * number of loading resources
-       * @type {number}
-       */
-      var counter = 1;
-
-      /**
-       * result data of this ccm.load call
-       * @type {*}
-       */
-      var results = [];
-
-      /**
-       * convert arguments to real array
+       * arguments of this ccm.load call
        * @type {Array}
        */
-      var args = self.helper.makeIterable( arguments );
+      const args = [ ...arguments ];
 
       /**
        * current ccm.load call
        * @type {ccm.types.action}
        */
-      var call = args.slice( 0 ); call.unshift( self.load );
+      const call = args.slice( 0 ); call.unshift( self.load );
 
       /**
-       * is this ccm.load call already waiting for currently loading resource(s)?
+       * result(s) of this ccm.load call
+       * @type {*}
+       */
+      let results = [];
+
+      /**
+       * indicates if this ccm.load call is waiting for resources being loaded
        * @type {boolean}
        */
-      var waiting = false;
+      let waiting = false;
 
       /**
-       * callback when all resources are loaded
+       * number of resources being loaded
+       * @type {number}
+       */
+      let counter = 1;
+
+      /**
+       * when all resources have been loaded
        * @type {function}
        */
-      var callback;
-
-      // last argument is callback? => separate arguments and callback
-      if ( typeof args[ args.length - 1 ] === 'function' ) callback = args.pop();
+      const callback = typeof args[ args.length - 1 ] === 'function' ? args.pop() : null;
 
       // iterate over resources data => load resource
-      args.map( loadResource );
+      args.map( ( resource, i ) => {
 
-      // check if all resources are loaded (important if all resources already loaded)
-      return check();
-
-      /**
-       * load resource
-       * @param {object|string} resource - resource data or URL
-       * @param {string} resource.url - resource URL
-       * @param {boolean} [resource.method] - 'GET' or 'POST'
-       * @param {object} [resource.params] - HTTP GET parameters (in case of data exchange)
-       * @param {Element} [resource.context=document.head] - resource will loaded in this context
-       * @param {boolean} [resource.ignore_cache] - ignore already cached result for this resource
-       * @param {boolean} [resource.jsonp] - use JSONP
-       * @param {string} [resource.username] - username for HTTP request
-       * @param {string} [resource.password] - password for HTTP request
-       * @param {number} i
-       */
-      function loadResource( resource, i ) {
-
-        // increase number of loading resources
+        // increase number of resources being loaded
         counter++;
 
-        // resource data is an array? => load resources serial
-        if ( Array.isArray( resource ) ) { results[ i ] = []; return serial( null ); }
+        // no manipulation of passed original parameters
+        resource = self.helper.clone( resource );
 
-        // has URL instead of resource data? => use resource data which contains only the URL information
+        // resource data is an array? => load resources serially
+        if ( Array.isArray( resource ) ) { results[ i ] = []; serial( null ); return; }
+
+        // has resource URL instead of resource data? => use resource data which contains only the URL information
         if ( !self.helper.isObject( resource ) ) resource = { url: resource };
 
-        // remember original URL and URL without '.min'
-        resource.original = resource.url;
-        resource.url = resource.url.replace( '.min.', '.' );
-
         /**
-         * resource suffix
+         * file extension from the URL of the resource
          * @type {string}
          */
-        var suffix = resource.url.split( '.' ).pop().toLowerCase();
+        const suffix = resource.url.split( '.' ).pop().toLowerCase();
 
-        // no context? => load resource in global <head> context (no Shadow DOM)
+        // no given resource context or context is 'head'? => load resource in global <head> context (no Shadow DOM)
         if ( !resource.context || resource.context === 'head' ) resource.context = document.head;
 
-        // CSS has to be load in a specific context? => ignore cache (to support loading of same CSS in different contexts)
-        if ( suffix === 'css' && resource.context !== document.head ) resource.ignore_cache = true;
+        // given resource context is a ccm instance? => load resource in the shadow root context of that instance
+        if ( self.helper.isInstance( resource.context ) ) resource.context = resource.context.element.parentNode;
 
-        // no caching for data exchanges with server interfaces
-        if ( resource.params ) resource.ignore_cache = true;
+        // determine the operation for loading the resource
+        const operation = getOperation();
 
-        // prevent loading resource twice
+        // loading of CSS, but not in the global <head>? => ignore cache (to support loading the same CSS file in different contexts)
+        if ( operation === loadCSS && resource.context !== document.head ) resource.ignore_cache = true;
+
+        // by default, no caching for loading data
+        if ( operation === loadData && resource.ignore_cache === undefined ) resource.ignore_cache = true;
+
+        // avoid loading a resource twice
         if ( caching() ) return;
 
-        // resource is loaded for the first time? => mark resource as 'loading'
-        if ( resources[ resource.url ] === undefined ) resources[ resource.url ] = null;
+        // is the resource loaded for the first time? => mark the resource as "loading" in the cache
+        if ( cache[ resource.url ] === undefined ) cache[ resource.url ] = null;
 
-        // GET parameter exists? => perform data exchange
-        if ( resource.params ) return exchangeData();
-
-        // check resource suffix => load resource
-        switch ( suffix ) {
-          case 'html':
-            return loadHTML();
-          case 'css':
-            return loadCSS();
-          case 'jpg':
-          case 'gif':
-          case 'png':
-          case 'svg':
-            return loadImage();
-          case 'json':
-            return loadJSON();
-          default:
-            loadJS();
-        }
+        // start loading of the resource
+        operation();
 
         /**
-         * load resources serial (recursive function)
-         * @param {*} result - result of the last serial loaded resource (is null on first call)
+         * loads resources serially (recursive function)
+         * @param {*} result - result of the last serially loaded resource (is null on the first call)
          */
         function serial( result ) {
 
-          // not first call? => save result
+          // not the first call? => add result of the last call
           if ( result !== null ) results[ i ].push( result );
 
-          // more resources to load serial?
+          // are there any more resources to load serially?
           if ( resource.length > 0 ) {
 
             /**
-             * next resource that must load serial
-             * @type {*}
+             * next resource to be serially loaded
+             * @type {ccm.types.resource}
              */
-            var next = resource.shift();
+            const next = resource.shift();
 
-            // next resource is array of resources? => load resources in parallel (recursive call)
+            // next resource is an array of resources? => load these resources in parallel (recursive call of ccm.load)
             if ( Array.isArray( next ) ) { next.push( serial ); self.load.apply( null, next ); }
 
-            // one resource => load next resource serial (recursive call)
+            // normal resource data is given for the next resource => load the next resource serially (recursive call of ccm.load and this function)
             else self.load( next, serial );
 
           }
-
-          // serial loading finished => check if all resources are loaded
+          // serially loading of resources completed => check if all resources of this ccm.load call are loaded
           else check();
 
         }
 
         /**
-         * prevents loading a resource twice
-         * @returns {boolean} abort current ccm.load call
+         * determines the operation for loading the resource
+         * @returns {function}
+         */
+        function getOperation() {
+
+          switch ( resource.type ) {
+            case 'css':   return loadCSS;
+            case 'image': return loadImage;
+            case 'data':  return loadData;
+            case 'js':    return loadJS;
+          }
+
+          switch ( suffix ) {
+            case 'css':
+              return loadCSS;
+            case 'jpg':
+            case 'jpeg':
+            case 'gif':
+            case 'png':
+            case 'svg':
+            case 'bmp':
+              return loadImage;
+            case 'js':
+              return loadJS;
+            default:
+              return loadData;
+          }
+
+        }
+
+        /**
+         * avoids loading a resource twice
+         * @returns {boolean} resource does not need to be reloaded
          */
         function caching() {
 
-          // no caching for this resource? => continue current ccm.load call
-          if ( resource.ignore_cache ) return false;
+          // no caching for this resource? => resource must be loaded (unless this ccm.load call is already waiting for a resource)
+          if ( resource.ignore_cache ) return waiting;
 
-          // is resource currently loading?
-          if ( resources[ resource.url ] === null ) {
+          // is the resource already loading?
+          if ( cache[ resource.url ] === null ) {
 
-            // is this ccm.load call already waiting? => abort current ccm.load call (counter will not decrement)
+            // is this ccm.load call already waiting? => abort this ccm.load call (counter will not decrement)
             if ( waiting ) return true;
 
-            // mark current ccm.load call as waiting
+            // mark this ccm.load call as waiting
             waiting = true;
 
-            // no waitlist for currently loading resource exists? => create waitlist
-            if ( !waiter[ resource.url ] ) waiter[ resource.url ] = [];
+            // is there no waiting list for this resource yet? => create waitlist
+            if ( !waiting_lists[ resource.url ] ) waiting_lists[ resource.url ] = [];
 
-            // add ccm.load call to waitlist
-            waiter[ resource.url ].push( call );
+            // put this ccm.load call on the waiting list for this resource
+            waiting_lists[ resource.url ].push( call );
 
-            // abort current ccm.load call (counter will not decrement)
+            // abort this ccm.load call (counter will not decrement)
             return true;
 
           }
 
-          // resource already loaded?
-          if ( resources[ resource.url ] !== undefined ) {
+          // has the resource already been loaded?
+          if ( cache[ resource.url ] !== undefined ) {
 
-            // result is already loaded resource value
-            results[ i ] = resources[ resource.url ];
+            // the result is the already cached value for this resource
+            results[ i ] = cache[ resource.url ];
 
-            // skip loading process
+            // resource does not need to be reloaded
             success(); return true;
 
           }
 
-          // continue current ccm.load call
+          // resource must be loaded
           return false;
-
-        }
-
-        /** loads the content of a HTML file */
-        function loadHTML() {
-
-          // load content via AJAX request
-          ajax( { url: resource.original, type: 'html', callback: successData } );
 
         }
 
         /** loads (and executes) a CSS file */
         function loadCSS() {
 
-          // load css file via <link>
-          var tag = { tag: 'link', rel: 'stylesheet', type: 'text/css', href: resource.original };
-          if ( resource.attr ) self.helper.integrate( resource.attr, tag );
-          tag = self.helper.html( tag );
-          resource.context.appendChild( tag );
-          tag.onload = success;
+          // load the CSS file via a <link> element
+          let element = { tag: 'link', rel: 'stylesheet', type: 'text/css', href: resource.url };
+          if ( resource.attr ) self.helper.integrate( resource.attr, element );
+          element = self.helper.html( element );
+          resource.context.appendChild( element );
+          element.onload = success;
 
         }
 
         /** (pre)loads an image file */
         function loadImage() {
 
-          // load image via image object
-          var image = new Image();
-          image.src = resource.original;
+          // (pre)load the image file via an image object
+          const image = new Image();
           image.onload = success;
+          image.src = resource.url;
 
         }
 
-        /** loads (and executes) a javascript file */
+        /** loads (and executes) a JavaScript file */
         function loadJS() {
 
-          // add deposited data of the loaded javascript file to results and already loaded resources
-          var filename = resource.url.split( '/' ).pop();
+          /**
+           * filename of the JavaScript file (without '.min')
+           * @type {string}
+           */
+          const filename = resource.url.split( '/' ).pop().replace( '.min.', '.' );
+
+          // mark JavaScript file as loading
           ccm.files[ filename ] = null;
 
-          // load javascript file via <script>
-          var tag = { tag: 'script', src: resource.original };
-          if ( resource.attr ) self.helper.integrate( resource.attr, tag );
-          tag = self.helper.html( tag );
-          resource.context.appendChild( tag );
-          tag.onload = function () {
+          // load the JavaScript file via a <script> element
+          let element = { tag: 'script', src: resource.url };
+          if ( resource.attr ) self.helper.integrate( resource.attr, element );
+          element = self.helper.html( element );
+          resource.context.appendChild( element );
+          element.onload = () => {
 
-            var data = ccm.files[ filename ];
-            results[ i ] = resources[ resource.url ] = data === null ? undefined : data;
+            /**
+             * data globally stored by the loaded JavaScript file
+             * @type {*}
+             */
+            const data = ccm.files[ filename ];
+
+            // remove the stored data from the global context
             delete ccm.files[ filename ];
 
-            success();
+            // perform success callback
+            if ( data !== null ) successData( data ); else success();
+
           };
 
         }
 
-        /** loads the content of a JSON file */
-        function loadJSON() {
+        /** performs a data exchange */
+        function loadData() {
 
-          // load content via AJAX request
-          ajax( { url: resource.original, type: 'json', callback: function ( result ) { successData( JSON.parse( result ) ); } } );
+          // no HTTP method set? => use 'GET'
+          if ( !resource.method ) resource.method = 'GET';
 
-        }
+          // should JSONP be used? => load data via JSONP, otherwise via AJAX request
+          if ( resource.method === 'JSONP' ) jsonp(); else ajax();
 
-        /** exchanges data with a server interface */
-        function exchangeData() {
-
-          // is this ccm.load call already waiting for currently loading resource(s)? => skip data exchange for the moment
-          if ( waiting ) return;
-
-          // cross-domain request? => use JSONP
-          if ( resource.jsonp ) return jsonp();
-
-          // prepare AJAX settings
-          var settings = { url: resource.original, method: resource.method, data: resource.params, callback: successData };
-          if ( resource.username && resource.password ) {
-            if ( resource.username ) settings.username = resource.username;
-            if ( resource.password ) settings.password = resource.password;
-          }
-
-          // exchange data with server via AJAX request
-          ajax( settings );
-
-          /** exchange data with server via JSONP */
+          /** performs a data exchange via JSONP */
           function jsonp() {
 
             // prepare callback function
-            var callback = 'callback' + self.helper.generateKey();
+            const callback = 'callback' + self.helper.generateKey();
             if ( !resource.params ) resource.params = {};
             resource.params.callback = 'ccm.callbacks.' + callback;
-            ccm.callbacks[ callback ] = function ( data ) {
-              resource.context.removeChild( tag );
+            ccm.callbacks[ callback ] = data => {
+              resource.context.removeChild( element );
               delete ccm.callbacks[ callback ];
               successData( data );
             };
 
-            // exchange data via <script>
-            var tag = { tag: 'script', src: buildURL( resource.original, resource.params ) };
-            if ( resource.attr ) self.helper.integrate( resource.attr, tag );
-            tag = self.helper.html( tag );
-            tag.src = tag.src.replace( /&amp;/g, '&' );
-            resource.context.appendChild( tag );
+            // prepare the <script> element for data exchange
+            let element = { tag: 'script', src: buildURL( resource.url, resource.params ) };
+            if ( resource.attr ) self.helper.integrate( resource.attr, element );
+            element = self.helper.html( element );
+            element.src = element.src.replace( /&amp;/g, '&' );  // TODO: Why is this "&amp;" happening in ccm.helper.html?
+
+            // start the data exchange
+            resource.context.appendChild( element );
 
           }
 
-        }
-
-        /**
-         * sends an AJAX request
-         * @param {object} settings - settings for AJAX request
-         */
-        function ajax( settings ) {
-
-          switch ( settings.type ) {
-            case 'html':
-              settings.type = 'text/html';
-              break;
-            case 'json':
-              settings.type = 'application/javascript';
-              break;
+          /** performs an AJAX request */
+          function ajax() {
+            const request = new XMLHttpRequest();
+            request.open( resource.method, resource.method === 'GET' ? buildURL( resource.url, resource.params ) : resource.url, true );
+            request.onreadystatechange = () => {
+              if( request.readyState === 4 && request.status === 200 )
+                successData( self.helper.regex( 'json' ).test( request.responseText ) ? JSON.parse( request.responseText ) : request.responseText );
+            };
+            request.send( resource.method === 'POST' ? JSON.stringify( params ) : undefined );
           }
-          settings.async = settings.async === undefined ? true : !!settings.async;
 
-          var request = new XMLHttpRequest();
-          request.open( settings.method || 'GET', buildURL( settings.url, settings.data ), !!settings.async, settings.username, settings.password );
-          if ( settings.type ) request.setRequestHeader( 'Content-type', settings.type );
-          //request.setRequestHeader( 'Authorization', 'Basic ' + btoa( settings.username + ':' + settings.password ) );
-          request.onreadystatechange = function () {
-            if( request.readyState == 4 && request.status == 200 )
-              settings.callback( self.helper.regex( 'json' ).test( request.responseText ) ? JSON.parse( request.responseText ) : request.responseText );
-          };
-          request.send();
-
-        }
-
-        function buildURL( url, data ) {
-
-          return data ? url + '?' + params( data ).slice( 0, -1 ) : url;
-
-          function params( obj, prefix ) {
-            var result = '';
-            for ( var i in obj ) {
-              var key = prefix ? prefix + '[' + encodeURIComponent( i ) + ']' : encodeURIComponent( i );
-              if ( typeof( obj[ i ] ) === 'object' )
-                result += params( obj[ i ], key );
-              else
-                result += key + '=' + encodeURIComponent( obj[ i ] ) + '&';
+          /**
+           * adds the parameters in the URL
+           * @param {string} url - URL
+           * @param {object} data - HTTP parameters
+           * @returns {string} finished URL
+           */
+          function buildURL( url, data ) {
+            return data ? url + '?' + params( data ).slice( 0, -1 ) : url;
+            function params( obj, prefix ) {
+              let result = '';
+              for ( const i in obj ) {
+                const key = prefix ? prefix + '[' + encodeURIComponent( i ) + ']' : encodeURIComponent( i );
+                if ( typeof( obj[ i ] ) === 'object' )
+                  result += params( obj[ i ], key );
+                else
+                  result += key + '=' + encodeURIComponent( obj[ i ] ) + '&';
+              }
+              return result;
             }
-            return result;
 
           }
 
         }
 
         /**
-         * callback when a data exchange is successful
+         * when a data exchange has been completed successfully
          * @param {*} data - received data
          */
         function successData( data ) {
 
-          // add received data to results and already loaded resources
-          results[ i ] = resources[ resource.url ] = data;
+          // received data is a JSON string? => parse it to JSON
+          if ( typeof data === 'string' && ( data.charAt( 0 ) === '[' || data.charAt( 0 ) === '{' ) ) data = JSON.parse( data );
+
+          // add received data to the results of the ccm.load call and to the cache
+          results[ i ] = cache[ resource.url ] = self.helper.protect( data );
 
           // perform success callback
           success();
 
         }
 
-        /** callback when a resource is successful loaded */
+        /** when a resource is loaded successfully */
         function success() {
 
-          // add url to results and already loaded resources
-          if ( results[ i ] === undefined ) results[ i ] = resources[ resource.url ] = resource.url;
+          // is there no result value yet? => use the URL as the result of the ccm.load call and the cache
+          if ( results[ i ] === undefined ) results[ i ] = cache[ resource.url ] = resource.url;
 
-          // is resource on waitlist? => perform waiting actions
-          while ( waiter[ resource.url ] && waiter[ resource.url ].length > 0 )
-            self.helper.action( waiter[ resource.url ].pop() );
+          // is there a waiting list for the loaded resource? => perform waiting ccm.load calls
+          if ( waiting_lists[ resource.url ] )
+            while ( waiting_lists[ resource.url ].length > 0 )
+              self.helper.action( waiting_lists[ resource.url ].shift() );
 
           // check if all resources are loaded
           check();
 
         }
 
-      }
+      } );
+
+      // check if all resources are loaded (important if all resources are already loaded)
+      return check();
 
       /**
-       * check if all resources are loaded
-       * @returns {*} results (only if all resources already loaded)
+       * checks if all resources are loaded
+       * @returns {*} result of this ccm.load call
        */
       function check() {
 
-        // decrease number of loading resources
+        // decrease number of resources being loaded
         counter--;
 
-        // are all resources loaded?
+        // are all resources loaded now?
         if ( counter === 0 ) {
 
-          // only one result? => use no array
+          // only one result? => do not use a field
           if ( results.length <= 1 ) results = results[ 0 ];
 
-          // finish ccm.load call
+          // finish this ccm.load call
           if ( callback ) callback( results );
           return results;
 
@@ -1957,7 +1867,7 @@
 
                 function setContext( resources ) {
                   for ( var i = 0; i < resources.length; i++ ) {
-                    if ( Array.isArray( resources[ i ] ) ) return setContext( resources[ i ] );
+                    if ( Array.isArray( resources[ i ] ) ) { setContext( resources[ i ] ); continue; }
                     if ( !self.helper.isObject( resources[ i ] ) ) resources[ i ] = { url: resources[ i ] };
                     if ( !resources[ i ].context ) resources[ i ].context = instance.element.parentNode;
                   }
@@ -2675,20 +2585,32 @@
 
       },
 
-      dataset: function ( store, key, callback ) {
+      dataset: ( store, key, callback ) => {
+        let user;
         if ( typeof key === 'function' ) {
           callback = key;
           if ( store.store ) {
             key = store.key;
             store = store.store;
+            user = store.user;
           }
           else return callback( store );
         }
-        if ( !key ) key = self.helper.generateKey();
-        store.get( key, function ( dataset ) {
-          callback( dataset === null ? { key: key } : dataset );
-        } );
+        if ( self.helper.isInstance( user ) ) user.login( proceed ); else proceed();
+        function proceed() {
+          if ( !key ) key = self.helper.generateKey();
+          if ( self.helper.isInstance( user ) ) key = [ instance.user.data().id, key ];
+          store.get( key, dataset => {
+            callback( dataset === null ? { key: key } : dataset );
+          } );
+        }
       },
+
+      /*
+      // prepare dataset key
+      if ( settings.store.key && !dataset.key ) dataset.key = settings.store.key;
+      if ( settings.store.user && instance.user && instance.user.isLoggedIn() ) dataset.key = [ instance.user.data().id, dataset.key || self.helper.generateKey() ];
+      */
 
       decode: function ( obj ) {
 
@@ -3160,7 +3082,7 @@
 
       /**
        * @summary generate HTML with JSON (recursive)
-       * @param {string|ccm.types.html|ccm.types.html[]} html - <i>ccm</i> HTML data
+       * @param {string|ccm.types.html|ccm.types.html[]|Element|jQuery} html - <i>ccm</i> HTML data
        * @param {...string} [values] - values to replace placeholder
        * @returns {Element|Element[]} generated HTML
        */
@@ -3168,6 +3090,14 @@
 
         // HTML string? => convert to HTML elements
         if ( typeof html === 'string' ) html = document.createRange().createContextualFragment( html );
+
+        // jQuery element? => convert to HTML elements
+        if ( window.jQuery && html instanceof jQuery ) {
+          html = html.get();
+          const fragment = document.createDocumentFragment();
+          html.map( elem => fragment.appendChild( elem ) );
+          html = fragment;
+        }
 
         // HTML element instead of HTML data? => abort (result is given HTML element)
         if ( self.helper.isNode( html ) ) return html;
@@ -3451,7 +3381,6 @@
        * @summary checks if a value is an ccm proxy instance
        * @param {*} value - value to check
        * @returns {boolean}
-       * @example
        */
       isProxy: function ( value ) {
 
@@ -3595,6 +3524,9 @@
 
         // no finish callback? => abort
         if ( !settings ) return;
+
+        // no result data and the instance has a method 'getValue'? => get result data from that method
+        if ( results === undefined && instance.getValue ) results = instance.getValue();
 
         // has only function? => abort and call it as finish callback
         if ( typeof settings === 'function' ) return settings( instance, results );
@@ -3843,6 +3775,22 @@
         if ( element.parentNode ) element.parentNode.removeChild( element );
       },
 
+      /**
+       * renames the property name of an object
+       * @param obj - the object that contains the property name
+       * @param before - old property name
+       * @param after - new property name
+       * @example
+       * const obj = { foo: 5711 };
+       * ccm.helper.renameProperty( obj, 'foo', 'bar' );
+       * console.log( obj );  // => { "bar": 5711 }
+       */
+      renameProperty: ( obj, before, after ) => {
+        if ( obj[ before ] === undefined ) return delete obj[ before ];
+        obj[ after ] = obj[ before ];
+        delete obj[ before ];
+      },
+
       replace: ( newnode, oldnode ) => {
 
         oldnode.parentNode && oldnode.parentNode.replaceChild( self.helper.protect( newnode ), oldnode );
@@ -3995,7 +3943,7 @@
   };
 
   // set framework version specific namespace
-  if ( !ccm[ self.version() ] ) ccm[ self.version() ] = self;
+  if ( self.version && !ccm[ self.version() ] ) ccm[ self.version() ] = self;
 
   // latest version? => update namespace for latest framework version
   if ( !ccm.version || self.helper.compareVersions( self.version(), ccm.version() ) > 0 ) { ccm.latest = self; self.helper.integrate( self, ccm ); }
@@ -4245,6 +4193,17 @@
    */
 
   /**
+   * @typedef {object} ccm.types.resource
+   * @summary <i>ccm</i> resource data
+   * @property {string} url - URL of the resource
+   * @property {Element} [context=document.head] - context in which the resource should be loaded (default is <head>)
+   * @property {string} [method='GET'] - HTTP method to use: 'GET', 'POST' or 'JSONP' (default is 'GET')
+   * @property {object} [params] - HTTP parameters to send (in the case of a data exchange)
+   * @property {obj} [attr] - HTML attributes to be set for the HTML tag that loads the resource
+   * @property {boolean} [ignore_cache] - ignore any result already cached by <i>ccm</i>
+   */
+
+  /**
    * @callback ccm.types.setResult
    * @summary callback when an create or update operation is finished
    * @param {ccm.types.dataset} result - created or updated dataset
@@ -4355,4 +4314,4 @@
    * @example '2.1.3'
    */
 
-} )();
+}
