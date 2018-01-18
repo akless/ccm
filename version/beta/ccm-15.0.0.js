@@ -30,7 +30,7 @@
    * @private
    * @type {Object.<ccm.types.index, ccm.types.component>}
    */
-  var components = {};
+  const components = {};
 
   /**
    * @summary <i>ccm</i> database in IndexedDB
@@ -38,7 +38,7 @@
    * @private
    * @type {object}
    */
-  var db;
+  let db;
 
   /**
    * @summary created <i>ccm</i> datastores
@@ -46,7 +46,7 @@
    * @private
    * @type {Object.<ccm.types.source, ccm.Datastore>}
    */
-  var stores = {};
+  let stores = {};
 
   /**
    * Contains the waiting lists of the resources being loaded.
@@ -934,7 +934,7 @@
    * global ccm object of the framework
    * @type {object}
    */
-  var self = {
+  const self = {
 
     /**
      * version number of the framework
