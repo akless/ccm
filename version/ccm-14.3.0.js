@@ -944,7 +944,7 @@
    * global ccm object of the framework
    * @type {object}
    */
-  const self = {
+  var self = {
 
     /**
      * version number of the framework
