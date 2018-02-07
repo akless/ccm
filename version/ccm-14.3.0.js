@@ -56,7 +56,7 @@
    * @private
    * @type {Object.<ccm.types.source, ccm.Datastore>}
    */
-  let stores = {};
+  var stores = {};
 
   /**
    * Contains the waiting lists of the resources being loaded.
