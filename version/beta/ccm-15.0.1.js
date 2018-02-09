@@ -1676,7 +1676,7 @@
           function proceed( cfg ) {
 
             // instance is faster than component? => wait a moment
-            if ( components[ index ].instances === undefined ) return ccm.helper.wait( 500, function () { proceed( cfg ); } );
+            if ( !components[ index ] || components[ index ].instances === undefined ) return ccm.helper.wait( 500, function () { proceed( cfg ); } );
 
             // config is a HTML Element Node? => configuration has only root property (website area for embedding)
             if ( self.helper.isElementNode( cfg ) ) cfg = { root: cfg };
