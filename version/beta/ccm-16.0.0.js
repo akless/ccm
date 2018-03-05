@@ -307,12 +307,13 @@
 
           // iterate over object/array
           for ( const i in arr_or_obj ) {
+            const value = arr_or_obj[ i ];
 
             // is a data dependency? => solve it
-            if ( Array.isArray( arr_or_obj[ i ] && arr_or_obj[ i ].length > 0 && arr_or_obj[ i ][ 0 ] === 'ccm.get' ) ) solveDependency( arr_or_obj[ i ], arr_or_obj, i );
+            if ( Array.isArray( value && value.length > 0 && value[ 0 ] === 'ccm.get' ) ) solveDependency( value, arr_or_obj, i );
 
             // is an array or object? => search it recursively
-            else if ( Array.isArray( arr_or_obj[ i ] ) || self.helper.isObject( arr_or_obj[ i ] ) ) recursive( arr_or_obj[ i ] );
+            else if ( Array.isArray( value ) || ( self.helper.isObject( value ) && !self.helper.isNode( value ) && !self.helper.isInstance( value ) ) ) recursive( value );
 
           }
 
