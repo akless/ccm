@@ -21,9 +21,10 @@ ccm.files[ 'ccm-tests.js' ] = {
         'local': suite => suite.ccm.load( suite.local, result => suite.assertSame( suite.expected, result ) ),
         'sop': suite => {
           let finished = false;
-          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/' + suite.local, () => { if ( !finished ) suite.failed( 'broken SOP security' ); finished = true; } );
+          suite.ccm.load( 'http://fh-lsoopjava.de/' + suite.local, () => { if ( !finished ) suite.failed( 'broken SOP security' ); finished = true; } );
           suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.passed(); finished = true; } );
         },
+        'cors': suite => suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/' + suite.local, result => suite.assertSame( suite.expected, result ) ),
         'remote': suite => suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/dummy/html.js', result => suite.assertSame( suite.expected, result ) ),
         'cached': suite => suite.ccm.load( suite.local, () => suite.assertSame( suite.expected, suite.ccm.load( { url: suite.local, ignore_cache: false } ) ) ),
         'notCached': suite => suite.assertSame( undefined, suite.ccm.load( suite.local ) ),
@@ -130,9 +131,10 @@ ccm.files[ 'ccm-tests.js' ] = {
         'local': suite => suite.ccm.load( suite.local, result => suite.assertEquals( suite.expected, result ) ),
         'sop': suite => {
           let finished = false;
-          suite.ccm.load( 'https://kaul.inf.h-brs.de/ccm/' + suite.local, () => { if ( !finished ) suite.failed( 'broken SOP security' ); finished = true; } );
+          suite.ccm.load( 'http://fh-lsoopjava.de/' + suite.local, () => { if ( !finished ) suite.failed( 'broken SOP security' ); finished = true; } );
           suite.ccm.helper.wait( 300, () => { if ( !finished ) return suite.passed(); finished = true; } );
         },
+        'cors': suite => suite.ccm.load( 'https://akless.github.io/ccm/unit_tests/' + suite.local, result => suite.assertEquals( suite.expected, result ) ),
         'cached': suite => suite.ccm.load( suite.local, () => suite.assertEquals( suite.expected, suite.ccm.load( { url: suite.local, ignore_cache: false } ) ) ),
         'notCached': suite => suite.assertSame( undefined, suite.ccm.load( suite.local ) ),
         'ignoreCache': suite => suite.ccm.load( suite.local, () => suite.assertSame( undefined, suite.ccm.load( { url: suite.local, ignore_cache: true } ) ) ),
@@ -294,29 +296,17 @@ ccm.files[ 'ccm-tests.js' ] = {
   store: {
     create: {
       tests: {
-        'localReturn': function ( suite ) {
-          suite.assertTrue( suite.ccm.helper.isDatastore( suite.ccm.store() ) );
-        },
-        'localCallback': function ( suite ) {
-          suite.ccm.store( function ( store ) {
+        'local': function ( suite ) {
+          suite.ccm.store( {}, function ( store ) {
             suite.assertTrue( suite.ccm.helper.isDatastore( store ) );
           } );
         },
-        'noClientReturn': function ( suite ) {
-          suite.assertFalse( suite.ccm.helper.isDatastore( suite.ccm.store( { store: 'test' } ) ) );
-        },
-        'clientCallback': function ( suite ) {
+        'client': function ( suite ) {
           suite.ccm.store( { store: 'test' }, function ( store ) {
             suite.assertTrue( suite.ccm.helper.isDatastore( store ) );
           } );
         },
-        'serverReturn': function ( suite ) {
-          suite.assertTrue( suite.ccm.helper.isDatastore( suite.ccm.store( { url: 'https://ccm.inf.h-brs.de', store: 'test' } ) ) );
-        },
-        'noServerRealtimeReturn': function ( suite ) {
-          suite.assertFalse( suite.ccm.helper.isDatastore( suite.ccm.store( { url: 'wss://ccm.inf.h-brs.de', store: 'test' } ) ) );
-        },
-        'serverCallback': function ( suite ) {
+        'server': function ( suite ) {
           suite.ccm.store( { url: 'https://ccm.inf.h-brs.de', store: 'test' }, function ( store ) {
             suite.assertTrue( suite.ccm.helper.isDatastore( store ) );
           } );
@@ -324,11 +314,9 @@ ccm.files[ 'ccm-tests.js' ] = {
       }
     },
     get: {
+      /*,
       local: {
-        setup: function ( suite, callback ) {
-          suite.store = suite.ccm.store();
-          callback();
-        },
+        setup: ( suite, callback ) => suite.store = suite.ccm.store( store => callback( suite.store = store ) ),
         tests: {
           'exists': function ( suite ) {
             var dataset = { key: 'existing_key' };
@@ -361,7 +349,6 @@ ccm.files[ 'ccm-tests.js' ] = {
           }
         }
       }
-      /*,
       remote: {
         ccm_inf_h_brs: {
           redis: {
@@ -1332,98 +1319,56 @@ ccm.files[ 'ccm-tests.js' ] = {
       },
       store: {
         setup: ( suite, callback ) => {
-          suite.settings = { store: 'test' };
-          suite.ccm.store( suite.settings, store => {
-            suite.store = store;
-            callback();
+          suite.ccm.instance( 'https://akless.github.io/ccm-components/user/versions/ccm.user-2.0.1.js', user => {
+            suite.settings = { store: 'test', key: 'test' };
+            suite.ccm.store( { store: 'test', parent: { user: user } }, store => { suite.store = store; callback(); } );
           } );
         },
         tests: {
           'simple': suite => {
-            suite.$.onFinish(
-              {
-                onfinish: {
-                  store: { settings: suite.settings, key: 'test' },
-                  callback: () => suite.store.get( 'test', result => {
-                    delete result.updated_at;
-                    suite.assertEquals( { foo: 'bar', key: 'test' }, result );
-                  } )
-                }
-              },
-              { foo: 'bar' }
-            );
+            suite.store.parent.onfinish = {
+              store: { settings: suite.settings, key: 'test' },
+              callback: () => suite.store.get( 'test', result => suite.assertEquals( { foo: 'bar', key: 'test' }, result ) )
+            };
+            suite.$.onFinish( suite.store.parent, { foo: 'bar' } );
           },
           'user': suite => {
-            suite.ccm.instance( 'https://akless.github.io/ccm-components/user/versions/ccm.user-2.0.0.js', { logged_in: true }, user =>
-              suite.$.onFinish( {
-                  user: user,
-                  onfinish: {
-                    store: { settings: suite.settings, key: 'test', user: true },
-                    callback: () =>
-                      suite.store.get( [ 'guest', 'test' ], result => {
-                        delete result.updated_at;
-                        suite.assertEquals( { foo: 'bar', key: [ 'guest', 'test' ] }, result );
-                      } )
-                  }
-                },
-                { foo: 'bar' }
-              )
-            )
+            suite.store.parent.onfinish = {
+              login: true,
+              store: { settings: suite.settings, key: 'test', user: true },
+              callback: () => suite.store.get( [ 'guest', 'test' ], result => suite.assertEquals( { foo: 'bar', key: [ 'guest', 'test' ] }, result ) )
+            };
+            suite.$.onFinish( suite.store.parent, { foo: 'bar' } );
           },
           'userNoInstance': suite => {
-            suite.$.onFinish(
-              {
-                onfinish: {
-                  store: { settings: suite.settings, key: 'test', user: true },
-                  callback: () =>
-                    suite.store.get( [ 'guest', 'test' ], result =>
-                      suite.assertSame( null, result )
-                    )
-                }
-              },
-              { foo: 'bar' }
-            );
+            delete suite.store.parent.user;
+            suite.store.parent.onfinish = {
+              login: true,
+              store: { settings: suite.settings, key: 'test', user: true },
+              callback: () => suite.store.get( [ 'guest', 'test' ], result =>
+                result === null ? suite.store.get( 'test', result => suite.assertEquals( { foo: 'bar', key: 'test' }, result ) ) : suite.failed( 'user-specific key exists' )
+              )
+            };
+            suite.$.onFinish( suite.store.parent, { foo: 'bar' } );
           },
           'userLoggedOut': suite => {
-            suite.ccm.instance( 'https://akless.github.io/ccm-components/user/versions/ccm.user-2.0.0.js', user =>
-              suite.$.onFinish(
-                {
-                  user: user,
-                  onfinish: {
-                    store: { settings: suite.settings, key: 'test', user: true },
-                    callback: () =>
-                      suite.store.get( [ 'guest', 'test' ], result =>
-                        suite.assertSame( null, result )
-                      )
-                  }
-                },
-                { foo: 'bar' }
+            suite.store.parent.onfinish = {
+              store: { settings: suite.settings, key: 'test', user: true },
+              callback: () => suite.store.get( [ 'guest', 'test' ], result =>
+                result === null ? suite.store.get( 'test', result => suite.assertEquals( { foo: 'bar', key: 'test' }, result ) ) : suite.failed( 'user-specific key exists' )
               )
-            )
+            };
+            suite.$.onFinish( suite.store.parent, { foo: 'bar' } );
           },
           'permissions': suite => {
-            suite.ccm.instance( 'https://akless.github.io/ccm-components/user/versions/ccm.user-2.0.0.js', user =>
-              suite.$.onFinish(
-                {
-                  user: user,
-                  onfinish: {
-                    login: true,
-                    store: { settings: suite.settings, key: 'test', permissions: 'foo' },
-                    callback: () => suite.store.get( 'test', result => suite.assertEquals( { key: 'test', _: 'foo' }, result ) )
-                  }
-                },
-                {}
-              )
-            )
+            suite.store.parent.onfinish = {
+              store: { settings: suite.settings, key: 'test', permissions: 'baz' },
+              callback: () => suite.store.get( 'test', result => suite.assertEquals( { foo: 'bar', key: 'test', '_': 'baz' }, result ) )
+            };
+            suite.$.onFinish( suite.store.parent, { foo: 'bar' } );
           }
         },
-        finally: ( suite, callback ) => {
-          suite.store.del( 'test', () => {
-            suite.store.del( [ 'guest', 'test' ], () => {
-              callback()
-            } )
-          } )
-        }
+        finally: ( suite, callback ) => suite.store.del( 'test', () => suite.store.del( [ 'guest', 'test' ], callback ) )
       }
     },
     privatize: {
