@@ -1458,7 +1458,7 @@
 
                   case 'ccm.store':
                     counter++;
-                    action[ 2 ].parent = instance;
+                    action[ 1 ].parent = instance;
                     self.store( action[ 1 ], setResult );
                     break;
 
