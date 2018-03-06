@@ -2006,7 +2006,7 @@
         settings = self.helper.clone( settings );
 
         // the first parameter contains the dataset directly? => abort and perform callback with dataset
-        if ( !settings.store ) return callback( settings );
+        if ( !settings || !settings.store ) return callback( settings );
 
         // key is given as second parameter? => move it to settings
         if ( self.helper.isKey( callback ) ) { settings.key = key; callback = arguments[ 2 ]; }
