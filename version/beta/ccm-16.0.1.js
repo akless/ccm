@@ -18,6 +18,7 @@
  * - only data dependencies are solved in results of store.get() calls
  * - result of store.set() and store.del() calls is TRUE on success (not the dataset)
  * - datastore objects have a 'parent' property (they are now part of ccm contexts)
+ * - datastores are sending 'get', 'set', 'del' instead of 'key', 'dataset', 'del' to server interface
  * - user token from the highest ccm user instance is automatically passed on data operations (get, set, del)
  * - queries and datastore settings passed as parameters will be cloned
  * - add ccm.helper.log(*) -> logs a ccm-specific message in the browser console
@@ -286,7 +287,7 @@
       /** requests dataset(s) from server-side database */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { key: key_or_query } ), response => !checkResponse( response ) && solveDependencies( response, callback ) );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => !checkResponse( response ) && solveDependencies( response, callback ) );
 
       }
 
@@ -400,7 +401,7 @@
        */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { dataset: priodata } ), response => !checkResponse( response ) && response === true && callback && callback() );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { set: priodata } ), response => !checkResponse( response ) && response === true && callback && callback() );
 
       }
 
