@@ -401,7 +401,7 @@
 
         ( my.socket ? useWebsocket : useHttp )( prepareParams( { set: priodata } ), response => {
           response = receiveResponse( response );
-          response === true && callback && callback();
+          response === true && callback && callback( response );
         } );
 
       }
@@ -440,7 +440,7 @@
 
         ( my.socket ? useWebsocket : useHttp )( prepareParams( { del: key } ), response => {
           response = receiveResponse( response );
-          response === true && callback && callback();
+          response === true && callback && callback( response );
         } );
 
       }
@@ -503,13 +503,12 @@
      */
     function receiveResponse( response ) {
 
-      try {
-        response = JSON.parse( response );
-      }
-      catch ( err ) {
+      if ( response === undefined )
+        self.helper.log( 'Server', my.url, 'has sent no response' );
+      else if ( typeof response === 'string' )
         self.helper.log( 'Server', my.url, 'has sent an error message:', response );
-      }
-      return response;
+      else
+        return response;
 
     }
 
@@ -3245,7 +3244,7 @@
         switch ( index ) {
           case 'filename': return /^ccm\.([a-z][a-z0-9_]*)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/;
           case 'key':      return /^[a-zA-Z0-9_\-]+$/;
-          case 'json':     return /^({.*})|(\[.*])$/;
+          case 'json':     return /^({.*})|(\[.*])|true|false|null$/;
         }
 
       },
