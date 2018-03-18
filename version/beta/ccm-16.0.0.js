@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version 16.0.0
  * @changes
- * version 16.0.0 (05.03.2018): update service for ccm data management
+ * version 16.0.0 (18.03.2018): update service for ccm data management
  * - uses ES6 syntax
  * - no caching on higher data levels
  * - datastore settings are not optional
@@ -23,6 +23,9 @@
  * - character '-' is allowed in ccm dataset keys
  * - add ccm.helper.isDatastoreSettings(*):boolean -> checks if the value is datastore settings
  * - ccm.helper.onfinish uses highest ccm user instance
+ * - bugfix for HTML attribute readonly in ccm.helper.html
+ * - update help functions 'dataset', 'isDatastore' and 'isKey'
+ * - help functions 'fillForm' and 'formData' support any element with a name attribute (not just input fields)
  * (for older version changes see ccm-15.0.2.js)
  */
 
@@ -195,16 +198,13 @@
             message = JSON.parse( message.data );
 
             // own request? => perform callback
-            if ( message.callback ) callbacks[ message.callback - 1 ]( message.data );
+            if ( message.callback ) callbacks[ message.callback - 1 ]( message );
 
             // notification about changed data from other client?
             else {
 
-              // change data locally
-              const dataset = ( self.helper.isObject( message ) ? updateLocal : delLocal )( message );
-
               // perform change callback
-              that.onchange && that.onchange( dataset );
+              that.onchange && that.onchange( message );
 
             }
 
@@ -241,7 +241,7 @@
       if ( self.helper.isObject( key_or_query ) ) key_or_query = self.helper.clone( key_or_query );
 
       // has an invalid key been passed? => abort and perform callback without a result
-      else if ( !self.helper.isKey( key_or_query ) ) return null;
+      else if ( !self.helper.isKey( key_or_query ) ) { self.helper.log( 'This value is not a valid dataset key:', key_or_query ); return null; }
 
       // detect managed data level
       my.url ? serverDB() : ( my.store ? clientDB() : localCache() );
@@ -282,7 +282,10 @@
       /** requests dataset(s) from server-side database */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => !checkResponse( response ) && solveDependencies( response, callback ) );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => {
+          response = receiveResponse( response );
+          typeof response === 'object' && solveDependencies( response, callback );
+        } );
 
       }
 
@@ -364,7 +367,7 @@
       if ( !priodata.key ) priodata.key = self.helper.generateKey();
 
       // priority data does not contain a valid key? => abort
-      if ( !self.helper.isKey( priodata.key ) ) return;
+      if ( !self.helper.isKey( priodata.key ) ) return self.helper.log( 'This value is not a valid dataset key:', priodata.key );
 
       // detect managed data level
       my.url ? serverDB() : ( my.store ? clientDB() : localCache() );
@@ -396,7 +399,10 @@
        */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { set: priodata } ), response => !checkResponse( response ) && response === true && callback && callback() );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { set: priodata } ), response => {
+          response = receiveResponse( response );
+          response === true && callback && callback();
+        } );
 
       }
 
@@ -410,7 +416,7 @@
     this.del = ( key, callback ) => {
 
       // invalid key? => abort
-      if ( !self.helper.isKey( key ) ) return;
+      if ( !self.helper.isKey( key ) ) return self.helper.log( 'This value is not a valid dataset key:', key );
 
       // detect managed data level
       my.url ? serverDB() : ( my.store ? clientDB() : localCache() );
@@ -432,7 +438,10 @@
       /** deletes dataset in server-side database */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { del: key } ), response => !checkResponse( response ) && response === true && callback && callback() );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { del: key } ), response => {
+          response = receiveResponse( response );
+          response === true && callback && callback();
+        } );
 
       }
 
@@ -488,13 +497,19 @@
     }
 
     /**
-     * checks server response
+     * receives and checks server response
      * @param {*} [response] - server response
-     * @returns {boolean} recommendation to abort processing
+     * @returns {*} received server response
      */
-    function checkResponse( response ) {
+    function receiveResponse( response ) {
 
-      return typeof response === 'string' ? !self.helper.log( 'Server', my.url, 'has sent an error message:', response ) : false;
+      try {
+        response = JSON.parse( response );
+      }
+      catch ( err ) {
+        self.helper.log( 'Server', my.url, 'has sent an error message:', response );
+      }
+      return response;
 
     }
 
@@ -562,7 +577,7 @@
      * version number of the framework
      * @returns {ccm.types.version}
      */
-    version: () => '16.0.0',
+    version: () => '16.1.0',
 
     /** clears the cache of already loaded resources */
     clear: () => { cache = {}; },
@@ -1988,32 +2003,48 @@
 
       },
 
-      dataset: ( store, key, callback ) => {
-        let user;
-        if ( typeof key === 'function' ) {
-          callback = key;
-          if ( store.store ) {
-            key = store.key;
-            store = store.store;
-            user = store.user;
-          }
-          else return callback( store );
-        }
-        if ( self.helper.isInstance( user ) ) user.login( proceed ); else proceed();
-        function proceed() {
-          if ( !key ) key = self.helper.generateKey();
-          if ( self.helper.isInstance( user ) ) key = [ instance.user.data().id, key ];
-          store.get( key, dataset => {
-            callback( dataset === null ? { key: key } : dataset );
-          } );
-        }
-      },
+      /**
+       * delivers a dataset in different ways
+       * @param {{store:ccm.Datastore,key:ccm.types.key,login:boolean,user:boolean}|ccm.Datastore|ccm.types.dataset} settings - contains the required data to determine the dataset
+       * @param {function} callback - gets the result as first parameter
+       */
+      dataset: function ( settings, callback ) {
 
-      /*
-      // prepare dataset key
-      if ( settings.store.key && !dataset.key ) dataset.key = settings.store.key;
-      if ( settings.store.user && instance.user && instance.user.isLoggedIn() ) dataset.key = [ instance.user.data().id, dataset.key || self.helper.generateKey() ];
-      */
+        // first parameter is a datastore? => move it to settings
+        if ( self.helper.isDatastore( settings ) ) settings = { store: settings };
+
+        // clone given settings
+        settings = self.helper.clone( settings );
+
+        // the first parameter contains the dataset directly? => abort and perform callback with dataset
+        if ( !settings || !settings.store ) return callback( settings );
+
+        // key is given as second parameter? => move it to settings
+        if ( self.helper.isKey( callback ) ) { settings.key = key; callback = arguments[ 2 ]; }
+
+        // no dataset key? => generate a unique key
+        if ( !settings.key ) settings.key = self.helper.generateKey();
+
+        /**
+         * highest user instance in the ccm context of the datastore
+         * @type {ccm.types.instance}
+         */
+        const user = self.context.find( settings.store, 'user' );
+
+        // has user instance and user should log in ? => login user (if not logged in)
+        user && settings.login ? user.login( proceed ) : proceed();
+
+        function proceed() {
+
+          // should a user-specific dataset be determined? => use user-specific key
+          if ( user && settings.user && user.isLoggedIn() ) settings.key = [ user.data().id, settings.key ];
+
+          // request dataset from datastore
+          settings.store.get( settings.key, dataset => callback( dataset === null ? { key: settings.key } : dataset ) );
+
+        }
+
+      },
 
       decode: function ( obj ) {
 
@@ -2151,6 +2182,8 @@
                   option.selected = true;
               } );
             }
+            else if ( input.value === undefined )
+              input.innerHTML = data[ key ];
             else
               input.value = data[ key ];
           } );
@@ -2276,10 +2309,10 @@
             if ( isNaN( value ) ) value = '';
             data[ input.name ] = value;
           }
-          else if ( !input.value )
-            data[ input.name ] = '';
-          else
+          else if ( input.value !== undefined )
             data[ input.name ] = input.value;
+          else
+            data[ input.getAttribute( 'name' ) ] = input.innerHTML;
           try {
             if ( typeof data[ input.name ] === 'string' && self.helper.regex( 'json' ).test( data[ input.name ] ) )
               data[ input.name ] = self.helper.decode( data[ input.name ] );
@@ -2554,10 +2587,12 @@
             case 'disabled':
             case 'ismap':
             case 'multiple':
-            case 'readonly':
             case 'required':
             case 'selected':
               if ( value ) element[ key ] = true;
+              break;
+            case 'readonly':
+              if ( value ) element.readOnly = true;
               break;
 
             // inner HTML
@@ -2666,29 +2701,21 @@
       },
 
       /**
-       * check value for <i>ccm</i> dataset
+       * checks if a value is a ccm dataset
        * @param {*} value - value to check
        * @returns {boolean}
        */
-      isDataset: function ( value ) {
-
-        return self.helper.isObject( value );
-
-      },
+      isDataset: value => self.helper.isObject( value ) && self.helper.isKey( value.key ),
 
       /**
-       * check value for <i>ccm</i> datastore
+       * checks if a value is a ccm datastore object
        * @param {*} value - value to check
        * @returns {boolean}
        */
-      isDatastore: function ( value ) {
-
-        return self.helper.isObject( value ) && value.get && value.set && value.del && true;
-
-      },
+      isDatastore: value => self.helper.isObject( value ) && value.get && value.set && value.del && true,
 
       /**
-       * checks if the value is datastore settings
+       * checks if a value is a ccm datastore settings object
        * @param {*} value - value to check
        * @returns {boolean}
        */
@@ -2773,32 +2800,18 @@
       isKey: value => {
 
         // value is a string? => check if it is an valid key
-        if ( typeof value === 'string' ) {
-          if ( !self.helper.regex( 'key' ).test( value ) )
-            return invalid();
-        }
+        if ( typeof value === 'string' ) return self.helper.regex( 'key' ).test( value );
 
         // value is an array? => check if it is an valid array key
-        else if ( Array.isArray( value ) ) {
+        if ( Array.isArray( value ) ) {
           for ( let i = 0; i < value.length; i++ )
             if ( !self.helper.regex( 'key' ).test( value[ i ] ) )
-              return invalid();
+              return false;
+          return true;
         }
 
-        // value is not a dataset key? => value is invalid
-        else invalid();
-
-        // value is a valid dataset key
-        return true;
-
-        /**
-         * logs in the browser console that the value is invalid
-         * @returns {boolean}
-         */
-        function invalid() {
-          self.helper.log( 'This value is not a valid dataset key:', value );
-          return false;
-        }
+        // value is not a dataset key? => not valid
+        return false;
 
       },
 

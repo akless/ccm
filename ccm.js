@@ -2,18 +2,9 @@
  * @overview ccm framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (16.1.0)
+ * @version latest (16.0.0)
  * @changes
- * version 16.1.0 (08.03.2018):
- * - help functions 'fillForm' and 'formData' support any element with a name attribute (not just input fields)
- * version 16.0.2 (08.03.2018):
- * - bugfix for HTML attribute readonly in ccm.helper.html
- * version 16.0.1 (06.03.2018)
- * - update ccm.helper.dataset
- * - update ccm.helper.isDataset
- * - update ccm.helper.isDatastore
- * - update ccm.helper.isKey
- * version 16.0.0 (05.03.2018): update service for ccm data management
+ * version 16.0.0 (18.03.2018): update service for ccm data management
  * - uses ES6 syntax
  * - no caching on higher data levels
  * - datastore settings are not optional
@@ -32,6 +23,9 @@
  * - character '-' is allowed in ccm dataset keys
  * - add ccm.helper.isDatastoreSettings(*):boolean -> checks if the value is datastore settings
  * - ccm.helper.onfinish uses highest ccm user instance
+ * - bugfix for HTML attribute readonly in ccm.helper.html
+ * - update help functions 'dataset', 'isDatastore' and 'isKey'
+ * - help functions 'fillForm' and 'formData' support any element with a name attribute (not just input fields)
  * (for older version changes see ccm-15.0.2.js)
  */
 
@@ -288,7 +282,10 @@
       /** requests dataset(s) from server-side database */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => !checkResponse( response ) && solveDependencies( response, callback ) );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => {
+          response = receiveResponse( response );
+          typeof response === 'object' && solveDependencies( response, callback );
+        } );
 
       }
 
@@ -402,7 +399,10 @@
        */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { set: priodata } ), response => !checkResponse( response ) && response === true && callback && callback() );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { set: priodata } ), response => {
+          response = receiveResponse( response );
+          response === true && callback && callback();
+        } );
 
       }
 
@@ -438,7 +438,10 @@
       /** deletes dataset in server-side database */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { del: key } ), response => !checkResponse( response ) && response === true && callback && callback() );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { del: key } ), response => {
+          response = receiveResponse( response );
+          response === true && callback && callback();
+        } );
 
       }
 
@@ -494,13 +497,19 @@
     }
 
     /**
-     * checks server response
+     * receives and checks server response
      * @param {*} [response] - server response
-     * @returns {boolean} recommendation to abort processing
+     * @returns {*} received server response
      */
-    function checkResponse( response ) {
+    function receiveResponse( response ) {
 
-      return typeof response === 'string' ? !self.helper.log( 'Server', my.url, 'has sent an error message:', response ) : false;
+      try {
+        response = JSON.parse( response );
+      }
+      catch ( err ) {
+        self.helper.log( 'Server', my.url, 'has sent an error message:', response );
+      }
+      return response;
 
     }
 
