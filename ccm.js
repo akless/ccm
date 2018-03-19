@@ -1429,13 +1429,8 @@
                       && 'content' in document.createElement( 'template' ) ) {
                       // platform is good!
                       proceed();
-                    } else {
-                      self.load( {
-                        url: 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.0.14/webcomponents-lite.js',
-                        integrity: 'sha384-TTXH4zkR6Kx22xssZjsMANEJr+byWdSVr/CwNZyegnManSjJsugFZC/SJzGWARHw',
-                        crossorigin: 'anonymous'
-                      }, proceed );
-                    }
+                    } else
+                      self.load( 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.1.0/webcomponents-lite.js', proceed );
 
                     function proceed() {
 
@@ -1457,7 +1452,7 @@
                       document.body.appendChild( polymer );
 
                       link.onload = () => {
-                        document.head.removeChild( link );
+                  //    document.head.removeChild( link );
                         const element = document.createElement( 'div' );
                         element.appendChild( polymer );
                         [ ...document.head.querySelectorAll( '[scope^=' + name + ']' ) ].map( child => element.appendChild( child ) );
