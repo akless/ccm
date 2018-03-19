@@ -1423,24 +1423,41 @@
                   case 'ccm.polymer':
                     counter++;
 
-                    const url = action[ 1 ];
-                    const name = url.split( '/' ).pop().split( '.' ).shift();
-                    const config = action[ 2 ];
+                    // no HTML Import support? => load polyfill
+                    if ( !( 'import' in document.createElement( 'link' ) ) ) self.load( {
+                      url: 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.0.14/webcomponents-lite.js',
+                      integrity: 'sha384-TTXH4zkR6Kx22xssZjsMANEJr+byWdSVr/CwNZyegnManSjJsugFZC/SJzGWARHw',
+                      crossorigin: 'anonymous'
+                    }, proceed ); else proceed();
 
-                    const link = self.helper.html( { tag: 'link', rel: 'import', href: url } );
-                    const polymer = document.createElement( name );
-                    for ( const key in config )
-                      polymer.setAttribute( key, config[ key ] );
-                    document.head.appendChild( link );
-                    document.body.appendChild( polymer );
+                    function proceed() {
 
-                    link.onload = () => {
-                      document.head.removeChild( link );
-                      const element = document.createElement( 'div' );
-                      element.appendChild( polymer );
-                      [ ...document.head.querySelectorAll( '[scope^=' + name + ']' ) ].map( child => element.appendChild( child ) );
-                      setResult( element );
-                    };
+                      const url = action[ 1 ];
+                      const name = url.split( '/' ).pop().split( '.' ).shift();
+                      let config = action[ 2 ];
+                      if ( !config ) {
+                        config = {};
+                        for ( const key in result )
+                          if ( typeof result[ key ] === 'string' )
+                            config[ key ] = result[ key ];
+                      }
+
+                      const link = self.helper.html( { tag: 'link', rel: 'import', href: url } );
+                      const polymer = document.createElement( name );
+                      for ( const key in config )
+                        polymer.setAttribute( key, config[ key ] );
+                      document.head.appendChild( link );
+                      document.body.appendChild( polymer );
+
+                      link.onload = () => {
+                        document.head.removeChild( link );
+                        const element = document.createElement( 'div' );
+                        element.appendChild( polymer );
+                        [ ...document.head.querySelectorAll( '[scope^=' + name + ']' ) ].map( child => element.appendChild( child ) );
+                        setResult( element );
+                      };
+
+                    }
                     break;
 
                   case 'ccm.module':
