@@ -1428,14 +1428,14 @@
                     const polymer = document.createElement( name );
                     for ( const key in config )
                       polymer.setAttribute( key, config[ key ] );
-                    document.body.appendChild( link );
+                    document.head.appendChild( link );
                     document.body.appendChild( polymer );
                     const element = document.createElement( 'div' );
-                    element.appendChild( link );
-                    element.appendChild( polymer );
-                    [ ...document.head.querySelectorAll( '[scope^=' + name + ']' ) ].map( child => element.appendChild( child ) );
+                    //element.appendChild( link );
+                    //element.appendChild( polymer );
+                    //[ ...document.head.querySelectorAll( '[scope^=' + name + ']' ) ].map( child => element.appendChild( child ) );
                     setResult( element );
-                    console.log( url, name, config, element );
+                    //console.log( url, name, config, element );
                     break;
 
                   case 'ccm.module':
