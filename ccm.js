@@ -4,14 +4,15 @@
  * @license The MIT License (MIT)
  * @version latest (16.0.0)
  * @changes
- * version 16.0.0 (18.03.2018): update service for ccm data management
+ * version 16.0.0 (19.03.2018): update service for ccm data management
  * - uses ES6 syntax
  * - no caching on higher data levels
  * - datastore settings are not optional
  * - code refactoring
  * - working with datastores is always with callbacks (no return values)
  * - only data dependencies are solved in results of store.get() calls
- * - result of store.set() and store.del() calls is TRUE on success (not the dataset)
+ * - result of store.set() calls is the dataset key on success (not the hole dataset)
+ * - result of store.del() calls is TRUE on success (not the dataset)
  * - datastore objects have a 'parent' property (they are now part of ccm contexts)
  * - datastores are sending 'get', 'set', 'del' instead of 'key', 'dataset', 'del' to server interface
  * - user token from the highest ccm user instance is automatically passed on data operations (get, set, del)
@@ -282,10 +283,7 @@
       /** requests dataset(s) from server-side database */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => {
-          response = receiveResponse( response );
-          typeof response === 'object' && solveDependencies( response, callback );
-        } );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => typeof response === 'object' && solveDependencies( response, callback ) );
 
       }
 
@@ -399,10 +397,7 @@
        */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { set: priodata } ), response => {
-          response = receiveResponse( response );
-          response === true && callback && callback( response );
-        } );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { set: priodata } ), response => self.helper.isKey( response ) && callback && callback( response ) );
 
       }
 
@@ -438,10 +433,7 @@
       /** deletes dataset in server-side database */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { del: key } ), response => {
-          response = receiveResponse( response );
-          response === true && callback && callback( response );
-        } );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { del: key } ), response => response === true && callback && callback( response ) );
 
       }
 
@@ -493,22 +485,6 @@
     function useHttp( params, callback ) {
 
       self.load( { url: my.url, params: params, method: my.method }, callback );
-
-    }
-
-    /**
-     * receives and checks server response
-     * @param {*} [response] - server response
-     * @returns {*} received server response
-     */
-    function receiveResponse( response ) {
-
-      if ( response === undefined )
-        self.helper.log( 'Server', my.url, 'has sent no response' );
-      else if ( typeof response === 'string' )
-        self.helper.log( 'Server', my.url, 'has sent an error message:', response );
-      else
-        return response;
 
     }
 
@@ -1441,6 +1417,28 @@
                     action.shift();
                     setContext( action );
                     action.push( setResult ); self.load.apply( null, action );
+                    break;
+
+                  // [ "ccm.polymer", "url", { ... } ]
+                  case 'ccm.polymer':
+                    const url = action[ 1 ];
+                    const name = url.split( '/' ).pop().split( '.' ).shift();
+                    const config = action[ 2 ];
+                    const link = self.helper.html( {
+                      tag: 'link',
+                      rel: 'import',
+                      href: url
+                    } );
+                    const polymer = document.createElement( name );
+                    for ( const key in config )
+                      polymer.setAttribute( 'key', config[ key ] );
+                    document.head.appendChild( link );
+                    document.head.appendChild( polymer );
+                    const element = document.createElement( 'div' );
+                    element.appendChild( link );
+                    element.appendChild( polymer );
+                    setResult( element );
+                    console.log( url, name, config, element );
                     break;
 
                   case 'ccm.module':
