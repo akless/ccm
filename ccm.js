@@ -2731,6 +2731,8 @@
        * @example [ ccm.get, ... ]
        * @example [ ccm.set, ... ]
        * @example [ ccm.del, ... ]
+       * @example [ ccm.module, ... ]
+       * @example [ ccm.polymer, ... ]
        */
       isDependency: function ( value ) {
 
@@ -2738,7 +2740,6 @@
           if ( value.length > 0 )
             switch ( value[ 0 ] ) {
               case 'ccm.load':
-              case 'ccm.module':
               case 'ccm.component':
               case 'ccm.instance':
               case 'ccm.proxy':
@@ -2747,6 +2748,8 @@
               case 'ccm.get':
               case 'ccm.set':
               case 'ccm.del':
+              case 'ccm.module':
+              case 'ccm.polymer':
                 return true;
             }
 
