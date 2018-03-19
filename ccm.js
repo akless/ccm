@@ -243,7 +243,7 @@
       if ( self.helper.isObject( key_or_query ) ) key_or_query = self.helper.clone( key_or_query );
 
       // has an invalid key been passed? => abort and perform callback without a result
-      else if ( !self.helper.isKey( key_or_query ) ) { self.helper.log( 'This value is not a valid dataset key:', key_or_query ); return null; }
+      else if ( !self.helper.isKey( key_or_query ) && !( my.url && key_or_query === '{}' ) ) { self.helper.log( 'This value is not a valid dataset key:', key_or_query ); return null; }
 
       // detect managed data level
       my.url ? serverDB() : ( my.store ? clientDB() : localCache() );
