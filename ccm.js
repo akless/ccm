@@ -1430,7 +1430,7 @@
                     for ( const key in config )
                       polymer.setAttribute( key, config[ key ] );
                     document.head.appendChild( link );
-                    document.head.appendChild( polymer );
+                    document.body.appendChild( polymer );
                     const element = document.createElement( 'div' );
                     //element.appendChild( link );
                     element.appendChild( polymer );
