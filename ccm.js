@@ -1435,7 +1435,7 @@
                     document.body.appendChild( polymer );
 
                     link.onload = () => {
-                      console.log('loaded!');
+                      document.head.removeChild( link );
                       const element = document.createElement( 'div' );
                       element.appendChild( polymer );
                       [ ...document.head.querySelectorAll( '[scope^=' + name + ']' ) ].map( child => element.appendChild( child ) );
