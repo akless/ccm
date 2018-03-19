@@ -1432,7 +1432,7 @@
                     document.head.appendChild( link );
                     document.head.appendChild( polymer );
                     const element = document.createElement( 'div' );
-                    element.appendChild( link );
+                    //element.appendChild( link );
                     element.appendChild( polymer );
                     [ ...document.head.querySelectorAll( '[scope^=' + name + ']' ) ].map( child => element.appendChild( child ) );
                     setResult( element );
