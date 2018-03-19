@@ -1432,6 +1432,7 @@
                     for ( const key in config )
                       polymer.setAttribute( key, config[ key ] );
                     document.head.appendChild( link );
+                    document.body.appendChild( polymer );
 
                     link.onload = () => {
                       console.log('loaded!');
