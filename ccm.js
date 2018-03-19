@@ -1423,6 +1423,7 @@
                   case 'ccm.polymer':
                     counter++;
 
+                    /*
                     // no HTML Import support? => load polyfill
                     if ( 'registerElement' in document
                       && 'import' in document.createElement( 'link' )
@@ -1431,6 +1432,8 @@
                       proceed();
                     } else
                       self.load( 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.1.0/webcomponents-lite.js', proceed );
+                    */
+                    proceed();
 
                     function proceed() {
 
