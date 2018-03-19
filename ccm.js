@@ -1431,7 +1431,7 @@
                     } );
                     const polymer = document.createElement( name );
                     for ( const key in config )
-                      polymer.setAttribute( 'key', config[ key ] );
+                      polymer.setAttribute( key, config[ key ] );
                     document.head.appendChild( link );
                     document.head.appendChild( polymer );
                     const element = document.createElement( 'div' );
