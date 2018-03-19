@@ -1424,11 +1424,18 @@
                     counter++;
 
                     // no HTML Import support? => load polyfill
-                    if ( !( 'import' in document.createElement( 'link' ) ) ) self.load( {
-                      url: 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.0.14/webcomponents-lite.js',
-                      integrity: 'sha384-TTXH4zkR6Kx22xssZjsMANEJr+byWdSVr/CwNZyegnManSjJsugFZC/SJzGWARHw',
-                      crossorigin: 'anonymous'
-                    }, proceed ); else proceed();
+                    if ( 'registerElement' in document
+                      && 'import' in document.createElement( 'link' )
+                      && 'content' in document.createElement( 'template' ) ) {
+                      // platform is good!
+                      proceed();
+                    } else {
+                      self.load( {
+                        url: 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.0.14/webcomponents-lite.js',
+                        integrity: 'sha384-TTXH4zkR6Kx22xssZjsMANEJr+byWdSVr/CwNZyegnManSjJsugFZC/SJzGWARHw',
+                        crossorigin: 'anonymous'
+                      }, proceed );
+                    }
 
                     function proceed() {
 
