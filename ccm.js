@@ -1422,20 +1422,24 @@
                   // [ "ccm.polymer", "url", { ... } ]
                   case 'ccm.polymer':
                     counter++;
+
                     const url = action[ 1 ];
                     const name = url.split( '/' ).pop().split( '.' ).shift();
                     const config = action[ 2 ];
+
                     const link = self.helper.html( { tag: 'link', rel: 'import', href: url } );
                     const polymer = document.createElement( name );
                     for ( const key in config )
                       polymer.setAttribute( key, config[ key ] );
                     document.head.appendChild( link );
-                    document.body.appendChild( polymer );
-                    const element = document.createElement( 'div' );
-                    //element.appendChild( link );
-                    element.appendChild( polymer );
-                    [ ...document.head.querySelectorAll( '[scope^=' + name + ']' ) ].map( child => element.appendChild( child ) );
-                    setResult( element );
+
+                    link.onload = () => {
+                      console.log('loaded!');
+                      const element = document.createElement( 'div' );
+                      element.appendChild( polymer );
+                      [ ...document.head.querySelectorAll( '[scope^=' + name + ']' ) ].map( child => element.appendChild( child ) );
+                      setResult( element );
+                    };
                     break;
 
                   case 'ccm.module':
