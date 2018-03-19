@@ -296,7 +296,7 @@
       function solveDependencies( obj, callback ) {
 
         // no object passed? => abort and perform callback with NULL
-        if ( !self.helper.isObject( obj ) ) return callback( null );
+        if ( typeof obj !== 'object' ) return callback( null );
 
         /**
          * unfinished asynchronous operations
