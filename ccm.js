@@ -27,6 +27,7 @@
  * - bugfix for HTML attribute readonly in ccm.helper.html
  * - update help functions 'dataset', 'isDatastore' and 'isKey'
  * - help functions 'fillForm' and 'formData' support any element with a name attribute (not just input fields)
+ * - support of Polymer v2 web components
  * (for older version changes see ccm-15.0.2.js)
  */
 
