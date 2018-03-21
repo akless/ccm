@@ -3768,7 +3768,7 @@
         switch ( index ) {
           case 'filename': return /^ccm\.([a-z][a-z0-9_]*)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/;
           case 'key':      return /^[a-zA-Z_0-9]+$/;
-          case 'json':     return /^({.*})|(\[.*])$/;
+          case 'json':     return /^(({.*})|(\[.*]))$/;
         }
 
       },

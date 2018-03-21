@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (16.0.0)
  * @changes
- * version 16.0.0 (19.03.2018): update service for ccm data management
+ * version 16.0.0 (21.03.2018): update service for ccm data management
  * - uses ES6 syntax
  * - no caching on higher data levels
  * - datastore settings are not optional
@@ -3270,7 +3270,7 @@
         switch ( index ) {
           case 'filename': return /^ccm\.([a-z][a-z0-9_]*)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/;
           case 'key':      return /^[a-zA-Z0-9_\-]+$/;
-          case 'json':     return /^({.*})|(\[.*])|true|false|null$/;
+          case 'json':     return /^(({.*})|(\[.*])|true|false|null)$/;
         }
 
       },

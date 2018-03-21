@@ -2,16 +2,17 @@
  * @overview ccm framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version 16.0.0
+ * @version latest (16.0.0)
  * @changes
- * version 16.0.0 (18.03.2018): update service for ccm data management
+ * version 16.0.0 (21.03.2018): update service for ccm data management
  * - uses ES6 syntax
  * - no caching on higher data levels
  * - datastore settings are not optional
  * - code refactoring
  * - working with datastores is always with callbacks (no return values)
  * - only data dependencies are solved in results of store.get() calls
- * - result of store.set() and store.del() calls is TRUE on success (not the dataset)
+ * - result of store.set() calls is the dataset key on success (not the hole dataset)
+ * - result of store.del() calls is TRUE on success (not the dataset)
  * - datastore objects have a 'parent' property (they are now part of ccm contexts)
  * - datastores are sending 'get', 'set', 'del' instead of 'key', 'dataset', 'del' to server interface
  * - user token from the highest ccm user instance is automatically passed on data operations (get, set, del)
@@ -26,6 +27,7 @@
  * - bugfix for HTML attribute readonly in ccm.helper.html
  * - update help functions 'dataset', 'isDatastore' and 'isKey'
  * - help functions 'fillForm' and 'formData' support any element with a name attribute (not just input fields)
+ * - support of Polymer v2 web components
  * (for older version changes see ccm-15.0.2.js)
  */
 
@@ -241,7 +243,7 @@
       if ( self.helper.isObject( key_or_query ) ) key_or_query = self.helper.clone( key_or_query );
 
       // has an invalid key been passed? => abort and perform callback without a result
-      else if ( !self.helper.isKey( key_or_query ) ) { self.helper.log( 'This value is not a valid dataset key:', key_or_query ); return null; }
+      else if ( !self.helper.isKey( key_or_query ) && !( my.url && key_or_query === '{}' ) ) { self.helper.log( 'This value is not a valid dataset key:', key_or_query ); return null; }
 
       // detect managed data level
       my.url ? serverDB() : ( my.store ? clientDB() : localCache() );
@@ -282,10 +284,7 @@
       /** requests dataset(s) from server-side database */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => {
-          response = receiveResponse( response );
-          typeof response === 'object' && solveDependencies( response, callback );
-        } );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => typeof response === 'object' && solveDependencies( response, callback ) );
 
       }
 
@@ -297,7 +296,7 @@
       function solveDependencies( obj, callback ) {
 
         // no object passed? => abort and perform callback with NULL
-        if ( !self.helper.isObject( obj ) ) return callback( null );
+        if ( typeof obj !== 'object' ) return callback( null );
 
         /**
          * unfinished asynchronous operations
@@ -399,10 +398,7 @@
        */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { set: priodata } ), response => {
-          response = receiveResponse( response );
-          response === true && callback && callback();
-        } );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { set: priodata } ), response => self.helper.isKey( response ) && callback && callback( response ) );
 
       }
 
@@ -438,10 +434,7 @@
       /** deletes dataset in server-side database */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { del: key } ), response => {
-          response = receiveResponse( response );
-          response === true && callback && callback();
-        } );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { del: key } ), response => response === true && callback && callback( response ) );
 
       }
 
@@ -493,23 +486,6 @@
     function useHttp( params, callback ) {
 
       self.load( { url: my.url, params: params, method: my.method }, callback );
-
-    }
-
-    /**
-     * receives and checks server response
-     * @param {*} [response] - server response
-     * @returns {*} received server response
-     */
-    function receiveResponse( response ) {
-
-      try {
-        response = JSON.parse( response );
-      }
-      catch ( err ) {
-        self.helper.log( 'Server', my.url, 'has sent an error message:', response );
-      }
-      return response;
 
     }
 
@@ -1442,6 +1418,52 @@
                     action.shift();
                     setContext( action );
                     action.push( setResult ); self.load.apply( null, action );
+                    break;
+
+                  // [ "ccm.polymer", "url", { ... } ]
+                  case 'ccm.polymer':
+                    counter++;
+
+                    /*
+                    // no HTML Import support? => load polyfill
+                    if ( 'registerElement' in document
+                      && 'import' in document.createElement( 'link' )
+                      && 'content' in document.createElement( 'template' ) ) {
+                      // platform is good!
+                      proceed();
+                    } else
+                      self.load( 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.1.0/webcomponents-lite.js', proceed );
+                    */
+                    proceed();
+
+                    function proceed() {
+
+                      const url = action[ 1 ];
+                      const name = url.split( '/' ).pop().split( '.' ).shift();
+                      let config = action[ 2 ];
+                      if ( !config ) {
+                        config = {};
+                        for ( const key in result )
+                          if ( typeof result[ key ] === 'string' )
+                            config[ key ] = result[ key ];
+                      }
+
+                      const link = self.helper.html( { tag: 'link', rel: 'import', href: url } );
+                      const polymer = document.createElement( name );
+                      for ( const key in config )
+                        polymer.setAttribute( key, config[ key ] );
+                      document.head.appendChild( link );
+                      document.body.appendChild( polymer );
+
+                      link.onload = () => {
+                  //    document.head.removeChild( link );
+                        const element = document.createElement( 'div' );
+                        element.appendChild( polymer );
+                        [ ...document.head.querySelectorAll( '[scope^=' + name + ']' ) ].map( child => element.appendChild( child ) );
+                        setResult( element );
+                      };
+
+                    }
                     break;
 
                   case 'ccm.module':
@@ -2734,6 +2756,8 @@
        * @example [ ccm.get, ... ]
        * @example [ ccm.set, ... ]
        * @example [ ccm.del, ... ]
+       * @example [ ccm.module, ... ]
+       * @example [ ccm.polymer, ... ]
        */
       isDependency: function ( value ) {
 
@@ -2741,7 +2765,6 @@
           if ( value.length > 0 )
             switch ( value[ 0 ] ) {
               case 'ccm.load':
-              case 'ccm.module':
               case 'ccm.component':
               case 'ccm.instance':
               case 'ccm.proxy':
@@ -2750,6 +2773,8 @@
               case 'ccm.get':
               case 'ccm.set':
               case 'ccm.del':
+              case 'ccm.module':
+              case 'ccm.polymer':
                 return true;
             }
 
@@ -3245,7 +3270,7 @@
         switch ( index ) {
           case 'filename': return /^ccm\.([a-z][a-z0-9_]*)(-(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))?(\.min)?(\.js)$/;
           case 'key':      return /^[a-zA-Z0-9_\-]+$/;
-          case 'json':     return /^({.*})|(\[.*])$/;
+          case 'json':     return /^(({.*})|(\[.*])|true|false|null)$/;
         }
 
       },
