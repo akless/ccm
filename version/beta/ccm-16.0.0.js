@@ -2,9 +2,9 @@
  * @overview ccm framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (16.0.0)
+ * @version 16.0.0
  * @changes
- * version 16.0.0 (21.03.2018): update service for ccm data management
+ * version 16.0.0 (24.03.2018): update service for ccm data management
  * - uses ES6 syntax
  * - no caching on higher data levels
  * - datastore settings are not optional
@@ -191,7 +191,7 @@
             message = message.concat( my.datasets );
 
           // connect to server
-          my.socket = new WebSocket( my.url, 'ccm' );
+          my.socket = new WebSocket( my.url, 'ccm-cloud' );
 
           // set server notification callback
           my.socket.onmessage = message => {
@@ -200,7 +200,7 @@
             message = JSON.parse( message.data );
 
             // own request? => perform callback
-            if ( message.callback ) callbacks[ message.callback - 1 ]( message );
+            if ( message.callback ) callbacks[ message.callback - 1 ]( message.data );
 
             // notification about changed data from other client?
             else {
@@ -284,7 +284,7 @@
       /** requests dataset(s) from server-side database */
       function serverDB() {
 
-        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => typeof response === 'object' && solveDependencies( response, callback ) );
+        ( my.socket ? useWebsocket : useHttp )( prepareParams( { get: key_or_query } ), response => solveDependencies( response, callback ) );
 
       }
 
@@ -296,7 +296,7 @@
       function solveDependencies( obj, callback ) {
 
         // no object passed? => abort and perform callback with NULL
-        if ( typeof obj !== 'object' ) return callback( null );
+        if ( !self.helper.isObject( obj ) ) return callback( null );
 
         /**
          * unfinished asynchronous operations
