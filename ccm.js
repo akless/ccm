@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (16.0.0)
  * @changes
- * version 16.0.0 (24.03.2018): update service for ccm data management
+ * version 16.0.0 (31.03.2018): update service for ccm data management
  * - uses ES6 syntax
  * - no caching on higher data levels
  * - datastore settings are not optional
@@ -206,7 +206,7 @@
             else {
 
               // perform change callback
-              that.onchange && that.onchange( message );
+              that.onchange && that.onchange( message.data );
 
             }
 
@@ -289,14 +289,14 @@
       }
 
       /**
-       * solves all ccm data dependencies inside an object
-       * @param {Object} obj - object
+       * solves all ccm data dependencies inside a value
+       * @param {*} value - value
        * @param {function} callback - when all data dependencies are solved (first parameter is the object)
        */
-      function solveDependencies( obj, callback ) {
+      function solveDependencies( value, callback ) {
 
-        // no object passed? => abort and perform callback with NULL
-        if ( !self.helper.isObject( obj ) ) return callback( null );
+        // no array or object passed? => abort and perform callback with NULL
+        if ( !Array.isArray() && !self.helper.isObject() ) return callback( value );
 
         /**
          * unfinished asynchronous operations
@@ -304,7 +304,7 @@
          */
         let counter = 1;
 
-        recursive( obj );
+        recursive( value );
 
         function recursive( arr_or_obj ) {
 
@@ -344,7 +344,7 @@
         /** checks if all data dependencies are resolved and calls the callback, if so */
         function check() {
 
-          !--counter && callback && callback( obj );
+          !--counter && callback && callback( value );
 
         }
 
@@ -849,7 +849,7 @@
             const request = new XMLHttpRequest();
             request.open( resource.method, resource.method === 'GET' ? buildURL( resource.url, resource.params ) : resource.url, true );
             request.onreadystatechange = () => {
-              if( request.readyState === 4 && request.status === 200 )
+              if ( request.readyState === 4 && request.status === 200 )
                 successData( self.helper.regex( 'json' ).test( request.responseText ) ? JSON.parse( request.responseText ) : request.responseText );
             };
             request.send( resource.method === 'POST' ? JSON.stringify( resource.params ) : undefined );
