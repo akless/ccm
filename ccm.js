@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (16.0.0)
  * @changes
- * version 16.0.0 (31.03.2018): update service for ccm data management
+ * version 16.0.0 (06.04.2018): update service for ccm data management
  * - uses ES6 syntax
  * - no caching on higher data levels
  * - datastore settings are not optional
@@ -2059,7 +2059,7 @@
         function proceed() {
 
           // should a user-specific dataset be determined? => use user-specific key
-          if ( user && settings.user && user.isLoggedIn() ) settings.key = [ user.data().id, settings.key ];
+          if ( user && settings.user && user.isLoggedIn() ) settings.key = [ user.data().user, settings.key ];
 
           // request dataset from datastore
           settings.store.get( settings.key, dataset => callback( dataset === null ? { key: settings.key } : dataset ) );
@@ -3060,7 +3060,7 @@
 
             // prepare dataset key
             if ( settings.store.key && !dataset.key ) dataset.key = settings.store.key;
-            if ( settings.store.user && user && user.isLoggedIn() ) dataset.key = [ user.data().id, dataset.key || self.helper.generateKey() ];
+            if ( settings.store.user && user && user.isLoggedIn() ) dataset.key = [ user.data().user, dataset.key || self.helper.generateKey() ];
 
             // prepare permission settings
             if ( settings.store.permissions ) dataset._ = settings.store.permissions;
