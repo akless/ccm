@@ -2054,7 +2054,7 @@
          * highest user instance in the ccm context of the datastore
          * @type {ccm.types.instance}
          */
-        const user = self.context.find( settings.store, 'user' );
+        const user = self.context.find( settings.store, 'user' ) || settings.store.user;
 
         // has user instance and user should log in ? => login user (if not logged in)
         user && settings.login ? user.login( proceed ) : proceed();
