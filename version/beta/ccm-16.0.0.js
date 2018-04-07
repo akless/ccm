@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version 16.0.0
  * @changes
- * version 16.0.0 (06.04.2018): update service for ccm data management
+ * version 16.0.0 (07.04.2018): update service for ccm data management
  * - uses ES6 syntax
  * - no caching on higher data levels
  * - datastore settings are not optional
@@ -460,7 +460,10 @@
       if ( my.db ) params.db = my.db;
       params.store = my.store;
       const user = self.context.find( that, 'user' );
-      if ( user && user.isLoggedIn() ) params.token = user.data().token;
+      if ( user && user.isLoggedIn() ) {
+        params.realm = user.realm();
+        params.token = user.data().token;
+      }
       return params;
 
     }
