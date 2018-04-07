@@ -459,9 +459,9 @@
 
       if ( my.db ) params.db = my.db;
       params.store = my.store;
-      const user = self.context.find( that, 'user' );
+      const user = self.context.find( that, 'user' ) || that.user;
       if ( user && user.isLoggedIn() ) {
-        params.realm = user.realm();
+        params.realm = user.getRealm();
         params.token = user.data().token;
       }
       return params;
@@ -3067,6 +3067,9 @@
 
             // prepare permission settings
             if ( settings.store.permissions ) dataset._ = settings.store.permissions;
+
+            // set user instance for datastore
+            if ( user ) settings.store.settings.user = user;
 
             // store result data in datastore
             self.set( settings.store.settings, dataset, proceed );
