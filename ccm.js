@@ -4,7 +4,7 @@
  * @license The MIT License (MIT)
  * @version latest (16.0.0)
  * @changes
- * version 16.0.0 (07.04.2018): update service for ccm data management
+ * version 16.0.0 (08.04.2018): update service for ccm data management
  * - uses ES6 syntax
  * - no caching on higher data levels
  * - datastore settings are not optional
@@ -29,6 +29,7 @@
  * - help functions 'fillForm' and 'formData' support any element with a name attribute (not just input fields)
  * - support of Polymer v2 web components
  * - declarative onfinish supports alert message
+ * - updated ccm.context.find()
  * (for older version changes see ccm-15.0.2.js)
  */
 
@@ -460,7 +461,7 @@
 
       if ( my.db ) params.db = my.db;
       params.store = my.store;
-      const user = self.context.find( that, 'user' ) || that.user;
+      const user = self.context.find( that, 'user' );
       if ( user && user.isLoggedIn() ) {
         params.realm = user.getRealm();
         params.token = user.data().token;
@@ -1860,17 +1861,20 @@
     context: {
 
       /**
-       * @summary find parent instance by property
-       * @param {ccm.types.instance} instance - <i>ccm</i> instance (starting point)
-       * @param {string} property - instance property
-       * @returns {ccm.types.instance} highest result in current ccm context
+       * @summary finds nearest parent that has a specific property
+       * @param {ccm.types.instance} instance - starting point
+       * @param {string} property - name of specific property
+       * @param {boolean} not_me - exclude starting point and start with its parent
+       * @returns {ccm.types.instance} nearest parent
        */
-      find: function ( instance, property ) {
+      find: ( instance, property, not_me ) => {
 
-        var start = instance;
-        while ( instance = instance.parent )
-          if ( instance[ property ] && instance[ property ] !== start )
+        const start = instance;
+        if ( not_me ) instance = instance.parent;
+        do
+          if ( self.helper.isObject( instance ) && instance[ property ] !== undefined && instance[ property ] !== start )
             return instance[ property ];
+        while ( instance = instance.parent );
 
       },
 
@@ -2030,11 +2034,16 @@
       },
 
       /**
-       * delivers a dataset in different ways
-       * @param {{store:ccm.Datastore,key:ccm.types.key,login:boolean,user:boolean}|ccm.Datastore|ccm.types.dataset} settings - contains the required data to determine the dataset
-       * @param {function} callback - gets the result as first parameter
+       * delivers a dataset
+       * @param {Object} settings - contains required data to determine dataset
+       * @param {ccm.Datastore} settings.store - datastore that contains dataset
+       * @param {ccm.types.key} [settings.key] - key of dataset in datastore
+       * @param {boolean} [settings.login] - login user if not logged in user exists
+       * @param {boolean} [settings.user] - make a user-specific key out of the key (login is implicitly included)
+       * @param {function} callback - gets result as first parameter
+       * @example TODO examples
        */
-      dataset: function ( settings, callback ) {
+      dataset: ( settings, callback ) => {
 
         // first parameter is a datastore? => move it to settings
         if ( self.helper.isDatastore( settings ) ) settings = { store: settings };
@@ -2043,7 +2052,7 @@
         settings = self.helper.clone( settings );
 
         // the first parameter contains the dataset directly? => abort and perform callback with dataset
-        if ( !settings || !settings.store ) return callback( settings );
+        if ( !settings || !self.helper.isDatastore( settings.store ) ) return callback( settings );
 
         // key is given as second parameter? => move it to settings
         if ( self.helper.isKey( callback ) ) { settings.key = key; callback = arguments[ 2 ]; }
@@ -2052,13 +2061,13 @@
         if ( !settings.key ) settings.key = self.helper.generateKey();
 
         /**
-         * highest user instance in the ccm context of the datastore
+         * nearest user instance in ccm context of datastore
          * @type {ccm.types.instance}
          */
-        const user = self.context.find( settings.store, 'user' ) || settings.store.user;
+        const user = self.context.find( settings.store, 'user' );
 
         // has user instance and user should log in ? => login user (if not logged in)
-        user && settings.login ? user.login( proceed ) : proceed();
+        user && ( settings.login || settings.user ) ? user.login( proceed ) : proceed();
 
         function proceed() {
 
@@ -3038,10 +3047,10 @@
         if ( typeof settings === 'string' ) return this.executeByName( settings, [ instance, results ] );
 
         /**
-         * highest user instance in ccm context
+         * nearest user instance in ccm context
          * @type {ccm.types.instance}
          */
-        const user = instance.user || self.context.find( instance, 'user' );
+        const user = self.context.find( instance, 'user' );
 
         // has user instance? => login user (if not already logged in)
         if ( settings.login && user ) user.login( proceed ); else proceed();
