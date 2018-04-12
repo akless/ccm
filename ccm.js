@@ -2042,9 +2042,10 @@
        * @param {boolean} [settings.login] - login user if not logged in user exists
        * @param {boolean} [settings.user] - make a user-specific key out of the key (login is implicitly included)
        * @param {function} callback - gets result as first parameter
+       * @param {function} _
        * @example TODO examples
        */
-      dataset: ( settings, callback ) => {
+      dataset: ( settings, callback, _ ) => {
 
         // first parameter is a datastore? => move it to settings
         if ( self.helper.isDatastore( settings ) ) settings = { store: settings };
@@ -2056,7 +2057,7 @@
         if ( !settings || !self.helper.isDatastore( settings.store ) ) return callback( settings );
 
         // key is given as second parameter? => move it to settings
-        if ( self.helper.isKey( callback ) ) { settings.key = callback; callback = arguments[ 2 ]; }
+        if ( self.helper.isKey( callback ) ) { settings.key = callback; callback = _; }
 
         // no dataset key? => generate a unique key
         if ( !settings.key ) settings.key = self.helper.generateKey();
