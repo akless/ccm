@@ -2186,22 +2186,6 @@
       },
 
       /**
-       * unescapes HTML characters of a string value
-       * @param {string} value - string value
-       * @returns {string}
-       */
-      unescapeHTML: value => {
-
-        const temp = document.createElement( 'div' );
-        temp.innerHTML = value;
-        if ( temp.childNodes.length === 0 ) return '';
-        const result = temp.childNodes[0].nodeValue;
-        temp.removeChild( temp.firstChild );
-        return result;
-
-      },
-
-      /**
        * @summary perform function by function name
        * @param {string} functionName - function name
        * @param {Array} [args] - function arguments
@@ -2234,9 +2218,8 @@
         for ( const key in data ) {
           if ( !data[ key ] ) continue;
           if ( typeof data[ key ] === 'object' ) data[ key ] = self.helper.encode( data[ key ] );
+          if ( typeof data[ key ] === 'string' ) data[ key ] = self.helper.unescapeHTML( input.value );
           [ ...element.querySelectorAll( '[name="' + key + '"]' ) ].map( input => {
-            if ( typeof input.value === 'string' )
-              input.value = self.helper.unescapeHTML( input.value );
             if ( input.type === 'checkbox' ) {
               if ( typeof data[ key ] === 'string' && data[ key ].charAt( 0 ) === '[' )
                 self.helper.decode( data[ key ] ).map( value => { if ( value === input.value ) input.checked = true; } );
@@ -3488,6 +3471,22 @@
         var obj = {};
         arr.map( function ( value ) { obj[ value ] = true } );
         return obj;
+
+      },
+
+      /**
+       * unescapes HTML characters of a string value
+       * @param {string} value - string value
+       * @returns {string}
+       */
+      unescapeHTML: value => {
+
+        const temp = document.createElement( 'div' );
+        temp.innerHTML = value;
+        if ( temp.childNodes.length === 0 ) return '';
+        const result = temp.childNodes[0].nodeValue;
+        temp.removeChild( temp.firstChild );
+        return result;
 
       },
 
