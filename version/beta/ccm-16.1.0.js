@@ -2,7 +2,7 @@
  * @overview ccm framework
  * @author André Kless <andre.kless@web.de> 2014-2018
  * @license The MIT License (MIT)
- * @version latest (16.1.0)
+ * @version 16.1.0
  * @changes
  * version 16.1.0 (14.04.2018): ccm.helper.formData with integrated escaping of HTML characters
  * version 16.0.1 (12.04.2018): bugfix in ccm.helper.dataset
