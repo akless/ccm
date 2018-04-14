@@ -2218,7 +2218,7 @@
         for ( const key in data ) {
           if ( !data[ key ] ) continue;
           if ( typeof data[ key ] === 'object' ) data[ key ] = self.helper.encode( data[ key ] );
-          if ( typeof data[ key ] === 'string' ) data[ key ] = self.helper.unescapeHTML( input.value );
+          if ( typeof data[ key ] === 'string' ) data[ key ] = self.helper.unescapeHTML( data[ key ] );
           [ ...element.querySelectorAll( '[name="' + key + '"]' ) ].map( input => {
             if ( input.type === 'checkbox' ) {
               if ( typeof data[ key ] === 'string' && data[ key ].charAt( 0 ) === '[' )
