@@ -2194,7 +2194,7 @@
 
         const temp = document.createElement( 'div' );
         temp.innerHTML = value;
-        const result = temp.childNodes[0].nodeValue;
+        const result = temp.childNodes.length > 0 ? temp.childNodes[0].nodeValue : '';
         temp.removeChild( temp.firstChild );
         return result;
 
