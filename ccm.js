@@ -4,7 +4,9 @@
  * @license The MIT License (MIT)
  * @version latest (16.1.0)
  * @changes
- * version 16.1.0 (14.04.2018): ccm.helper.formData with integrated escaping of HTML characters
+ * version 16.1.0 (14.04.2018):
+ * - ccm.helper.formData with integrated escaping of HTML characters
+ * - ccm.helper.fillForm with integrated unescaping of HTML characters
  * version 16.0.1 (12.04.2018): bugfix in ccm.helper.dataset
  * version 16.0.0 (08.04.2018): update service for ccm data management
  * - uses ES6 syntax
@@ -2184,6 +2186,21 @@
       },
 
       /**
+       * unescapes HTML characters of a string value
+       * @param {string} value - string value
+       * @returns {string}
+       */
+      unescapeHTML: value => {
+
+        const temp = document.createElement( 'div' );
+        temp.innerHTML = value;
+        const result = temp.childNodes[0].nodeValue;
+        temp.removeChild( temp.firstChild );
+        return result;
+
+      },
+
+      /**
        * @summary perform function by function name
        * @param {string} functionName - function name
        * @param {Array} [args] - function arguments
@@ -2217,6 +2234,8 @@
           if ( !data[ key ] ) continue;
           if ( typeof data[ key ] === 'object' ) data[ key ] = self.helper.encode( data[ key ] );
           [ ...element.querySelectorAll( '[name="' + key + '"]' ) ].map( input => {
+            if ( typeof input.value === 'string' )
+              input.value = self.helper.unescapeHTML( input.value );
             if ( input.type === 'checkbox' ) {
               if ( typeof data[ key ] === 'string' && data[ key ].charAt( 0 ) === '[' )
                 self.helper.decode( data[ key ] ).map( value => { if ( value === input.value ) input.checked = true; } );
