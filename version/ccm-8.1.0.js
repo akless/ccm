@@ -1683,7 +1683,7 @@
           function proceed( cfg ) {
 
             // no Shadow DOM support? => load polyfill
-            if ( !document.head.attachShadow || !document.head.createShadowRoot ) self.load( 'https://akless.github.io/ccm/libs/shadydom.min.js', proceed ); else return proceed();
+            if ( !document.head.attachShadow || !document.head.createShadowRoot ) self.load( 'https://akless.github.io/ccm/libs/shadydom/shadydom.min.js', proceed ); else return proceed();
 
             function proceed() {
 
